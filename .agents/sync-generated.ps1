@@ -60,7 +60,9 @@ function Read-Lf([string]$path) {
 }
 
 function ConvertTo-LfJson($value) {
-    return ((($value | ConvertTo-Json -Depth 10) -replace "`r`n", "`n") + "`n")
+    $json = $value | ConvertTo-Json -Depth 10 -Compress
+    $json = $json.Replace('&', '\u0026').Replace("'", '\u0027').Replace('<', '\u003c').Replace('>', '\u003e')
+    return ($json + "`n")
 }
 
 # Kept to string trimming rather than [Path]::GetRelativePath / Resolve-Path -RelativeBasePath: both
