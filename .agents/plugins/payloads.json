@@ -1,0 +1,8 @@
+{
+  "description": "Generic C++ standards plus an independently installable GCC/Linux toolchain layer for Claude Code and Codex.",
+  "payloads": {
+    "cpp-standards": ["cpp"],
+    "gpp-standards": ["gpp"]
+  },
+  "hooks": "cpp-standards"
+}

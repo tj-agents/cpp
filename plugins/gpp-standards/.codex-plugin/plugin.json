@@ -1,0 +1,23 @@
+{
+  "name": "gpp-standards",
+  "version": "0.1.0",
+  "description": "The GCC, g++, gdb, and Linux delta layered on Tommy's generic C++ standards.",
+  "author": {
+    "name": "Tommy Seery",
+    "url": "https://github.com/tomjseery"
+  },
+  "repository": "https://github.com/tomjseery/cpp-agents",
+  "keywords": ["standards", "cpp", "gcc", "gpp", "gdb", "linux"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "GCC/Linux C++ Standards",
+    "shortDescription": "GCC and Linux conventions layered on C++.",
+    "longDescription": "The toolchain-specific GCC, g++, gdb, and Linux guidance for note-cli and other portable or Linux-native C++ work.",
+    "developerName": "Tommy Seery",
+    "category": "Productivity",
+    "capabilities": ["Instructions"],
+    "defaultPrompt": [
+      "Review this GCC/Linux C++ change."
+    ]
+  }
+}

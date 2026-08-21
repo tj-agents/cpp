@@ -1,0 +1,17 @@
+{
+  "name": "cpp-agents",
+  "description": "Generic C++ standards plus an independently installable GCC/Linux toolchain layer for Claude Code and Codex.",
+  "owner": {
+    "name": "Tommy Seery"
+  },
+  "plugins": [
+    {
+      "name": "cpp-standards",
+      "source": "./plugins/cpp-standards"
+    },
+    {
+      "name": "gpp-standards",
+      "source": "./plugins/gpp-standards"
+    }
+  ]
+}

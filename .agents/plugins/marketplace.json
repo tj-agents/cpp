@@ -1,0 +1,32 @@
+{
+  "name": "cpp-agents",
+  "interface": {
+    "displayName": "Cpp Agents"
+  },
+  "plugins": [
+    {
+      "name": "cpp-standards",
+      "source": {
+        "source": "local",
+        "path": "./plugins/cpp-standards"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "gpp-standards",
+      "source": {
+        "source": "local",
+        "path": "./plugins/gpp-standards"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

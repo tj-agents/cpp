@@ -1,0 +1,24 @@
+{
+  "name": "cpp-standards",
+  "version": "0.1.0",
+  "description": "Generic C++ coding, library, learning, and knowledge standards for Tommy's projects.",
+  "author": {
+    "name": "Tommy Seery",
+    "url": "https://github.com/tomjseery"
+  },
+  "repository": "https://github.com/tomjseery/cpp-agents",
+  "keywords": ["standards", "cpp", "cmake", "learning"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "C++ Standards",
+    "shortDescription": "Tommy's platform-neutral C++ conventions.",
+    "longDescription": "Generic C++ style, dependency choices, learning workflow, direction, and current knowledge. Platform-specific rules are separate plugins.",
+    "developerName": "Tommy Seery",
+    "category": "Productivity",
+    "capabilities": ["Instructions", "Hooks"],
+    "defaultPrompt": [
+      "Review this C++ change against my standards.",
+      "Teach me the C++ concepts this task needs."
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  generated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check generated payloads
+        shell: pwsh
+        run: .agents/sync-generated.ps1 -Check
+      - name: Check hook syntax
+        run: python3 -m py_compile .agents/hooks/session_context.py
