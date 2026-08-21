@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -82,6 +83,14 @@ def target_for(root: Path) -> Path:
     return root / ".agents" / "skill-routes.json"
 
 
+def skills_for(kind: str, path: str) -> set[str]:
+    matched = set()
+    for route in routes(kind)["routes"]:
+        if re.search(route["path"], path):
+            matched.update(route.get("skills") or [])
+    return matched
+
+
 def write_or_check(kind: str, root: Path, check: bool) -> int:
     target = target_for(root)
     expected = rendered(kind)
@@ -113,6 +122,38 @@ def self_test() -> int:
                 return 1
             parsed = json.loads(target_for(destination).read_text(encoding="utf-8"))
             if parsed["kind"] != kind or not parsed["routes"]:
+                return 1
+
+        cases = {
+            ("portable", "app/src/main.cpp"): {"cpp-standards:cpp-style"},
+            ("portable", "tests/core/core_test.cpp"): {
+                "cpp-standards:cpp-style",
+                "cpp-standards:cpp-testing",
+            },
+            ("portable", "CMakeLists.txt"): {
+                "cpp-standards:cpp-build",
+                "cpp-standards:cpp-libraries",
+            },
+            ("gpp", "libs/core/src/core.cpp"): {
+                "cpp-standards:cpp-style",
+                "gpp-standards:gpp-toolchain",
+            },
+            ("windows", "app/src/main.cpp"): {
+                "cpp-standards:cpp-style",
+                "windows-standards:windows-overview",
+                "windows-standards:win32-style",
+            },
+            ("windows", "app/app.manifest"): {
+                "windows-standards:windows-overview",
+                "windows-standards:win32-style",
+            },
+            ("portable", "AGENTS.md"): {"agent-process:docs-and-debt"},
+            ("portable", ".agents/skill-routes.json"): {"agent-process:skill-routes"},
+        }
+        for (kind, path), expected in cases.items():
+            actual = skills_for(kind, path)
+            if actual != expected:
+                print(f"unexpected skills for {kind}:{path}: {sorted(actual)}")
                 return 1
     print("skill-route generator self-test passed")
     return 0
