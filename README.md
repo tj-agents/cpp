@@ -38,10 +38,11 @@ On Windows, install `cpp-standards` here and `windows-standards` from
 for Linux work.
 
 The `cpp-standards` plugin carries a session hook. In a C++ repository it adds a
-short routing instruction at startup, resume, clear, and compaction. On Linux it
-also selects `gpp-standards`; on Windows it selects `windows-standards` only when
-the repository contains native Windows markers. The hook names skills and does
-not copy their rule text into context.
+short routing instruction at startup, resume, clear, and compaction. A generated
+route table's `kind` selects `gpp-standards` or `windows-standards` regardless of
+the machine hosting the session. Repositories without a table fall back to
+native Windows markers or the Linux host. The hook names skills and does not
+copy their rule text into context.
 
 For deterministic write-time routing, generate the repository table consumed
 by the installed `agent-process` plugin:
