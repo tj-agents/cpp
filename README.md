@@ -8,7 +8,7 @@ or the project is cloned.
 
 | Plugin | Install where | Scope |
 |---|---|---|
-| `cpp-standards` | Every C++ machine | Platform-neutral style, libraries, learning workflow, direction, and current knowledge |
+| `cpp-standards` | Every C++ machine | Platform-neutral style, build, testing, libraries, learning workflow, direction, and current knowledge |
 | `gpp-standards` | Linux machines | GCC, g++, gdb, and Linux conventions layered on `cpp-standards` |
 
 Native Windows conventions live in
@@ -38,10 +38,29 @@ On Windows, install `cpp-standards` here and `windows-standards` from
 for Linux work.
 
 The `cpp-standards` plugin carries a session hook. In a C++ repository it adds a
-short routing instruction at startup, resume, clear, and compaction. On Linux it
-also selects `gpp-standards`; on Windows it selects `windows-standards` only when
-the repository contains native Windows markers. The hook names skills and does
-not copy their rule text into context.
+short routing instruction at startup, resume, clear, and compaction. A generated
+route table's `kind` selects `gpp-standards` or `windows-standards` regardless of
+the machine hosting the session. Repositories without a table fall back to
+native Windows markers or the Linux host. The hook names skills and does not
+copy their rule text into context.
+
+For deterministic write-time routing, generate the repository table consumed
+by the installed `agent-process` plugin:
+
+```powershell
+python .agents/gen_skill_routes.py --kind gpp --into <project>
+python .agents/gen_skill_routes.py --kind windows --into <project>
+```
+
+The table routes by the file being changed, not by wording in `AGENTS.md` or by
+whether the model happened to request a skill. Every matching row fires, so a
+Windows test receives the generic C++ floor, the testing standard, and the
+Windows layer. Project `AGENTS.md` files contain only project facts.
+
+`agent-process` from `Concertable/agent-standards` must be installed once in
+both Claude Code and Codex; it owns the single shared write hook. `newcpp`
+generates the route table automatically. The commands above are for migrating a
+manually created or existing repository.
 
 ## Authoring
 
@@ -52,6 +71,7 @@ Claude skills and installable plugin payloads are never edited directly.
 ```powershell
 pwsh .agents/sync-generated.ps1
 pwsh .agents/sync-generated.ps1 -Check
+python .agents/gen_skill_routes.py --self-test
 ```
 
 `cpp-standards` and `gpp-standards` are separate plugins deliberately. A Linux
