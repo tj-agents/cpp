@@ -7,6 +7,8 @@ from pathlib import Path
 
 CPP_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".ixx"}
 CPP_FILES = {"CMakeLists.txt", "CMakePresets.json", ".clang-format", ".clang-tidy"}
+ROUTES_FILE = Path(".agents") / "skill-routes.json"
+PROJECT_KINDS = {"portable", "gpp", "windows"}
 WINDOWS_MARKERS = (
     "#include <windows.h>",
     "#include <wil/",
@@ -17,9 +19,27 @@ WINDOWS_MARKERS = (
 )
 
 
-def tracked_files(cwd: Path) -> list[str]:
+def project_root(cwd: Path) -> Path:
     result = subprocess.run(
-        ["git", "-C", str(cwd), "ls-files"],
+        ["git", "-C", str(cwd), "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        return Path(result.stdout.strip()).resolve()
+    for candidate in (cwd, *cwd.parents):
+        if (candidate / ROUTES_FILE).is_file():
+            return candidate
+    return cwd
+
+
+def tracked_project(cwd: Path) -> tuple[Path, list[str]]:
+    root = project_root(cwd)
+    result = subprocess.run(
+        ["git", "-C", str(root), "ls-files"],
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -27,8 +47,19 @@ def tracked_files(cwd: Path) -> list[str]:
         check=False,
     )
     if result.returncode == 0:
-        return [line for line in result.stdout.splitlines() if line]
-    return [item.name for item in cwd.iterdir() if item.is_file()]
+        return root, [line for line in result.stdout.splitlines() if line]
+    return root, [item.name for item in root.iterdir() if item.is_file()]
+
+
+def declared_kind(root: Path) -> str | None:
+    try:
+        routes = json.loads((root / ROUTES_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(routes, dict):
+        return None
+    value = routes.get("kind")
+    return value if value in PROJECT_KINDS else None
 
 
 def is_cpp_project(files: list[str]) -> bool:
@@ -49,23 +80,31 @@ def is_native_windows(cwd: Path, files: list[str]) -> bool:
     return False
 
 
+def context_for(cwd: Path, platform: str = sys.platform) -> list[str]:
+    root, files = tracked_project(cwd)
+    kind = declared_kind(root)
+    if not is_cpp_project(files) and kind is None:
+        return []
+
+    context = [
+        "This is a C++ repository. Apply the installed cpp-standards base. Load cpp-style and cpp-libraries before code changes, and cpp-learning plus cpp-knowledge before deciding how to teach or implement unfamiliar logic."
+    ]
+    if kind == "windows" or (kind is None and is_native_windows(root, files)):
+        context.append("Native Windows C++ was detected. Apply windows-standards:windows-overview, windows-standards:win32-style, and windows-standards:windows-cpp-knowledge on top of the generic C++ base.")
+    elif kind == "gpp" or (kind is None and platform.startswith("linux")):
+        context.append("GNU/Linux C++ applies to this repository. Apply gpp-standards:gpp-toolchain on top of the generic C++ base.")
+    return context
+
+
 def main() -> None:
     try:
         payload = json.load(sys.stdin)
     except (ValueError, TypeError):
         payload = {}
     cwd = Path(payload.get("cwd") or os.getcwd()).resolve()
-    files = tracked_files(cwd)
-    if not is_cpp_project(files):
+    context = context_for(cwd)
+    if not context:
         return
-
-    context = [
-        "This is a C++ repository. Apply the installed cpp-standards base. Load cpp-style and cpp-libraries before code changes, and cpp-learning plus cpp-knowledge before deciding how to teach or implement unfamiliar logic."
-    ]
-    if is_native_windows(cwd, files):
-        context.append("Native Windows C++ was detected. Apply windows-standards:windows-overview, windows-standards:win32-style, and windows-standards:windows-cpp-knowledge on top of the generic C++ base.")
-    elif sys.platform.startswith("linux"):
-        context.append("This is running on Linux. Apply gpp-standards:gpp-toolchain on top of the generic C++ base.")
     print("\n".join(context))
 
 

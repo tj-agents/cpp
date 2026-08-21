@@ -1,7 +1,7 @@
 {
   "name": "cpp-standards",
-  "version": "0.1.0",
-  "description": "Generic C++ coding, library, learning, and knowledge standards for Tommy's projects.",
+  "version": "0.2.0",
+  "description": "Generic C++ coding, build, testing, library, learning, and knowledge standards for Tommy's projects.",
   "author": {
     "name": "Tommy Seery",
     "url": "https://github.com/tomjseery"
@@ -12,7 +12,7 @@
   "interface": {
     "displayName": "C++ Standards",
     "shortDescription": "Tommy's platform-neutral C++ conventions.",
-    "longDescription": "Generic C++ style, dependency choices, learning workflow, direction, and current knowledge. Platform-specific rules are separate plugins.",
+    "longDescription": "Generic C++ style, build, testing, dependency choices, learning workflow, direction, and current knowledge. Platform-specific rules are separate plugins.",
     "developerName": "Tommy Seery",
     "category": "Productivity",
     "capabilities": ["Instructions", "Hooks"],
