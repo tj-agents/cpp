@@ -1,17 +1,17 @@
-{
-  "name": "cpp-standards",
-  "version": "0.1.0",
-  "description": "Generic C++ coding, library, learning, and knowledge standards for Tommy's projects.",
-  "author": {
-    "name": "Tommy Seery",
-    "url": "https://github.com/tomjseery"
-  },
-  "repository": "https://github.com/tomjseery/cpp-agents",
-  "keywords": [
-    "standards",
-    "cpp",
-    "cmake",
-    "learning"
-  ],
-  "skills": "./skills/"
+{
+    "name":  "cpp-standards",
+    "version":  "0.1.0",
+    "description":  "Generic C++ coding, library, learning, and knowledge standards for Tommy\u0027s projects.",
+    "author":  {
+                   "name":  "Tommy Seery",
+                   "url":  "https://github.com/tomjseery"
+               },
+    "repository":  "https://github.com/tomjseery/cpp-agents",
+    "keywords":  [
+                     "standards",
+                     "cpp",
+                     "cmake",
+                     "learning"
+                 ],
+    "skills":  "./skills/"
 }

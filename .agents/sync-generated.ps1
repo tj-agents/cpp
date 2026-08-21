@@ -59,6 +59,10 @@ function Read-Lf([string]$path) {
     return ([System.IO.File]::ReadAllText($path) -replace "`r`n", "`n")
 }
 
+function ConvertTo-LfJson($value) {
+    return ((($value | ConvertTo-Json -Depth 10) -replace "`r`n", "`n") + "`n")
+}
+
 # Kept to string trimming rather than [Path]::GetRelativePath / Resolve-Path -RelativeBasePath: both
 # need PowerShell 7, and this repo is cloned onto machines that only have 5.1.
 function To-RepoRelative([string]$fullPath, [string]$base) {
@@ -253,7 +257,7 @@ foreach ($plugin in $plugins) {
         keywords    = @($codexPluginJson.keywords)
         skills      = $codexPluginJson.skills
     }
-    $generated["plugins/$($plugin.Name)/.claude-plugin/plugin.json"] = (($claudePluginJson | ConvertTo-Json -Depth 10) + "`n")
+    $generated["plugins/$($plugin.Name)/.claude-plugin/plugin.json"] = ConvertTo-LfJson $claudePluginJson
 
     # A plugin ships only the domains it claims, and only the routers for those domains - a TypeScript
     # project installing a React plugin must not also receive the .NET corpus.
@@ -286,7 +290,7 @@ $claudeMarketplace = [ordered]@{
     owner       = [ordered]@{ name = (ConvertFrom-Json (Read-Lf (Join-Path $plugins[0].FullName '.codex-plugin/plugin.json'))).author.name }
     plugins     = $claudePlugins
 }
-$generated['.claude-plugin/marketplace.json'] = (($claudeMarketplace | ConvertTo-Json -Depth 10) + "`n")
+$generated['.claude-plugin/marketplace.json'] = ConvertTo-LfJson $claudeMarketplace
 
 # One index per domain, generated from the tree so it cannot drift from it.
 $domains = @($docs | ForEach-Object { ($_ -split '/')[1] } | Sort-Object -Unique)
