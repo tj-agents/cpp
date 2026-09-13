@@ -171,12 +171,14 @@ did not cover the four defects above.
   namespace rewrites, records the legacy Windows inventory, and validates every qualified identifier in
   alias documents and hooks against the generated/local or declared legacy plugin inventory.
 
-- [ ] **R14 — MEDIUM — case-insensitive source path matching** —
+- [x] **R14 — MEDIUM — case-insensitive source path matching** —
   `.agents/hooks/session_context.py:105`
   C++ candidates recognize extensions case-insensitively, but Git grep pathspecs contain only lowercase
   suffixes. On a case-sensitive checkout, an uppercase `.CPP` marker is missed and return code 1 suppresses
   fallback scanning. Make Git path matching case-insensitive or search the exact candidate inventory, and
   add an uppercase-extension regression.
+  Fixed in the next remediation commit: Git pathspecs use `icase` magic and a real temporary Git repository
+  proves that a tracked `MAIN.CPP` with an uppercase Win32 include is detected.
 
 Validation on the frozen second repair range: generated drift, eleven hook tests, nine contract tests,
 and both harness validators passed. Those tests did not resolve qualified alias identifiers or exercise
