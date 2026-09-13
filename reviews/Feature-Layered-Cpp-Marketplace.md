@@ -126,10 +126,12 @@ above.
   stops at the first match without Python file reads; non-Git fallback reads line-by-line. Tests cover both
   a 100,000-path fast-path inventory and a marker in source 201.
 
-- [ ] **R11 — MEDIUM — compatibility end-date semantics** —
+- [x] **R11 — MEDIUM — compatibility end-date semantics** —
   `.agents/sync-generated.ps1:272`, `.agents/tests/test_marketplace_contract.py:82`
   Documentation says aliases remain through and are removed after 2027-03-31, but validation rejects them
   on March 31. Align the checks so the documented final supported day remains valid.
+  Fixed in the next remediation commit: March 31 remains valid and both gates fail only after the declared
+  final supported day.
 
 - [ ] **R12 — MEDIUM — alias payload namespace closure** —
   `plugins/cpp-standards/standards/cpp/BUILD.md:38`
