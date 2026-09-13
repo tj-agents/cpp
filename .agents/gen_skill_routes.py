@@ -90,7 +90,7 @@ def routes(kind_or_layers: str | list[str] | tuple[str, ...]) -> dict:
                 },
                 {
                     "path": BUILD_PATH,
-                    "skills": ["windows:windows-overview"],
+                    "skills": ["windows:windows-overview", "windows:win32-style"],
                 },
             ]
         )
@@ -188,6 +188,12 @@ def self_test() -> int:
                 "windows:win32-style",
             },
             ("windows", "app/app.manifest"): {
+                "windows:windows-overview",
+                "windows:win32-style",
+            },
+            ("windows", "CMakeLists.txt"): {
+                "base:cpp-build",
+                "base:cpp-libraries",
                 "windows:windows-overview",
                 "windows:win32-style",
             },
