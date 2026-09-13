@@ -1,79 +1,69 @@
 # cpp-agents
 
-Tommy's reusable C++ standards for Claude Code and Codex. The repository is an
-installable marketplace, so consuming projects do not depend on where this repo
-or the project is cloned.
+Tommy's layered C++ standards marketplace for Claude Code and Codex. One repository owns the generic C++ corpus and both supported platform/toolchain deltas.
 
-## Plugins
+## Public plugins
 
-| Plugin | Install where | Scope |
+| Plugin | Responsibility | Requires |
 |---|---|---|
-| `cpp-standards` | Every C++ machine | Platform-neutral style, build, testing, libraries, learning workflow, direction, and current knowledge |
-| `gpp-standards` | Linux machines | GCC, g++, gdb, and Linux conventions layered on `cpp-standards` |
+| `base@cpp-agents` | Modern platform-neutral C++, CMake, dependency policy, testing, style, learning guidance, direction, and general C++ knowledge | — |
+| `windows@cpp-agents` | Native Windows development: Win32, Unicode, MSVC and clang-cl, WIL, native-resource ownership, Windows CMake, and Windows learning guidance | `base@cpp-agents` |
+| `gcc@cpp-agents` | GCC, g++, GDB, and Linux-oriented native C++ development | `base@cpp-agents` |
 
-Native Windows conventions live in
-[`tomjseery/windows-agents`](https://github.com/tomjseery/windows-agents), whose
-`windows-standards` plugin layers on `cpp-standards` instead of repeating it.
+The layers compose. Install `base + windows` for a native Windows repository and `base + gcc` for a GCC/Linux repository. A project that genuinely spans both toolchains may install all three.
 
-## Install once per machine
+## Install
 
-Claude Code on Linux:
+Claude Code:
 
 ```text
 /plugin marketplace add tomjseery/cpp-agents
-/plugin install cpp-standards@cpp-agents
-/plugin install gpp-standards@cpp-agents
+/plugin install base@cpp-agents
+/plugin install windows@cpp-agents
 ```
 
-Codex on Linux:
+Substitute `gcc@cpp-agents` for `windows@cpp-agents` on a GCC/Linux machine or project.
+
+Codex:
 
 ```powershell
 codex plugin marketplace add https://github.com/tomjseery/cpp-agents
-codex plugin add cpp-standards@cpp-agents
-codex plugin add gpp-standards@cpp-agents
+codex plugin add base@cpp-agents
+codex plugin add windows@cpp-agents
 ```
 
-On Windows, install `cpp-standards` here and `windows-standards` from
-`windows-agents`; do not install `gpp-standards` unless that machine is also used
-for Linux work.
+Substitute `gcc@cpp-agents` for the Windows layer where appropriate. Install `concertable@agent-standards` separately in both harnesses; it owns workflow, planning, review, delivery, repository management, and the write-time skill router.
 
-The `cpp-standards` plugin carries a session hook. In a C++ repository it adds a
-short routing instruction at startup, resume, clear, and compaction. A generated
-route table's `kind` selects `gpp-standards` or `windows-standards` regardless of
-the machine hosting the session. Repositories without a table fall back to
-native Windows markers or the Linux host. The hook names skills and does not
-copy their rule text into context.
+## Repository routing
 
-For deterministic write-time routing, generate the repository table consumed
-by the installed `agent-process` plugin:
+`base` carries the C++ session-detection hook. An explicit generated route kind wins over the host platform; otherwise native Windows markers select `windows`, a Linux host selects `gcc`, and every C++ repository receives `base`.
+
+Generate deterministic write-time routes with:
 
 ```powershell
-python .agents/gen_skill_routes.py --kind gpp --into <project>
+python .agents/gen_skill_routes.py --kind generic --into <project>
 python .agents/gen_skill_routes.py --kind windows --into <project>
+python .agents/gen_skill_routes.py --kind gcc --into <project>
 ```
 
-The table routes by the file being changed, not by wording in `AGENTS.md` or by
-whether the model happened to request a skill. Every matching row fires, so a
-Windows test receives the generic C++ floor, the testing standard, and the
-Windows layer. Project `AGENTS.md` files contain only project facts.
+The table uses `base:*`, `windows:*`, `gcc:*`, and `concertable:*`. Every matching row fires, so a Windows test receives generic style/testing plus the Windows layer. Project `AGENTS.md` files retain project facts; `CLAUDE.md` imports `AGENTS.md` so both harnesses receive the same repository guidance.
 
-`agent-process` from `Concertable/agent-standards` must be installed once in
-both Claude Code and Codex; it owns the single shared write hook. `newcpp`
-generates the route table automatically. The commands above are for migrating a
-manually created or existing repository.
+## Compatibility migration
 
-## Authoring
+`cpp-standards@cpp-agents` and `gpp-standards@cpp-agents` remain generated compatibility aliases through 2027-03-31. `windows-standards@windows-agents` remains available from the deprecated forwarding repository for the same interval. New configurations must use only `base`, `windows`, and `gcc`.
 
-The plain Markdown files under `standards/` are the source of truth. Each
-`.agents/skills/*/SKILL.md` is a small router to exactly one document. Generated
-Claude skills and installable plugin payloads are never edited directly.
+Follow [MIGRATION.md](MIGRATION.md) for the install-before-route-update sequence and the exhaustive classification of retired names.
+
+## Authoring and validation
+
+Markdown under `standards/` and routers under `.agents/skills/` are source. `.agents/sync-generated.ps1` creates self-contained Codex and Claude plugin payloads; generated plugin files and `.claude/skills/` are never edited directly.
 
 ```powershell
 pwsh .agents/sync-generated.ps1
 pwsh .agents/sync-generated.ps1 -Check
 python .agents/gen_skill_routes.py --self-test
+python -m unittest discover -s .agents/hooks/tests
+python -m unittest discover -s .agents/tests
 ```
 
-`cpp-standards` and `gpp-standards` are separate plugins deliberately. A Linux
-project such as `note-cli` receives the generic C++ base plus the GCC/Linux delta;
-a Windows project never receives the Linux delta.
+CI also validates every plugin manifest for both harnesses and rejects broken identifiers, missing dependencies, stale canonical names, generated drift, and incorrect layered activation.

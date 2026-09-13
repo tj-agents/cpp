@@ -8,7 +8,8 @@ from pathlib import Path
 CPP_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".ixx"}
 CPP_FILES = {"CMakeLists.txt", "CMakePresets.json", ".clang-format", ".clang-tidy"}
 ROUTES_FILE = Path(".agents") / "skill-routes.json"
-PROJECT_KINDS = {"portable", "gpp", "windows"}
+KIND_ALIASES = {"portable": "generic", "gpp": "gcc"}
+PROJECT_KINDS = {"generic", "gcc", "windows", *KIND_ALIASES}
 WINDOWS_MARKERS = (
     "#include <windows.h>",
     "#include <wil/",
@@ -59,7 +60,9 @@ def declared_kind(root: Path) -> str | None:
     if not isinstance(routes, dict):
         return None
     value = routes.get("kind")
-    return value if value in PROJECT_KINDS else None
+    if value not in PROJECT_KINDS:
+        return None
+    return KIND_ALIASES.get(value, value)
 
 
 def is_cpp_project(files: list[str]) -> bool:
@@ -87,12 +90,16 @@ def context_for(cwd: Path, platform: str = sys.platform) -> list[str]:
         return []
 
     context = [
-        "This is a C++ repository. Apply the installed cpp-standards base. Load cpp-style and cpp-libraries before code changes, and cpp-learning plus cpp-knowledge before deciding how to teach or implement unfamiliar logic."
+        "This is a C++ repository. Apply base@cpp-agents. Load base:cpp-style and base:cpp-libraries before code changes, and base:cpp-learning plus base:cpp-knowledge before deciding how to teach or implement unfamiliar logic."
     ]
     if kind == "windows" or (kind is None and is_native_windows(root, files)):
-        context.append("Native Windows C++ was detected. Apply windows-standards:windows-overview, windows-standards:win32-style, and windows-standards:windows-cpp-knowledge on top of the generic C++ base.")
-    elif kind == "gpp" or (kind is None and platform.startswith("linux")):
-        context.append("GNU/Linux C++ applies to this repository. Apply gpp-standards:gpp-toolchain on top of the generic C++ base.")
+        context.append(
+            "Native Windows C++ was detected. Apply windows@cpp-agents on top of base: windows:windows-overview, windows:win32-style, and windows:windows-cpp-knowledge."
+        )
+    elif kind == "gcc" or (kind is None and platform.startswith("linux")):
+        context.append(
+            "GCC/Linux C++ applies to this repository. Apply gcc@cpp-agents and gcc:gcc-toolchain on top of base."
+        )
     return context
 
 
@@ -103,9 +110,8 @@ def main() -> None:
         payload = {}
     cwd = Path(payload.get("cwd") or os.getcwd()).resolve()
     context = context_for(cwd)
-    if not context:
-        return
-    print("\n".join(context))
+    if context:
+        print("\n".join(context))
 
 
 if __name__ == "__main__":
