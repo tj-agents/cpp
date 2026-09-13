@@ -19,7 +19,8 @@ References in this file, compatibility manifests/metadata/tests, and the windows
 
 1. Refresh `cpp-agents` after the layered release merges.
 2. Install `base@cpp-agents` and required platform layers before changing routes.
-3. Regenerate `.agents/skill-routes.json` with `generic`, `windows`, or `gcc`.
+3. Regenerate `.agents/skill-routes.json` with `generic`, `windows`, or `gcc`; use repeated `--layer`
+   arguments only for a repository that genuinely spans more than one platform layer.
 4. Confirm Codex and Claude resolve the new packages and route identifiers.
 5. Remove old packages. A short overlap can emit duplicate base session context because both base packages remain standalone during migration; it does not duplicate authored rules or write-time routes.
 6. Remove the `windows-agents` marketplace only after no enabled plugin or repository configuration uses it.
@@ -46,6 +47,12 @@ Claude Code native-Windows example:
 ```
 
 For GCC/Linux, install `base + gcc`, generate with `--kind gcc`, and remove `gpp-standards@cpp-agents`. Generic-only repositories install `base` and generate with `--kind generic`.
+
+A cross-toolchain repository installs all three and generates the composed table explicitly:
+
+```powershell
+python <cpp-agents>/.agents/gen_skill_routes.py --layer windows --layer gcc --into <project>
+```
 
 ## Repository setup
 

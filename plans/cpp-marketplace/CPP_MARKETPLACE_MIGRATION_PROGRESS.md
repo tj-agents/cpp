@@ -11,11 +11,11 @@
 
 ## Current state
 
-Phase 1 is implemented locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use the canonical layer identities and `concertable:*` workflow namespace. The candidate still needs its immutable commit and independent review before delivery.
+Phase 1 implementation and full-candidate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. The fixing head now needs the fresh incremental review and final validation before delivery.
 
 ## Next Steps
 
-Commit the green Phase 1 candidate, run the independent repository review, resolve any findings, then complete the remaining local validation and deliver the cpp-agents PR.
+Run the incremental review from the frozen candidate through the remediation head, resolve any new findings, complete final local validation, then deliver and merge the cpp-agents PR while owning exact-head CI.
 
 Scope: whole plan through all remaining phases and terminal delivery.
 Current slice: Phase 1 immutable candidate, review, and cpp-agents delivery.
@@ -32,14 +32,14 @@ Done when: all three public plugins are delivered and verified in Codex and Clau
 ## Verification
 
 - Generated payload check: 62 files current from 11 skills and 11 documents.
-- Route generator: canonical generic/GCC/Windows cases and legacy kind normalization passed.
-- Tests: 7 session-detection tests and 6 marketplace/dependency/identifier contract tests passed.
+- Route generator: canonical generic/GCC/Windows cases, composed Windows+GCC layers, and legacy kind normalization passed.
+- Tests: 10 session-detection tests and 8 marketplace/dependency/identifier contract tests passed, including the pinned real `concertable` 0.1.6 source inventory.
 - Codex plugin validator passed for all five canonical/compatibility payloads; Claude plugin and marketplace validation passed.
 - `git diff --check` passed.
 
 ## Reviews
 
-Not started; review follows the Phase 1 immutable candidate.
+The full review of `0708f87710211a7726df1a7eccb1da212f9d47d9` requested changes. Eight findings were repaired in isolated commits: composability, one-rule ownership, alias-only hook namespaces, real external skill provenance, complete Windows scanning, Windows CMake ownership routing, harness CI, and alias expiry. The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`; a fresh incremental pass is next.
 
 ## Decisions, discoveries, blockers, and deviations
 
