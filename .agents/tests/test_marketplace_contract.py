@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 import os
 import re
@@ -130,9 +131,28 @@ class MarketplaceContractTests(unittest.TestCase):
         self.assertEqual("concertable", manifest["name"])
         self.assertEqual(contract["version"], manifest["version"])
         self.assertEqual(contract["repository"], manifest["repository"])
+        self.assertEqual(
+            contract["manifestSha256"],
+            hashlib.sha256((source / contract["manifest"]).read_bytes()).hexdigest(),
+        )
         skills_root = source / contract["skillsRoot"]
         for skill in contract["skills"]:
-            self.assertTrue((skills_root / skill / "SKILL.md").is_file(), skill)
+            skill_path = skills_root / skill / "SKILL.md"
+            self.assertTrue(skill_path.is_file(), skill)
+            self.assertEqual(
+                contract["skillSha256"][skill],
+                hashlib.sha256(skill_path.read_bytes()).hexdigest(),
+            )
+
+    def test_external_skill_contract_has_immutable_source_evidence(self) -> None:
+        git_commit = re.compile(r"^[0-9a-f]{40}$")
+        digest = re.compile(r"^[0-9a-f]{64}$")
+        for contract in self.contract["externalPlugins"].values():
+            self.assertRegex(contract["sourceCommit"], git_commit)
+            self.assertRegex(contract["manifestSha256"], digest)
+            self.assertEqual(set(contract["skills"]), set(contract["skillSha256"]))
+            for value in contract["skillSha256"].values():
+                self.assertRegex(value, digest)
 
     def test_canonical_sources_contain_no_retired_plugin_identifiers(self) -> None:
         retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")

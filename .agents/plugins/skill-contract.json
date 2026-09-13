@@ -5,9 +5,14 @@
       "repository": "https://github.com/Concertable/agent-standards",
       "sourceCommit": "93d8bd57fbfbd793acdebe542f7ae270a0c1d2a1",
       "manifest": "plugins/concertable/.codex-plugin/plugin.json",
+      "manifestSha256": "f85deb6c5b20f8472f89368846f0aa8f57bcde7876ad387f2a4f17ccc83a2c13",
       "skillsRoot": "plugins/concertable/codex-skills",
       "version": "0.1.6",
-      "skills": ["docs-and-debt", "skill-routes"]
+      "skills": ["docs-and-debt", "skill-routes"],
+      "skillSha256": {
+        "docs-and-debt": "b895faf43c0d4dd958ea512aa901387203b5be0747b59f01596797d079d02994",
+        "skill-routes": "69f571d60439db467107db7b860710063fd60b7ce4f36b08d1cf67a6a44938a9"
+      }
     }
   },
   "legacyExternalPlugins": {

@@ -5,17 +5,17 @@
 - Roadmap item: `cpp-marketplace/layered-migration`
 - Worktree: `C:\Users\tommy\source\repos\cpp\windows\cpp-agents`
 - Branch: `Feature/Layered-Cpp-Marketplace`
-- PR: not opened
+- PR: https://github.com/tomjseery/cpp-agents/pull/2 (draft; fixing first remote CI result)
 - Dependency/package gates: cpp-agents must merge before windows-agents deprecation or installed/consumer configuration changes
 - Last reconciled: 2026-09-13 from repository, installed marketplace, and consumer inventory
 
 ## Current state
 
-Phase 1 implementation and aggregate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. Final aggregate review and validation of the latest fixing head are next.
+Phase 1 implementation and aggregate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. PR #2 exposed that a repository-scoped Actions token cannot check out the separate private agent-standards repository; the fixing candidate replaces that remote checkout with an immutable source lock while retaining real-source local verification.
 
 ## Next Steps
 
-Complete final local validation, then deliver and merge the cpp-agents PR while owning exact-head CI.
+Review and push the CI fix, own exact-head PR CI to green, then merge the cpp-agents producer before beginning windows-agents deprecation.
 
 Scope: whole plan through all remaining phases and terminal delivery.
 Current slice: Phase 1 immutable candidate, review, and cpp-agents delivery.
@@ -33,7 +33,7 @@ Done when: all three public plugins are delivered and verified in Codex and Clau
 
 - Generated payload check: 62 files current from 11 skills and 11 documents.
 - Route generator: canonical generic/GCC/Windows cases, composed Windows+GCC layers, and legacy kind normalization passed.
-- Tests: 12 session-detection tests and 9 marketplace/dependency/identifier contract tests passed, including the pinned real `concertable` 0.1.6 source inventory.
+- Tests: 12 session-detection tests and 10 marketplace/dependency/identifier contract tests passed, including immutable source evidence and verification against the real pinned `concertable` 0.1.6 checkout.
 - Codex plugin validator passed for all five canonical/compatibility payloads; Claude plugin and marketplace validation passed.
 - `git diff --check` passed.
 
@@ -46,3 +46,4 @@ The initial full review and two incremental repair reviews produced fourteen fin
 - The local agent-standards checkout was behind `origin/main`; canonical identity evidence came from fetched `origin/main` and the installed `0.1.6` package, which agree.
 - Plugin manifests expose no native dependency/alias field in the supported schema, so layer dependencies and compatibility aliases require repository-owned metadata plus validation and documentation.
 - Winwrap had a pre-existing untracked `.codex/` directory before this migration; preserve it and do not sweep it into unrelated commits.
+- PR #2 run 34781877587 failed because the current-repository `GITHUB_TOKEN` cannot read the separate private `Concertable/agent-standards` repository. The contract now records exact source commit, version, manifest hash, and routed-skill hashes so CI remains deterministic without a cross-repository secret; local release validation still checks those hashes against the real checkout.
