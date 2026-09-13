@@ -25,13 +25,19 @@ $attesterId = 183629855
 $statusContext = "agent-standards/provenance"
 $contractPath = ".agents/plugins/skill-contract.json"
 $evidenceRoot = "contracts/concertable-0.1.6"
+$expectedCandidateObjects = [ordered]@{
+    ".agents/plugins/skill-contract.json" = "cd5c16c7bffd9e48f21a42ada33ff03528288bfb"
+    ".agents/tests/test_marketplace_contract.py" = "004c73dc421ed64a71563140b62b4f624f5bec7e"
+    ".github/workflows/ci.yml" = "0e15c93383f209a28dde4b034b5a7754ac74c560"
+    "contracts" = "158049858856c30eb91a37704512d9dcda4283c2"
+}
 
 function Invoke-CheckedGit {
     param(
         [Parameter(Mandatory = $true)][string] $Repository,
         [Parameter(ValueFromRemainingArguments = $true)][string[]] $Arguments
     )
-    $output = & git -C $Repository @Arguments
+    $output = & git --no-replace-objects -C $Repository @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "git failed in ${Repository}: git $($Arguments -join ' ')"
     }
@@ -57,6 +63,7 @@ function Get-GitBlobBytes {
     $start.UseShellExecute = $false
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
+    $start.ArgumentList.Add("--no-replace-objects")
     $start.ArgumentList.Add("-C")
     $start.ArgumentList.Add($Repository)
     $start.ArgumentList.Add("cat-file")
@@ -93,6 +100,17 @@ function ConvertFrom-Utf8Json {
     return [Text.Encoding]::UTF8.GetString($Bytes) | ConvertFrom-Json
 }
 
+function Assert-ExactString {
+    param(
+        [AllowNull()][object] $Value,
+        [Parameter(Mandatory = $true)][string] $Expected,
+        [Parameter(Mandatory = $true)][string] $Name
+    )
+    if ($Value -isnot [string] -or $Value -cne $Expected) {
+        throw "$Name does not match the trusted string value."
+    }
+}
+
 function Assert-CanonicalRemote {
     param(
         [Parameter(Mandatory = $true)][string] $Repository,
@@ -118,7 +136,7 @@ $remoteMain = (Invoke-CheckedGh api "repos/$consumerRepository/git/ref/heads/mai
 if ($trustedHead -ne $remoteMain) {
     throw "Run the attester from an exact checkout of the canonical main branch."
 }
-& git -C $trustedRoot diff --quiet HEAD -- .agents/attest-external-contract.ps1
+& git --no-replace-objects -C $trustedRoot diff --quiet HEAD -- .agents/attest-external-contract.ps1
 if ($LASTEXITCODE -ne 0) {
     throw "The trusted attester differs from canonical main."
 }
@@ -131,9 +149,27 @@ if ($remoteCandidate -ne $CandidateSha) {
     throw "The candidate is not present in the canonical consumer repository."
 }
 
+$trustedAttesterBlob = (Invoke-CheckedGit -Repository $trustedRoot rev-parse "${trustedHead}:.agents/attest-external-contract.ps1").Trim()
+$trustedGateBlob = (Invoke-CheckedGit -Repository $trustedRoot rev-parse "${trustedHead}:.github/workflows/provenance-gate.yml").Trim()
+$candidateAttesterBlob = (Invoke-CheckedGit -Repository $consumerRoot rev-parse "${CandidateSha}:.agents/attest-external-contract.ps1").Trim()
+$candidateGateBlob = (Invoke-CheckedGit -Repository $consumerRoot rev-parse "${CandidateSha}:.github/workflows/provenance-gate.yml").Trim()
+if ($candidateAttesterBlob -ne $trustedAttesterBlob -or $candidateGateBlob -ne $trustedGateBlob) {
+    throw "The candidate trust tools do not match canonical main."
+}
+foreach ($entry in $expectedCandidateObjects.GetEnumerator()) {
+    $actual = (Invoke-CheckedGit -Repository $consumerRoot rev-parse "${CandidateSha}:$($entry.Key)").Trim()
+    if ($actual -ne $entry.Value) {
+        throw "The candidate object $($entry.Key) does not match the separately reviewed object."
+    }
+}
+
 $producerHead = (Invoke-CheckedGit -Repository $producerRoot rev-parse HEAD).Trim()
 if ($producerHead -ne $expectedProducerCommit) {
     throw "The producer checkout is not at the trusted commit."
+}
+$producerMain = (Invoke-CheckedGh api "repos/$producerRepository/git/ref/heads/main" --jq ".object.sha").Trim()
+if ($producerMain -ne $expectedProducerCommit) {
+    throw "The trusted producer commit is not the authenticated canonical main ref."
 }
 $producerRecord = Invoke-CheckedGh api "repos/$producerRepository/commits/$expectedProducerCommit" | Out-String | ConvertFrom-Json
 if ($producerRecord.sha -ne $expectedProducerCommit -or -not $producerRecord.commit.verification.verified) {
@@ -142,34 +178,37 @@ if ($producerRecord.sha -ne $expectedProducerCommit -or -not $producerRecord.com
 
 $contract = ConvertFrom-Utf8Json (Get-GitBlobBytes -Repository $consumerRoot -ObjectSpec "${CandidateSha}:$contractPath")
 $external = $contract.externalPlugins.concertable
-if ($external.repository -ne $producerUrl -or
-    $external.sourceCommit -ne $expectedProducerCommit -or
-    $external.version -ne $expectedVersion -or
-    $external.manifest -ne $expectedManifest -or
-    $external.skillsRoot -ne $expectedSkillsRoot -or
-    (@($external.skills) -join "`0") -cne ($expectedSkills -join "`0")) {
-    throw "The candidate external skill contract does not match the trusted contract."
+Assert-ExactString $external.repository $producerUrl "contract repository"
+Assert-ExactString $external.sourceCommit $expectedProducerCommit "contract sourceCommit"
+Assert-ExactString $external.version $expectedVersion "contract version"
+Assert-ExactString $external.manifest $expectedManifest "contract manifest"
+Assert-ExactString $external.skillsRoot $expectedSkillsRoot "contract skillsRoot"
+Assert-ExactString $external.provenance $evidenceRoot "contract provenance"
+$candidateSkills = @($external.skills)
+if ($candidateSkills.Count -ne $expectedSkills.Count) {
+    throw "The candidate skill inventory does not match the trusted contract."
+}
+for ($index = 0; $index -lt $expectedSkills.Count; $index++) {
+    Assert-ExactString $candidateSkills[$index] $expectedSkills[$index] "contract skill[$index]"
 }
 
 $manifestBytes = Get-GitBlobBytes -Repository $producerRoot -ObjectSpec "${expectedProducerCommit}:$expectedManifest"
 $manifestHash = Get-Sha256 $manifestBytes
-if ($external.manifestSha256 -ne $manifestHash) {
-    throw "The candidate manifest hash does not match the authenticated producer."
-}
+Assert-ExactString $external.manifestSha256 $manifestHash "contract manifestSha256"
 $manifest = ConvertFrom-Utf8Json $manifestBytes
-if ($manifest.name -ne "concertable" -or $manifest.version -ne $expectedVersion -or $manifest.repository -ne $producerUrl) {
-    throw "The authenticated producer manifest does not match the trusted identity."
-}
+Assert-ExactString $manifest.name "concertable" "producer manifest name"
+Assert-ExactString $manifest.version $expectedVersion "producer manifest version"
+Assert-ExactString $manifest.repository $producerUrl "producer manifest repository"
 
 $provenance = ConvertFrom-Utf8Json (Get-GitBlobBytes -Repository $consumerRoot -ObjectSpec "${CandidateSha}:${evidenceRoot}/provenance.json")
 $producerTree = (Invoke-CheckedGit -Repository $producerRoot rev-parse "${expectedProducerCommit}^{tree}").Trim()
 $producerManifestBlob = (Invoke-CheckedGit -Repository $producerRoot rev-parse "${expectedProducerCommit}:$expectedManifest").Trim()
 $candidateManifestBlob = (Invoke-CheckedGit -Repository $consumerRoot rev-parse "${CandidateSha}:${evidenceRoot}/plugin.json").Trim()
-if ($provenance.sourceCommit -ne $expectedProducerCommit -or
-    $provenance.rootTree -ne $producerTree -or
-    $provenance.manifestBlob -ne $producerManifestBlob -or
-    $candidateManifestBlob -ne $producerManifestBlob) {
-    throw "The candidate provenance manifest does not match the authenticated producer tree."
+Assert-ExactString $provenance.sourceCommit $expectedProducerCommit "provenance sourceCommit"
+Assert-ExactString $provenance.rootTree $producerTree "provenance rootTree"
+Assert-ExactString $provenance.manifestBlob $producerManifestBlob "provenance manifestBlob"
+if ($candidateManifestBlob -ne $producerManifestBlob) {
+    throw "The candidate provenance manifest snapshot does not match the authenticated producer."
 }
 
 foreach ($skill in $expectedSkills) {
@@ -179,10 +218,10 @@ foreach ($skill in $expectedSkills) {
     $skillHash = Get-Sha256 $skillBytes
     $producerBlob = (Invoke-CheckedGit -Repository $producerRoot rev-parse "${expectedProducerCommit}:$producerPath").Trim()
     $candidateBlob = (Invoke-CheckedGit -Repository $consumerRoot rev-parse "${CandidateSha}:$candidatePath").Trim()
-    if ($external.skillSha256.$skill -ne $skillHash -or
-        $provenance.skillBlobs.$skill -ne $producerBlob -or
-        $candidateBlob -ne $producerBlob) {
-        throw "The candidate provenance for $skill does not match the authenticated producer."
+    Assert-ExactString $external.skillSha256.$skill $skillHash "contract skillSha256.$skill"
+    Assert-ExactString $provenance.skillBlobs.$skill $producerBlob "provenance skillBlobs.$skill"
+    if ($candidateBlob -ne $producerBlob) {
+        throw "The candidate provenance snapshot for $skill does not match the authenticated producer."
     }
 }
 

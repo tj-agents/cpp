@@ -16,7 +16,7 @@ This repository must use direct, strictly up-to-date pull-request merges while t
 
 Fork PRs remain supported when they do not change protected trust-contract paths. Their changed-file inventory is read through GitHub's paginated API and must be complete; oversized inventories fail closed. A protected trust-contract change must be made on a branch in the canonical repository so the approved maintainer can attest the exact commit there.
 
-Future changes to the contract, evidence, verifier, attestation script, or ordinary CI require a new exact-head attestation. Updates to the trusted producer commit or attester therefore use two PRs: first update and review the default-branch trust tool, then change the package contract under the new gate. The trusted script validates exact candidate blobs and the authenticated producer checkout directly; candidate scripts, tests, hooks, and generators are never invoked.
+Future changes to the contract, evidence, verifier, attestation script, or ordinary CI require a new exact-head attestation. Updates to the trusted producer commit, approved contract/evidence/verifier/CI blobs, or attester therefore use two PRs: first update and review the default-branch trust tool, then change the package contract under the new gate. The trusted script requires candidate trust tools to match canonical `main`, pins every other protected candidate object, binds the producer commit to its authenticated canonical `main` ref, and validates exact candidate blobs against the authenticated producer checkout directly. Candidate scripts, tests, hooks, and generators are never invoked.
 
 ## Trust and recovery
 
