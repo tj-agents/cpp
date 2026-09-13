@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,6 +8,7 @@ from unittest.mock import patch
 
 
 HOOK = Path(__file__).resolve().parents[1] / "session_context.py"
+ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("session_context", HOOK)
 session_context = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(session_context)
@@ -75,9 +77,29 @@ class SessionContextTests(unittest.TestCase):
         self.assertTrue(any("windows@cpp-agents" in line for line in context))
         self.assertTrue(any("gcc@cpp-agents" in line for line in context))
 
-    def test_compatibility_hook_emits_only_legacy_installed_namespaces(self) -> None:
+    def test_versioned_compatibility_hook_emits_only_legacy_installed_namespaces(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            installed_hook = (
+                root
+                / "cache"
+                / "cpp-agents"
+                / "cpp-standards"
+                / "0.3.0"
+                / "hooks"
+                / "session_context.py"
+            )
+            installed_hook.parent.mkdir(parents=True)
+            shutil.copy2(
+                ROOT / "plugins" / "cpp-standards" / "hooks" / "session_context.py",
+                installed_hook,
+            )
+            installed_spec = importlib.util.spec_from_file_location(
+                "installed_compatibility_session_context",
+                installed_hook,
+            )
+            installed_module = importlib.util.module_from_spec(installed_spec)
+            installed_spec.loader.exec_module(installed_module)
             routes = root / ".agents" / "skill-routes.json"
             routes.parent.mkdir(parents=True)
             routes.write_text(
@@ -85,15 +107,11 @@ class SessionContextTests(unittest.TestCase):
                 encoding="utf-8",
             )
             with patch.object(
-                session_context,
+                installed_module,
                 "tracked_project",
                 return_value=(root, ["app/src/main.cpp"]),
             ):
-                context = session_context.context_for(
-                    root,
-                    "win32",
-                    plugin_name="cpp-standards",
-                )
+                context = installed_module.context_for(root, "win32")
 
         combined = "\n".join(context)
         self.assertIn("cpp-standards:cpp-style", combined)
