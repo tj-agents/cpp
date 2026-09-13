@@ -44,9 +44,15 @@ Generate deterministic write-time routes with:
 python .agents/gen_skill_routes.py --kind generic --into <project>
 python .agents/gen_skill_routes.py --kind windows --into <project>
 python .agents/gen_skill_routes.py --kind gcc --into <project>
+python .agents/gen_skill_routes.py --layer windows --layer gcc --into <cross-toolchain-project>
 ```
 
-The table uses `base:*`, `windows:*`, `gcc:*`, and `concertable:*`. Every matching row fires, so a Windows test receives generic style/testing plus the Windows layer. Project `AGENTS.md` files retain project facts; `CLAUDE.md` imports `AGENTS.md` so both harnesses receive the same repository guidance.
+The single `--kind` form remains the convenient and compatibility-safe input for ordinary repositories;
+repeat `--layer` when a repository genuinely needs more than one platform layer. Generated tables carry
+an ordered `layers` list with `base` first. They use `base:*`, `windows:*`, `gcc:*`, and `concertable:*`.
+Every matching row fires, so a Windows test receives generic style/testing plus the Windows layer. Project
+`AGENTS.md` files retain project facts; `CLAUDE.md` imports `AGENTS.md` so both harnesses receive the same
+repository guidance.
 
 ## Compatibility migration
 
