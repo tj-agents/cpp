@@ -155,6 +155,20 @@ class SessionContextTests(unittest.TestCase):
         self.assertTrue(any("windows:win32-style" in line for line in context))
         self.assertFalse(any("gcc@cpp-agents" in line for line in context))
 
+    def test_windows_detection_uses_git_grep_without_opening_sources(self) -> None:
+        completed = session_context.subprocess.CompletedProcess([], 0)
+        with patch.object(session_context.subprocess, "run", return_value=completed) as run:
+            with patch.object(Path, "open", side_effect=AssertionError("source read")):
+                detected = session_context.is_native_windows(
+                    Path("repository"),
+                    [f"src/{index:06}.cpp" for index in range(100000)],
+                )
+
+        self.assertTrue(detected)
+        command = run.call_args.args[0]
+        self.assertIn("grep", command)
+        self.assertIn("--quiet", command)
+
     def test_non_cpp_repository_gets_no_context(self) -> None:
         self.assertEqual([], self.context(None, "linux", ["README.md"]))
 

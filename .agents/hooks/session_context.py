@@ -99,14 +99,27 @@ def is_cpp_project(files: list[str]) -> bool:
 def is_native_windows(cwd: Path, files: list[str]) -> bool:
     if any(Path(file).suffix.lower() in {".manifest", ".rc"} for file in files):
         return True
+    grep_command = ["git", "-C", str(cwd), "grep", "--quiet", "-I", "-i", "-F"]
+    for marker in WINDOWS_MARKERS:
+        grep_command.extend(["-e", marker])
+    grep_command.extend(["--", *(f"*{suffix}" for suffix in sorted(CPP_SUFFIXES))])
+    result = subprocess.run(
+        grep_command,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode in {0, 1}:
+        return result.returncode == 0
+
+    # Non-Git fallbacks still stream rather than loading an arbitrarily large source file at once.
     candidates = [file for file in files if Path(file).suffix.lower() in CPP_SUFFIXES]
     for relative in candidates:
         try:
-            text = (cwd / relative).read_text(encoding="utf-8", errors="ignore").lower()
+            with (cwd / relative).open(encoding="utf-8", errors="ignore") as source:
+                if any(marker in line.lower() for line in source for marker in WINDOWS_MARKERS):
+                    return True
         except OSError:
             continue
-        if any(marker in text for marker in WINDOWS_MARKERS):
-            return True
     return False
 
 
