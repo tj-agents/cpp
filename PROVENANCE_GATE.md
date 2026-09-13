@@ -7,15 +7,16 @@ The check runs as `pull_request_target`, reads its workflow from the trusted def
 ## One-time bootstrap order
 
 1. Review and merge the PR that first adds this workflow. `pull_request_target` cannot run a workflow that is not yet on the default branch, so this introduction PR is explicitly the sole unprotected bootstrap.
-2. On the producer migration PR, run the repository attestation script against the pinned private checkout and rerun the new gate if its initial missing-status run failed.
-3. Confirm the gate succeeds from the default-branch workflow.
-4. Add `External contract provenance / repository-binding` to the `main` branch's required checks and require branches to be up to date before merging. Do not mark the bootstrap PR itself as protected retroactively.
+2. Add and review the attestation script on the default branch in a separate bootstrap PR. The script must inspect candidate Git objects as data; it must never execute candidate-owned code while the maintainer credential is available.
+3. From an exact, clean checkout of canonical `main`, run that trusted script against the producer migration's exact pushed SHA and pinned private checkout, then rerun the gate if its initial missing-status run failed.
+4. Confirm the gate succeeds from the default-branch workflow.
+5. Add `External contract provenance / repository-binding` to the `main` branch's required checks and require branches to be up to date before merging. Do not mark either bootstrap PR itself as protected retroactively.
 
 This repository must use direct, strictly up-to-date pull-request merges while this check is required. Do not enable GitHub's merge queue: queue entries are synthetic `merge_group` commits, while the security boundary depends on a trusted `pull_request_target` workflow and an attestation bound to the exact PR head. A merge-group workflow would execute a workflow tree that includes pull-request changes and would therefore weaken that boundary.
 
 Fork PRs remain supported when they do not change protected trust-contract paths. Their changed-file inventory is read through GitHub's paginated API and must be complete; oversized inventories fail closed. A protected trust-contract change must be made on a branch in the canonical repository so the approved maintainer can attest the exact commit there.
 
-Future changes to the contract, evidence, verifier, attestation script, or ordinary CI require a new exact-head attestation. Updates to the trusted producer commit therefore use two PRs: first update and review this default-branch gate's expected producer identity, then change the package contract under the new gate.
+Future changes to the contract, evidence, verifier, attestation script, or ordinary CI require a new exact-head attestation. Updates to the trusted producer commit or attester therefore use two PRs: first update and review the default-branch trust tool, then change the package contract under the new gate. The trusted script validates exact candidate blobs and the authenticated producer checkout directly; candidate scripts, tests, hooks, and generators are never invoked.
 
 ## Trust and recovery
 
