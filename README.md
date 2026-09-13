@@ -72,7 +72,10 @@ pwsh .agents/sync-generated.ps1 -Check
 python .agents/gen_skill_routes.py --self-test
 python -m unittest discover -s .agents/hooks/tests
 python -m unittest discover -s .agents/tests
-pwsh .agents/attest-external-contract.ps1 -AgentStandardsSource C:\path\to\agent-standards
+pwsh C:\path\to\clean-cpp-agents-main\.agents\attest-external-contract.ps1 `
+  -ConsumerSource C:\path\to\cpp-agents-candidate `
+  -CandidateSha <full-pushed-sha> `
+  -AgentStandardsSource C:\path\to\agent-standards
 ```
 
 CI also validates every plugin manifest for both harnesses and rejects broken identifiers, missing dependencies, stale canonical names, generated drift, and incorrect layered activation. The trusted default-branch provenance gate independently requires the exact-head attestation status for changes to the external contract, its evidence, verifier, attestation script, or CI trust path; see [PROVENANCE_GATE.md](PROVENANCE_GATE.md).
