@@ -79,7 +79,7 @@ class MarketplaceContractTests(unittest.TestCase):
         for name, alias in aliases.items():
             self.assertNotIn(name, public)
             self.assertIn(alias["replacedBy"], public)
-            self.assertGreater(date.fromisoformat(alias["removeAfter"]), date(2026, 9, 13))
+            self.assertGreater(date.fromisoformat(alias["removeAfter"]), date.today())
 
     def test_generated_routes_reference_real_skill_contracts(self) -> None:
         local_skills = {

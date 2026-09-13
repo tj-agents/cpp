@@ -81,10 +81,12 @@
   installs all five packages through Codex, and runs Claude's strict marketplace plus per-plugin
   validators. The same five payloads pass the current local Codex and strict Claude validators.
 
-- [ ] **R8 — MEDIUM — compatibility expiry enforcement** —
+- [x] **R8 — MEDIUM — compatibility expiry enforcement** —
   `.agents/tests/test_marketplace_contract.py:80`
   Alias removal dates are compared with the fixed migration date, so expired aliases continue to pass.
   Compare against the current date or add an equivalent release-time expiry gate.
+  Fixed in the next remediation commit: both generation and contract tests compare `removeAfter` with
+  the current date and fail once an alias is due for removal.
 
 Validation on the frozen candidate: generated drift check, route self-test, seven hook tests, six
 contract tests, all five Codex payload validators, the Claude marketplace validator, and all five Claude

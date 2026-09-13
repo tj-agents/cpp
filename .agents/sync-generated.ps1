@@ -267,8 +267,11 @@ if ($payloadsJson.compatibilityAliases) {
         if ($declared -notcontains $property.Name) { throw "compatibility alias '$($property.Name)' is missing from marketplace.json." }
         if ($publicPlugins -contains $property.Name) { throw "compatibility alias '$($property.Name)' cannot be a public plugin." }
         if ($publicPlugins -notcontains $property.Value.replacedBy) { throw "compatibility alias '$($property.Name)' has unknown replacement '$($property.Value.replacedBy)'." }
-        try { [datetime]::ParseExact($property.Value.removeAfter, 'yyyy-MM-dd', $null) | Out-Null }
+        try { $removeAfter = [datetime]::ParseExact($property.Value.removeAfter, 'yyyy-MM-dd', $null) }
         catch { throw "compatibility alias '$($property.Name)' needs a yyyy-MM-dd removeAfter date." }
+        if ($removeAfter.Date -le [datetime]::Today) {
+            throw "compatibility alias '$($property.Name)' expired on $($property.Value.removeAfter); remove it before generating a release."
+        }
         $compatibilityAliases[$property.Name] = $property.Value
     }
 }
