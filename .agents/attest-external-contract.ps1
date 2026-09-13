@@ -167,9 +167,11 @@ $producerHead = (Invoke-CheckedGit -Repository $producerRoot rev-parse HEAD).Tri
 if ($producerHead -ne $expectedProducerCommit) {
     throw "The producer checkout is not at the trusted commit."
 }
-$producerMain = (Invoke-CheckedGh api "repos/$producerRepository/git/ref/heads/main" --jq ".object.sha").Trim()
-if ($producerMain -ne $expectedProducerCommit) {
-    throw "The trusted producer commit is not the authenticated canonical main ref."
+$producerComparison = Invoke-CheckedGh api "repos/$producerRepository/compare/${expectedProducerCommit}...main" | Out-String | ConvertFrom-Json
+if ($producerComparison.base_commit.sha -ne $expectedProducerCommit -or
+    $producerComparison.merge_base_commit.sha -ne $expectedProducerCommit -or
+    $producerComparison.status -notin @("ahead", "identical")) {
+    throw "The trusted producer commit is not reachable from authenticated canonical main."
 }
 $producerRecord = Invoke-CheckedGh api "repos/$producerRepository/commits/$expectedProducerCommit" | Out-String | ConvertFrom-Json
 if ($producerRecord.sha -ne $expectedProducerCommit -or -not $producerRecord.commit.verification.verified) {
