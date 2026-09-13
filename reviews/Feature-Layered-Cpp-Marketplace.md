@@ -118,10 +118,13 @@ above.
   and the regression imports the compatibility hook from a realistic versioned cache path without an
   identity override.
 
-- [ ] **R10 — MEDIUM — bounded session detection** — `.agents/hooks/session_context.py:99`
+- [x] **R10 — MEDIUM — bounded session detection** — `.agents/hooks/session_context.py:99`
   Removing the 200-file cap changed the hook to synchronous full-file reads across the entire C++ corpus
   under a five-second timeout. Large generic/GCC repositories can lose even base context. Use an efficient,
   bounded repository-wide search while preserving late-file detection coverage.
+  Fixed in the next remediation commit: tracked repositories use Git's quiet fixed-string grep, which
+  stops at the first match without Python file reads; non-Git fallback reads line-by-line. Tests cover both
+  a 100,000-path fast-path inventory and a marker in source 201.
 
 - [ ] **R11 — MEDIUM — compatibility end-date semantics** —
   `.agents/sync-generated.ps1:272`, `.agents/tests/test_marketplace_contract.py:82`
