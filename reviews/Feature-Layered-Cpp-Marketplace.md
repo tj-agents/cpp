@@ -4,7 +4,7 @@
 
 **Review status:** `complete`
 **Judgment:** `changes-requested`
-**Reviewed up to commit:** `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d`
+**Reviewed up to commit:** `f79f78cf168283ed20baa4bbe82c18fdec1a2a27`
 **Security-reviewed up to commit:** `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d`
 
 ## Review pass — 2026-09-13 — full
@@ -146,3 +146,38 @@ Validation on the frozen remediation range: generated drift, route self-test, te
 contract tests, five Codex validators, strict Claude marketplace validation, and five strict Claude plugin
 validations passed. The external-source test is exercised by CI with its pinned checkout. The passing gates
 did not cover the four defects above.
+
+## Review pass — 2026-09-13 — incremental
+
+**Candidate base:** `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d`
+**Candidate head:** `f79f78cf168283ed20baa4bbe82c18fdec1a2a27`
+**Candidate branch:** `Feature/Layered-Cpp-Marketplace`
+**Candidate scope:** `all`
+**Candidate path-set:** `sha256:0c1361d830fd4d71a76c6b2f42dc571df931e0aa65f232125b9f56fa024e3f46` `(12 paths)`
+**Candidate bundle:** `C:\Users\tommy\source\repos\cpp\windows\cpp-agents\.git\agent-workflow\runs\cpp-marketplace-migration\review\1836ebce7c0e467cd19f2dd91c4c05e85bc276fb90ece2cad0cb94f5bea6ce77`
+**Candidate bundle identity:** `sha256:4be48043a26132c7b6da1a3c67fee9995aac4dba092cf53c8b5454d1c76a5edc`
+**Work-order path:** `reviews/Feature-Layered-Cpp-Marketplace.md`
+**Work-order mode:** `append`
+**Pass judgment:** `changes-requested`
+
+### Findings
+
+- [x] **R13 — HIGH — exact compatibility skill resolution** —
+  `plugins/cpp-standards/standards/cpp/KNOWLEDGE.md:118`
+  Namespace rewriting produces `gpp-standards:gcc-toolchain`, but that alias exposes only
+  `gpp-standards:gpp-toolchain`. Rewrite complete qualified identifiers and validate every alias-qualified
+  reference against the actual generated compatibility skill inventories.
+  Fixed in the next remediation commit: compatibility metadata rewrites the full GCC identifier before
+  namespace rewrites, records the legacy Windows inventory, and validates every qualified identifier in
+  alias documents and hooks against the generated/local or declared legacy plugin inventory.
+
+- [ ] **R14 — MEDIUM — case-insensitive source path matching** —
+  `.agents/hooks/session_context.py:105`
+  C++ candidates recognize extensions case-insensitively, but Git grep pathspecs contain only lowercase
+  suffixes. On a case-sensitive checkout, an uppercase `.CPP` marker is missed and return code 1 suppresses
+  fallback scanning. Make Git path matching case-insensitive or search the exact candidate inventory, and
+  add an uppercase-extension regression.
+
+Validation on the frozen second repair range: generated drift, eleven hook tests, nine contract tests,
+and both harness validators passed. Those tests did not resolve qualified alias identifiers or exercise
+uppercase Git path matching.

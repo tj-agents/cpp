@@ -198,6 +198,9 @@ foreach ($entry in $manifestJson.plugins) {
 function Rewrite-CompatibilityIdentifiers([string]$body, [string]$pluginName) {
     if (-not $compatibilityAliases.ContainsKey($pluginName)) { return $body }
     $alias = $compatibilityAliases[$pluginName]
+    foreach ($property in $alias.qualifiedSkillAliases.PSObject.Properties) {
+        $body = $body.Replace($property.Name, $property.Value)
+    }
     foreach ($property in $alias.identifierAliases.PSObject.Properties) {
         $body = $body.Replace("$($property.Name):", "$($property.Value):")
     }

@@ -24,6 +24,9 @@
         "windows": "windows-standards",
         "gcc": "gpp-standards"
       },
+      "qualifiedSkillAliases": {
+        "gcc:gcc-toolchain": "gpp-standards:gpp-toolchain"
+      },
       "selectorAliases": {
         "base@cpp-agents": "cpp-standards@cpp-agents",
         "windows@cpp-agents": "windows-standards@windows-agents",
@@ -40,6 +43,9 @@
         "base": "cpp-standards",
         "windows": "windows-standards",
         "gcc": "gpp-standards"
+      },
+      "qualifiedSkillAliases": {
+        "gcc:gcc-toolchain": "gpp-standards:gpp-toolchain"
       },
       "selectorAliases": {
         "base@cpp-agents": "cpp-standards@cpp-agents",
