@@ -146,10 +146,16 @@ class MarketplaceContractTests(unittest.TestCase):
                 offenders.append(path.relative_to(ROOT).as_posix())
         self.assertEqual([], offenders)
 
-    def test_compatibility_hook_contains_only_declared_legacy_identifiers(self) -> None:
-        text = (ROOT / ".agents" / "hooks" / "session_context.py").read_text(encoding="utf-8")
-        retired = set(re.findall(r"cpp-standards|gpp-standards|windows-standards|agent-process:", text))
-        self.assertEqual({"cpp-standards", "gpp-standards", "windows-standards"}, retired)
+    def test_canonical_hooks_contain_no_retired_identifiers(self) -> None:
+        retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
+        hooks = [
+            ROOT / ".agents" / "hooks" / "session_context.py",
+            ROOT / "plugins" / "base" / "hooks" / "session_context.py",
+        ]
+        self.assertEqual(
+            [],
+            [path.relative_to(ROOT).as_posix() for path in hooks if retired.search(path.read_text(encoding="utf-8"))],
+        )
 
     def test_compatibility_payload_skill_identifiers_resolve(self) -> None:
         identifier = re.compile(r"(?<![-\w])([a-z0-9-]+):([a-z0-9-]+)")

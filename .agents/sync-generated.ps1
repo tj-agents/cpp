@@ -357,13 +357,6 @@ foreach ($plugin in $plugins) {
     if ($hookOwners -contains $plugin.Name) {
         foreach ($hook in $hookFiles) {
             $hookBody = Read-Lf $hook.FullName
-            if ($hook.Name -eq 'session_context.py') {
-                $identityLine = 'PLUGIN_NAME = "base"'
-                if (([regex]::Matches($hookBody, "(?m)^$([regex]::Escape($identityLine))$")).Count -ne 1) {
-                    throw "session_context.py must contain exactly one generated plugin identity line."
-                }
-                $hookBody = $hookBody.Replace($identityLine, "PLUGIN_NAME = `"$($plugin.Name)`"")
-            }
             $hookBody = Rewrite-CompatibilityIdentifiers $hookBody $plugin.Name
             $generated["plugins/$($plugin.Name)/hooks/$($hook.Name)"] = $hookBody
         }

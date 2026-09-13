@@ -19,22 +19,9 @@ WINDOWS_MARKERS = (
     "createwindowex",
     "defwindowproc",
 )
-LEGACY_PLUGIN_NAME = "cpp-standards"
-PLUGIN_NAME = "cpp-standards"
-
-
-def context_messages(plugin_name: str) -> tuple[str, str, str]:
-    if plugin_name == LEGACY_PLUGIN_NAME:
-        return (
-            "This is a C++ repository. Apply cpp-standards@cpp-agents. Load cpp-standards:cpp-style and cpp-standards:cpp-libraries before code changes, and cpp-standards:cpp-learning plus cpp-standards:cpp-knowledge before deciding how to teach or implement unfamiliar logic.",
-            "Native Windows C++ was detected. Apply windows-standards@windows-agents on top of cpp-standards: windows-standards:windows-overview, windows-standards:win32-style, and windows-standards:windows-cpp-knowledge.",
-            "GCC/Linux C++ applies to this repository. Apply gpp-standards@cpp-agents and gpp-standards:gpp-toolchain on top of cpp-standards.",
-        )
-    return (
-        "This is a C++ repository. Apply cpp-standards@cpp-agents. Load cpp-standards:cpp-style and cpp-standards:cpp-libraries before code changes, and cpp-standards:cpp-learning plus cpp-standards:cpp-knowledge before deciding how to teach or implement unfamiliar logic.",
-        "Native Windows C++ was detected. Apply windows-standards@windows-agents on top of cpp-standards: windows-standards:windows-overview, windows-standards:win32-style, and windows-standards:windows-cpp-knowledge.",
-        "GCC/Linux C++ applies to this repository. Apply gpp-standards@cpp-agents and gpp-standards:gpp-toolchain on top of base.",
-    )
+BASE_CONTEXT = "This is a C++ repository. Apply cpp-standards@cpp-agents. Load cpp-standards:cpp-style and cpp-standards:cpp-libraries before code changes, and cpp-standards:cpp-learning plus cpp-standards:cpp-knowledge before deciding how to teach or implement unfamiliar logic."
+WINDOWS_CONTEXT = "Native Windows C++ was detected. Apply windows-standards@windows-agents on top of cpp-standards: windows-standards:windows-overview, windows-standards:win32-style, and windows-standards:windows-cpp-knowledge."
+GCC_CONTEXT = "GCC/Linux C++ applies to this repository. Apply gpp-standards@cpp-agents and gpp-standards:gpp-toolchain on top of base."
 
 
 def project_root(cwd: Path) -> Path:
@@ -139,12 +126,11 @@ def context_for(
         elif platform.startswith("linux"):
             layers.add("gcc")
 
-    base_message, windows_message, gcc_message = context_messages(PLUGIN_NAME)
-    context = [base_message]
+    context = [BASE_CONTEXT]
     if "windows" in layers:
-        context.append(windows_message)
+        context.append(WINDOWS_CONTEXT)
     if "gcc" in layers:
-        context.append(gcc_message)
+        context.append(GCC_CONTEXT)
     return context
 
 
