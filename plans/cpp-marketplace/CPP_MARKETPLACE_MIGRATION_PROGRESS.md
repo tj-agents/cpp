@@ -5,17 +5,17 @@
 - Roadmap item: `cpp-marketplace/layered-migration`
 - Worktree: `C:\Users\tommy\source\repos\cpp\windows\cpp-agents`
 - Branch: `Feature/Layered-Cpp-Marketplace`
-- PR: https://github.com/tomjseery/cpp-agents/pull/2 (draft; fixing first remote CI result)
+- PR: https://github.com/tomjseery/cpp-agents/pull/2 (draft; provenance-gate attestation and final review next)
 - Dependency/package gates: cpp-agents must merge before windows-agents deprecation or installed/consumer configuration changes
 - Last reconciled: 2026-09-13 from repository, installed marketplace, and consumer inventory
 
 ## Current state
 
-Phase 1 implementation and aggregate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. PR #2 exposed that a repository-scoped Actions token cannot check out the separate private agent-standards repository; the fixing candidate now verifies an offline GitHub-signed commit/tree attestation in CI and retains real-source local verification for contract refreshes.
+Phase 1 implementation and aggregate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. Offline signed evidence and the authenticated local release gate are complete. Because the organization disables deploy keys, reviewed bootstrap PR #3 introduced a no-secret, exact-head provenance status gate on `main`; the producer branch now needs its attestation script committed, pushed, exercised, and incrementally reviewed.
 
 ## Next Steps
 
-Review and push the CI fix, own exact-head PR CI to green, then merge the cpp-agents producer before beginning windows-agents deprecation.
+Commit and push the attestation script and trusted-gate integration, run the authenticated exact-source attestation for that head, close R22 through incremental review, and own both CI and the provenance check to green. Then merge the cpp-agents producer before beginning windows-agents deprecation.
 
 Scope: whole plan through all remaining phases and terminal delivery.
 Current slice: Phase 1 immutable candidate, review, and cpp-agents delivery.
@@ -47,3 +47,4 @@ The initial full review and two incremental repair reviews produced fourteen fin
 - Plugin manifests expose no native dependency/alias field in the supported schema, so layer dependencies and compatibility aliases require repository-owned metadata plus validation and documentation.
 - Winwrap had a pre-existing untracked `.codex/` directory before this migration; preserve it and do not sweep it into unrelated commits.
 - PR #2 run 34781877587 failed because the current-repository `GITHUB_TOKEN` cannot read the separate private `Concertable/agent-standards` repository. The contract now carries the exact source commit plus an offline-verifiable GitHub signature, signed tree path, manifest blob, and required skill blobs, so CI proves provenance without a cross-repository secret; local release validation also compares hashes against the real checkout.
+- The organization policy disables deploy keys, so no deploy key or Actions secret was retained. Bootstrap PR #3 merged the reviewed `pull_request_target` status verifier at `82ff5c1b7fda627935d5f5b38b9371c69d8c91a8`; authenticated source validation remains local to the approved maintainer, and the trusted workflow verifies its exact-head status contract.

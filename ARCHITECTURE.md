@@ -22,7 +22,7 @@ A rule has one authored home. Router skills each own one document. Self-containe
 
 ## Source-to-package flow
 
-`.agents/plugins/marketplace.json` is the canonical Codex marketplace. `.agents/plugins/payloads.json` declares public plugins, payload domains, dependencies, hook owners, compatibility aliases, skill-name aliases, and removal dates. `.agents/plugins/skill-contract.json` pins external workflow skills that generated routes may reference. `contracts/` carries non-executable, signed Git provenance for that external contract so CI can verify the private source commit without duplicating its workflow standards or requiring a cross-repository credential.
+`.agents/plugins/marketplace.json` is the canonical Codex marketplace. `.agents/plugins/payloads.json` declares public plugins, payload domains, dependencies, hook owners, compatibility aliases, skill-name aliases, and removal dates. `.agents/plugins/skill-contract.json` pins external workflow skills that generated routes may reference. `contracts/` carries non-executable, signed Git provenance for that external contract so ordinary CI can verify the pinned content without duplicating its workflow standards. A trusted default-branch status gate then binds protected consumer heads to an authenticated check of the private producer repository without storing a cross-repository credential; its trust boundary and recovery contract are in `PROVENANCE_GATE.md`.
 
 `.agents/sync-generated.ps1` validates those contracts and generates the local Claude skills, self-contained plugin payloads, the plugin-owned detection hook, Claude manifests and marketplace, and one topic index per standards domain.
 
