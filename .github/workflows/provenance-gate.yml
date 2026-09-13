@@ -33,10 +33,19 @@ jobs:
             echo "Invalid pull-request commit identity." >&2
             exit 1
           fi
-          remote_sha=$(gh api "repos/$HEAD_REPOSITORY/commits/$HEAD_SHA" --jq '.sha')
-          if [[ "$remote_sha" != "$HEAD_SHA" ]]; then
-            echo "The pull-request head is not in its declared repository." >&2
+          IFS=$'\t' read -r api_head_repository api_head_sha < <(
+            gh api "repos/$CANONICAL_REPOSITORY/pulls/$PR_NUMBER" --jq '[.head.repo.full_name, .head.sha] | @tsv'
+          )
+          if [[ "$api_head_repository" != "$HEAD_REPOSITORY" || "$api_head_sha" != "$HEAD_SHA" ]]; then
+            echo "The pull-request head does not match the canonical PR record." >&2
             exit 1
+          fi
+          if [[ "$HEAD_REPOSITORY" == "$CANONICAL_REPOSITORY" ]]; then
+            remote_sha=$(gh api "repos/$CANONICAL_REPOSITORY/commits/$HEAD_SHA" --jq '.sha')
+            if [[ "$remote_sha" != "$HEAD_SHA" ]]; then
+              echo "The pull-request head is not in the canonical repository." >&2
+              exit 1
+            fi
           fi
 
       - name: Check out trusted base and Git object graph
