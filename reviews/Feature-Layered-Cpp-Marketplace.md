@@ -73,10 +73,13 @@
   Fixed in the next remediation commit: Windows build routes now load `windows:win32-style` and the
   self-test asserts the complete base-plus-Windows CMake skill set.
 
-- [ ] **R7 — MEDIUM — installable schema validation** — `.github/workflows/ci.yml:12`
+- [x] **R7 — MEDIUM — installable schema validation** — `.github/workflows/ci.yml:12`
   CI does not run the Codex or Claude marketplace/plugin validators that the README claims. Add both
   harness validators for the marketplace and all five generated payloads, or an equivalent checked-in
   schema validator that exercises the same contracts.
+  Fixed in the next remediation commit: CI pins Codex 0.154.0 and Claude Code 2.1.268, registers and
+  installs all five packages through Codex, and runs Claude's strict marketplace plus per-plugin
+  validators. The same five payloads pass the current local Codex and strict Claude validators.
 
 - [ ] **R8 — MEDIUM — compatibility expiry enforcement** —
   `.agents/tests/test_marketplace_contract.py:80`

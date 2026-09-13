@@ -28,3 +28,20 @@ jobs:
         run: python3 -m unittest discover -s .agents/tests
       - name: Check skill-route generator
         run: python3 .agents/gen_skill_routes.py --self-test
+      - name: Install pinned marketplace harnesses
+        run: npm install --global @openai/codex@0.154.0 @anthropic-ai/claude-code@2.1.268
+      - name: Validate and install with Codex
+        shell: bash
+        run: |
+          codex plugin marketplace add .
+          for plugin in base windows gcc cpp-standards gpp-standards; do
+            codex plugin add "$plugin@cpp-agents"
+          done
+          codex plugin list --json
+      - name: Validate marketplace and plugins with Claude Code
+        shell: bash
+        run: |
+          claude plugin validate --strict .claude-plugin/marketplace.json
+          for plugin in base windows gcc cpp-standards gpp-standards; do
+            claude plugin validate --strict "plugins/$plugin"
+          done
