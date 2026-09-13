@@ -1,6 +1,8 @@
 import importlib.util
 import json
+import os
 import re
+import subprocess
 import unittest
 from datetime import date
 from pathlib import Path
@@ -107,10 +109,35 @@ class MarketplaceContractTests(unittest.TestCase):
                         self.assertIn(plugin, external, identifier)
                         self.assertIn(skill, external[plugin]["skills"], identifier)
 
+    def test_external_skill_contract_matches_pinned_agent_standards_source(self) -> None:
+        source_value = os.environ.get("AGENT_STANDARDS_SOURCE")
+        if not source_value:
+            self.skipTest("AGENT_STANDARDS_SOURCE is required only for the pinned-source CI gate")
+
+        source = Path(source_value).resolve()
+        contract = self.contract["externalPlugins"]["concertable"]
+        revision = subprocess.run(
+            ["git", "-C", str(source), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=True,
+        ).stdout.strip()
+        self.assertEqual(contract["sourceCommit"], revision)
+
+        manifest = read_json(source / contract["manifest"])
+        self.assertEqual("concertable", manifest["name"])
+        self.assertEqual(contract["version"], manifest["version"])
+        self.assertEqual(contract["repository"], manifest["repository"])
+        skills_root = source / contract["skillsRoot"]
+        for skill in contract["skills"]:
+            self.assertTrue((skills_root / skill / "SKILL.md").is_file(), skill)
+
     def test_canonical_sources_contain_no_retired_plugin_identifiers(self) -> None:
         retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
         roots = [ROOT / "standards", ROOT / ".agents" / "skills"]
-        files = [ROOT / ".agents" / "gen_skill_routes.py", ROOT / ".agents" / "hooks" / "session_context.py"]
+        files = [ROOT / ".agents" / "gen_skill_routes.py"]
         for source_root in roots:
             files.extend(source_root.rglob("*.md"))
         offenders = []
@@ -118,6 +145,11 @@ class MarketplaceContractTests(unittest.TestCase):
             if retired.search(path.read_text(encoding="utf-8")):
                 offenders.append(path.relative_to(ROOT).as_posix())
         self.assertEqual([], offenders)
+
+    def test_compatibility_hook_contains_only_declared_legacy_identifiers(self) -> None:
+        text = (ROOT / ".agents" / "hooks" / "session_context.py").read_text(encoding="utf-8")
+        retired = set(re.findall(r"cpp-standards|gpp-standards|windows-standards|agent-process:", text))
+        self.assertEqual({"cpp-standards", "gpp-standards", "windows-standards"}, retired)
 
 
 if __name__ == "__main__":
