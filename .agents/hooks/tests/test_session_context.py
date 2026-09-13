@@ -169,6 +169,25 @@ class SessionContextTests(unittest.TestCase):
         self.assertIn("grep", command)
         self.assertIn("--quiet", command)
 
+    def test_git_grep_matches_uppercase_cpp_extension(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "src" / "MAIN.CPP"
+            source.parent.mkdir(parents=True)
+            source.write_text("#include <WINDOWS.H>\n", encoding="utf-8")
+            session_context.subprocess.run(
+                ["git", "-C", str(root), "init", "--quiet"],
+                check=True,
+            )
+            session_context.subprocess.run(
+                ["git", "-C", str(root), "add", "--", "src/MAIN.CPP"],
+                check=True,
+            )
+
+            detected = session_context.is_native_windows(root, ["src/MAIN.CPP"])
+
+        self.assertTrue(detected)
+
     def test_non_cpp_repository_gets_no_context(self) -> None:
         self.assertEqual([], self.context(None, "linux", ["README.md"]))
 

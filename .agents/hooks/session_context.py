@@ -102,7 +102,7 @@ def is_native_windows(cwd: Path, files: list[str]) -> bool:
     grep_command = ["git", "-C", str(cwd), "grep", "--quiet", "-I", "-i", "-F"]
     for marker in WINDOWS_MARKERS:
         grep_command.extend(["-e", marker])
-    grep_command.extend(["--", *(f"*{suffix}" for suffix in sorted(CPP_SUFFIXES))])
+    grep_command.extend(["--", *(f":(icase)*{suffix}" for suffix in sorted(CPP_SUFFIXES))])
     result = subprocess.run(
         grep_command,
         capture_output=True,
