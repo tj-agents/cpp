@@ -60,10 +60,12 @@
   `concertable` 0.1.6 manifest, exact source commit, skills root, and skill names; CI checks out that
   commit and the contract test verifies its real manifest and files.
 
-- [ ] **R5 — MEDIUM — complete Windows detection** — `.agents/hooks/session_context.py:76`
+- [x] **R5 — MEDIUM — complete Windows detection** — `.agents/hooks/session_context.py:76`
   Windows marker detection scans only the first 200 tracked C++ files. A native Windows repository whose
   first Win32 marker sorts later is misclassified. Search every tracked candidate efficiently and add a
   regression with the marker after candidate 200.
+  Fixed in the next remediation commit: detection examines the complete tracked C++ candidate set and a
+  201-file regression proves a final-file Win32 marker selects Windows rather than the Linux host layer.
 
 - [ ] **R6 — MEDIUM — Windows CMake ownership route** — `.agents/gen_skill_routes.py:67`
   Windows CMake rules live in `windows:win32-style`, but the Windows build route loads only

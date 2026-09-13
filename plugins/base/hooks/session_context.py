@@ -99,7 +99,7 @@ def is_native_windows(cwd: Path, files: list[str]) -> bool:
     if any(Path(file).suffix.lower() in {".manifest", ".rc"} for file in files):
         return True
     candidates = [file for file in files if Path(file).suffix.lower() in CPP_SUFFIXES]
-    for relative in candidates[:200]:
+    for relative in candidates:
         try:
             text = (cwd / relative).read_text(encoding="utf-8", errors="ignore").lower()
         except OSError:
