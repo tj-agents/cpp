@@ -1,0 +1,26 @@
+tree a0c4a976331ab961a8287b9832d92f852faf6014
+parent 84315575002727f462eee8a88508c657927cf86c
+parent 5ef9a496ef32adb9cb5473a92a3f6579a69df6ee
+author tomjseery <zomboyt@outlook.com> 1789232663 +0100
+committer GitHub <noreply@github.com> 1789232663 +0100
+gpgsig -----BEGIN PGP SIGNATURE-----
+ 
+ wsFcBAABCAAQBQJqpYYXCRC1aQ7uu5UhlAAAvy0QAHnqouKD4ImQrlBgBAViu6/2
+ f5rzkjDGzXsYK46s0Jc0BJpx7U3FxHnJJpVdVc8uFHyxzvPD5hBo0D3oeiX2fmj1
+ ZuC930NHRd9jfoPdWUItypec6l19kKkNS0CRxOCcpovF3PwB+rajrAnyjDHpt6pz
+ COAo3FJPouWCO1ZaZGn/RvXwXJsdCbwyRZIPOcwhx2CgoPBIzC3TTpa589f2XnpK
+ WD9Bk93KVCFSD0EYdM2dua3qgvyV1gc2BfoGrYYlA/+BjWzmnY/YBXfpu3k0UPU/
+ WdNc9vup5e+VKaYlVEg4Hs+uUJdfwFjdZ3gVKvyeEWnZ17WmlaZNSSJ281f6r+8D
+ 7kJKSoyyOCcSncjsRI2rvGOJsPW5Q7s6TvHFLULMYCkF8QsihKHvvWYWFWHhxPwd
+ /AC4xsKr6CBMETFu1v+SBTu1IfC/WsIQQHoCGy28GeU9pfyQnhypcLZluHdpqabN
+ 4vjP3ZFTTHCshtYXi6+YbFk1ArAF05ujfEACuHWpa3hLlSsFtTS70eRQvlRVVWsO
+ eBtwrBDlQRNzjYsTfrLuX9sCt2l611r9KqtqEwlGxHlFJIITI5RGUsglVR8+thgW
+ viuv00gb4/DDrCZMFIkKF2liUM+v+O5KTtXfQUa+iDtk0cO7NDORD6VYyQvdhkzd
+ pMmS40kjUKznTAy755ET
+ =8VoW
+ -----END PGP SIGNATURE-----
+ 
+
+Merge pull request #97 from Concertable/Feature/portable-agents-plugin
+
+Fix stale plugin identities after renames

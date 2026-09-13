@@ -1,0 +1,20 @@
+{
+  "name": "concertable",
+  "version": "0.1.6",
+  "description": "Concertable engineering standards for process, delivery, plans, reviews, validation, and repository hooks.",
+  "author": {
+    "name": "Tommy Seery"
+  },
+  "repository": "https://github.com/Concertable/agent-standards",
+  "skills": "./codex-skills/",
+  "hooks": "./hooks/codex-hooks.json",
+  "interface": {
+    "displayName": "Concertable Standards",
+    "shortDescription": "Concertable engineering standards and delivery workflows.",
+    "longDescription": "Load-on-demand Concertable standards, delivery workflows, and the write-time convention router.",
+    "developerName": "Tommy Seery",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Apply the relevant Concertable process standard to this task."
+  }
+}
