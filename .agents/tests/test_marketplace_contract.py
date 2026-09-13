@@ -151,15 +151,31 @@ class MarketplaceContractTests(unittest.TestCase):
         retired = set(re.findall(r"cpp-standards|gpp-standards|windows-standards|agent-process:", text))
         self.assertEqual({"cpp-standards", "gpp-standards", "windows-standards"}, retired)
 
-    def test_compatibility_payloads_are_closed_over_legacy_skill_namespaces(self) -> None:
-        canonical = re.compile(r"(?<![-\w])(base|windows|gcc):[a-z0-9-]+")
+    def test_compatibility_payload_skill_identifiers_resolve(self) -> None:
+        identifier = re.compile(r"(?<![-\w])([a-z0-9-]+):([a-z0-9-]+)")
+        inventories = {
+            plugin: {
+                path.parent.name
+                for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")
+            }
+            for plugin in self.payloads["compatibilityAliases"]
+        }
+        inventories.update(
+            {
+                plugin: set(contract["skills"])
+                for plugin, contract in self.contract["legacyExternalPlugins"].items()
+            }
+        )
         offenders = []
         for plugin in self.payloads["compatibilityAliases"]:
             root = ROOT / "plugins" / plugin
             for pattern in ("*.md", "*.py"):
                 for path in root.rglob(pattern):
-                    if canonical.search(path.read_text(encoding="utf-8")):
-                        offenders.append(path.relative_to(ROOT).as_posix())
+                    for namespace, skill in identifier.findall(path.read_text(encoding="utf-8")):
+                        if namespace not in inventories or skill not in inventories[namespace]:
+                            offenders.append(
+                                f"{path.relative_to(ROOT).as_posix()}: {namespace}:{skill}"
+                            )
         self.assertEqual([], offenders)
 
 
