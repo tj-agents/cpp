@@ -10,6 +10,7 @@ CPP_FILES = {"CMakeLists.txt", "CMakePresets.json", ".clang-format", ".clang-tid
 ROUTES_FILE = Path(".agents") / "skill-routes.json"
 KIND_ALIASES = {"portable": "generic", "gpp": "gcc"}
 PROJECT_KINDS = {"generic", "gcc", "windows", *KIND_ALIASES}
+PROJECT_LAYERS = {"base", "gcc", "windows"}
 WINDOWS_MARKERS = (
     "#include <windows.h>",
     "#include <wil/",
@@ -52,17 +53,27 @@ def tracked_project(cwd: Path) -> tuple[Path, list[str]]:
     return root, [item.name for item in root.iterdir() if item.is_file()]
 
 
-def declared_kind(root: Path) -> str | None:
+def declared_layers(root: Path) -> frozenset[str] | None:
     try:
         routes = json.loads((root / ROUTES_FILE).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
     if not isinstance(routes, dict):
         return None
+    layers = routes.get("layers")
+    if (
+        isinstance(layers, list)
+        and layers
+        and all(isinstance(layer, str) for layer in layers)
+        and set(layers) <= PROJECT_LAYERS
+        and "base" in layers
+    ):
+        return frozenset(layers)
     value = routes.get("kind")
     if value not in PROJECT_KINDS:
         return None
-    return KIND_ALIASES.get(value, value)
+    kind = KIND_ALIASES.get(value, value)
+    return frozenset({"base"} if kind == "generic" else {"base", kind})
 
 
 def is_cpp_project(files: list[str]) -> bool:
@@ -85,18 +96,25 @@ def is_native_windows(cwd: Path, files: list[str]) -> bool:
 
 def context_for(cwd: Path, platform: str = sys.platform) -> list[str]:
     root, files = tracked_project(cwd)
-    kind = declared_kind(root)
-    if not is_cpp_project(files) and kind is None:
+    layers = declared_layers(root)
+    if not is_cpp_project(files) and layers is None:
         return []
+
+    if layers is None:
+        layers = {"base"}
+        if is_native_windows(root, files):
+            layers.add("windows")
+        elif platform.startswith("linux"):
+            layers.add("gcc")
 
     context = [
         "This is a C++ repository. Apply base@cpp-agents. Load base:cpp-style and base:cpp-libraries before code changes, and base:cpp-learning plus base:cpp-knowledge before deciding how to teach or implement unfamiliar logic."
     ]
-    if kind == "windows" or (kind is None and is_native_windows(root, files)):
+    if "windows" in layers:
         context.append(
             "Native Windows C++ was detected. Apply windows@cpp-agents on top of base: windows:windows-overview, windows:win32-style, and windows:windows-cpp-knowledge."
         )
-    elif kind == "gcc" or (kind is None and platform.startswith("linux")):
+    if "gcc" in layers:
         context.append(
             "GCC/Linux C++ applies to this repository. Apply gcc@cpp-agents and gcc:gcc-toolchain on top of base."
         )

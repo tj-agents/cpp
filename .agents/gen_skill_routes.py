@@ -13,14 +13,38 @@ BUILD_PATH = r"(^|/)(CMakeLists\.txt|CMakePresets\.json|[^/]+\.cmake)$"
 TEST_PATH = r"(^|/)(tests?|test)/.*\.(c|cc|cpp|cxx|h|hh|hpp|hxx)$|(_test|_tests)\.(c|cc|cpp|cxx)$"
 KIND_ALIASES = {"portable": "generic", "gpp": "gcc"}
 CANONICAL_KINDS = ("generic", "gcc", "windows")
+PLATFORM_LAYERS = ("windows", "gcc")
 
 
 def canonical_kind(kind: str) -> str:
     return KIND_ALIASES.get(kind, kind)
 
 
-def routes(kind: str) -> dict:
-    kind = canonical_kind(kind)
+def canonical_layers(value: str | list[str] | tuple[str, ...]) -> tuple[str, ...]:
+    if isinstance(value, str):
+        kind = canonical_kind(value)
+        if kind not in CANONICAL_KINDS:
+            raise ValueError(f"unknown project kind: {value}")
+        requested = () if kind == "generic" else (kind,)
+    else:
+        requested = tuple(value)
+        unknown = set(requested) - set(PLATFORM_LAYERS)
+        if unknown:
+            raise ValueError(f"unknown platform layer(s): {', '.join(sorted(unknown))}")
+    return ("base", *(layer for layer in PLATFORM_LAYERS if layer in requested))
+
+
+def compatibility_kind(layers: tuple[str, ...]) -> str:
+    platforms = layers[1:]
+    if not platforms:
+        return "generic"
+    if len(platforms) == 1:
+        return platforms[0]
+    return "composed"
+
+
+def routes(kind_or_layers: str | list[str] | tuple[str, ...]) -> dict:
+    layers = canonical_layers(kind_or_layers)
     result = [
         {
             "path": CPP_PATH,
@@ -45,7 +69,7 @@ def routes(kind: str) -> dict:
         },
     ]
 
-    if kind == "gcc":
+    if "gcc" in layers:
         result.append(
             {
                 "path": rf"{CPP_PATH}|{BUILD_PATH}",
@@ -53,7 +77,7 @@ def routes(kind: str) -> dict:
                 "note": "GCC/Linux toolchain layer generated for a gcc project.",
             }
         )
-    elif kind == "windows":
+    if "windows" in layers:
         result.extend(
             [
                 {
@@ -77,45 +101,48 @@ def routes(kind: str) -> dict:
             "The concertable plugin reads this table before writes and reviews.",
             "Every matching route fires, so platform and test/build routes layer on the C++ base.",
         ],
-        "kind": kind,
+        "kind": compatibility_kind(layers),
+        "layers": list(layers),
         "routes": result,
     }
 
 
-def rendered(kind: str) -> str:
-    return json.dumps(routes(kind), indent=2, ensure_ascii=False) + "\n"
+def rendered(kind_or_layers: str | list[str] | tuple[str, ...]) -> str:
+    return json.dumps(routes(kind_or_layers), indent=2, ensure_ascii=False) + "\n"
 
 
 def target_for(root: Path) -> Path:
     return root / ".agents" / "skill-routes.json"
 
 
-def skills_for(kind: str, path: str) -> set[str]:
+def skills_for(kind_or_layers: str | list[str] | tuple[str, ...], path: str) -> set[str]:
     matched = set()
-    for route in routes(kind)["routes"]:
+    for route in routes(kind_or_layers)["routes"]:
         if re.search(route["path"], path):
             matched.update(route.get("skills") or [])
     return matched
 
 
-def write_or_check(kind: str, root: Path, check: bool) -> int:
-    canonical = canonical_kind(kind)
+def write_or_check(kind_or_layers: str | list[str] | tuple[str, ...], root: Path, check: bool) -> int:
+    layers = canonical_layers(kind_or_layers)
     target = target_for(root)
-    expected = rendered(canonical)
+    expected = rendered(layers[1:])
+    label = "+".join(layers)
     if check:
         try:
             actual = target.read_text(encoding="utf-8")
         except OSError:
             actual = None
         if actual != expected:
-            print(f"STALE: {target}; regenerate with --kind {canonical} --into {root}")
+            arguments = " ".join(f"--layer {layer}" for layer in layers[1:]) or "--kind generic"
+            print(f"STALE: {target}; regenerate with {arguments} --into {root}")
             return 1
-        print(f"current: {target} ({canonical})")
+        print(f"current: {target} ({label})")
         return 0
 
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(expected, encoding="utf-8", newline="\n")
-    print(f"generated: {target} ({canonical})")
+    print(f"generated: {target} ({label})")
     return 0
 
 
@@ -129,11 +156,16 @@ def self_test() -> int:
             if write_or_check(kind, destination, True) != 0:
                 return 1
             parsed = json.loads(target_for(destination).read_text(encoding="utf-8"))
-            if parsed["kind"] != kind or not parsed["routes"]:
+            if parsed["kind"] != kind or parsed["layers"][0] != "base" or not parsed["routes"]:
                 return 1
 
         if routes("portable")["kind"] != "generic" or routes("gpp")["kind"] != "gcc":
             print("legacy kind aliases do not normalize to canonical kinds")
+            return 1
+
+        composed = routes(["windows", "gcc"])
+        if composed["kind"] != "composed" or composed["layers"] != ["base", "windows", "gcc"]:
+            print("platform layers do not compose in canonical order")
             return 1
 
         cases = {
@@ -159,13 +191,19 @@ def self_test() -> int:
                 "windows:windows-overview",
                 "windows:win32-style",
             },
+            (("windows", "gcc"), "app/src/main.cpp"): {
+                "base:cpp-style",
+                "windows:windows-overview",
+                "windows:win32-style",
+                "gcc:gcc-toolchain",
+            },
             ("generic", "AGENTS.md"): {"concertable:docs-and-debt"},
             ("generic", ".agents/skill-routes.json"): {"concertable:skill-routes"},
         }
-        for (kind, path), expected in cases.items():
-            actual = skills_for(kind, path)
+        for (kind_or_layers, path), expected in cases.items():
+            actual = skills_for(kind_or_layers, path)
             if actual != expected:
-                print(f"unexpected skills for {kind}:{path}: {sorted(actual)}")
+                print(f"unexpected skills for {kind_or_layers}:{path}: {sorted(actual)}")
                 return 1
     print("skill-route generator self-test passed")
     return 0
@@ -174,18 +212,22 @@ def self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--kind", choices=(*CANONICAL_KINDS, *KIND_ALIASES))
+    parser.add_argument("--layer", action="append", choices=PLATFORM_LAYERS, default=[])
     parser.add_argument("--into", type=Path)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:
-        if args.kind or args.into or args.check:
+        if args.kind or args.layer or args.into or args.check:
             parser.error("--self-test cannot be combined with generation arguments")
         return self_test()
-    if not args.kind or not args.into:
-        parser.error("--kind and --into are required unless --self-test is used")
-    return write_or_check(args.kind, args.into.resolve(), args.check)
+    if args.kind and args.layer:
+        parser.error("--kind is the legacy single-classification input; use repeated --layer for composition")
+    if not (args.kind or args.layer) or not args.into:
+        parser.error("--kind or at least one --layer, plus --into, are required unless --self-test is used")
+    selection = args.kind if args.kind else args.layer
+    return write_or_check(selection, args.into.resolve(), args.check)
 
 
 if __name__ == "__main__":
