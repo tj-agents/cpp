@@ -11,11 +11,11 @@
 
 ## Current state
 
-Phase 1 implementation and three completed review-remediation rounds are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. The latest fixing head now needs a clean incremental pass and final validation before delivery.
+Phase 1 implementation and review are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. The final incremental pass approved `e5f083b9fcdc1427a166a00cf7ff34f3e002d2f2`; final validation and cpp-agents delivery are next.
 
 ## Next Steps
 
-Run the incremental review from the frozen candidate through the remediation head, resolve any new findings, complete final local validation, then deliver and merge the cpp-agents PR while owning exact-head CI.
+Complete final local validation, then deliver and merge the cpp-agents PR while owning exact-head CI.
 
 Scope: whole plan through all remaining phases and terminal delivery.
 Current slice: Phase 1 immutable candidate, review, and cpp-agents delivery.
@@ -39,7 +39,7 @@ Done when: all three public plugins are delivered and verified in Codex and Clau
 
 ## Reviews
 
-The full review of `0708f87710211a7726df1a7eccb1da212f9d47d9` requested changes. Its eight findings were repaired in isolated commits. The first incremental review through `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d` found four further issues, all repaired. The second incremental review through `f79f78cf168283ed20baa4bbe82c18fdec1a2a27` found exact legacy skill resolution and uppercase path-matching defects; both are repaired. The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`; a clean incremental pass over the third repair range is next.
+The full review of `0708f87710211a7726df1a7eccb1da212f9d47d9` requested changes. Its eight findings were repaired in isolated commits. The first incremental review through `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d` found four further issues, all repaired. The second incremental review through `f79f78cf168283ed20baa4bbe82c18fdec1a2a27` found two further issues, both repaired. The final incremental review through `e5f083b9fcdc1427a166a00cf7ff34f3e002d2f2` found nothing and approved the candidate. The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`.
 
 ## Decisions, discoveries, blockers, and deviations
 
