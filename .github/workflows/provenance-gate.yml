@@ -22,23 +22,20 @@ jobs:
       EXPECTED_PRODUCER_COMMIT: 93d8bd57fbfbd793acdebe542f7ae270a0c1d2a1
       HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
       STATUS_CONTEXT: agent-standards/provenance
     steps:
       - name: Validate canonical pull-request identity
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$HEAD_REPOSITORY" != "$CANONICAL_REPOSITORY" ]]; then
-            echo "Trust-contract changes must use a branch in $CANONICAL_REPOSITORY." >&2
-            exit 1
-          fi
           if [[ ! "$BASE_SHA" =~ ^[0-9a-f]{40}$ || ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
             echo "Invalid pull-request commit identity." >&2
             exit 1
           fi
-          remote_sha=$(gh api "repos/$CANONICAL_REPOSITORY/commits/$HEAD_SHA" --jq '.sha')
+          remote_sha=$(gh api "repos/$HEAD_REPOSITORY/commits/$HEAD_SHA" --jq '.sha')
           if [[ "$remote_sha" != "$HEAD_SHA" ]]; then
-            echo "The pull-request head is not in the canonical repository." >&2
+            echo "The pull-request head is not in its declared repository." >&2
             exit 1
           fi
 
@@ -54,14 +51,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          git cat-file -e "$BASE_SHA^{commit}"
-          if ! git cat-file -e "$HEAD_SHA^{commit}"; then
-            echo "The canonical PR head is absent from the fetched Git object graph." >&2
-            exit 1
-          fi
-
-          changed_path_file="$RUNNER_TEMP/provenance-changed-paths.nul"
-          git diff --name-status --find-renames -z "$BASE_SHA" "$HEAD_SHA" >"$changed_path_file"
           requires_attestation=false
 
           is_protected_path() {
@@ -78,24 +67,53 @@ jobs:
             esac
           }
 
-          while IFS= read -r -d '' status; do
-            IFS= read -r -d '' path
-            if is_protected_path "$path"; then
-              requires_attestation=true
+          git cat-file -e "$BASE_SHA^{commit}"
+          if [[ "$HEAD_REPOSITORY" == "$CANONICAL_REPOSITORY" ]]; then
+            if ! git cat-file -e "$HEAD_SHA^{commit}"; then
+              echo "The canonical PR head is absent from the fetched Git object graph." >&2
+              exit 1
             fi
-            case "$status" in
-              R*|C*)
-                IFS= read -r -d '' path
-                if is_protected_path "$path"; then
-                  requires_attestation=true
-                fi
-                ;;
-            esac
-          done <"$changed_path_file"
+            changed_path_file="$RUNNER_TEMP/provenance-changed-paths.nul"
+            git diff --name-status --find-renames -z "$BASE_SHA...$HEAD_SHA" >"$changed_path_file"
+            while IFS= read -r -d '' status; do
+              IFS= read -r -d '' path
+              if is_protected_path "$path"; then
+                requires_attestation=true
+              fi
+              case "$status" in
+                R*|C*)
+                  IFS= read -r -d '' path
+                  if is_protected_path "$path"; then
+                    requires_attestation=true
+                  fi
+                  ;;
+              esac
+            done <"$changed_path_file"
+          else
+            changed_files=$(gh api "repos/$CANONICAL_REPOSITORY/pulls/$PR_NUMBER" --jq '.changed_files')
+            if [[ ! "$changed_files" =~ ^[0-9]+$ || "$changed_files" -gt 3000 ]]; then
+              echo "Fork PR path inventory exceeds GitHub's complete enumeration limit." >&2
+              exit 1
+            fi
+            files=$(gh api --paginate "repos/$CANONICAL_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" --jq '.[]' | jq -s '.')
+            if [[ $(jq 'length' <<<"$files") != "$changed_files" ]]; then
+              echo "Fork PR path inventory is incomplete." >&2
+              exit 1
+            fi
+            while IFS= read -r path; do
+              if is_protected_path "$path"; then
+                requires_attestation=true
+              fi
+            done < <(jq -r '.[] | .filename, (.previous_filename // empty)' <<<"$files")
+          fi
 
           if [[ "$requires_attestation" != true ]]; then
             echo "No external trust-contract paths changed."
             exit 0
+          fi
+          if [[ "$HEAD_REPOSITORY" != "$CANONICAL_REPOSITORY" ]]; then
+            echo "Trust-contract changes must use a branch in $CANONICAL_REPOSITORY." >&2
+            exit 1
           fi
 
           evidence_blob=$(gh api \
