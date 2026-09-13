@@ -11,7 +11,7 @@
 
 ## Current state
 
-Phase 1 implementation and aggregate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. PR #2 exposed that a repository-scoped Actions token cannot check out the separate private agent-standards repository; the fixing candidate replaces that remote checkout with an immutable source lock while retaining real-source local verification.
+Phase 1 implementation and aggregate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. PR #2 exposed that a repository-scoped Actions token cannot check out the separate private agent-standards repository; the fixing candidate now verifies an offline GitHub-signed commit/tree attestation in CI and retains real-source local verification for contract refreshes.
 
 ## Next Steps
 
@@ -46,4 +46,4 @@ The initial full review and two incremental repair reviews produced fourteen fin
 - The local agent-standards checkout was behind `origin/main`; canonical identity evidence came from fetched `origin/main` and the installed `0.1.6` package, which agree.
 - Plugin manifests expose no native dependency/alias field in the supported schema, so layer dependencies and compatibility aliases require repository-owned metadata plus validation and documentation.
 - Winwrap had a pre-existing untracked `.codex/` directory before this migration; preserve it and do not sweep it into unrelated commits.
-- PR #2 run 34781877587 failed because the current-repository `GITHUB_TOKEN` cannot read the separate private `Concertable/agent-standards` repository. The contract now records exact source commit, version, manifest hash, and routed-skill hashes so CI remains deterministic without a cross-repository secret; local release validation still checks those hashes against the real checkout.
+- PR #2 run 34781877587 failed because the current-repository `GITHUB_TOKEN` cannot read the separate private `Concertable/agent-standards` repository. The contract now carries the exact source commit plus an offline-verifiable GitHub signature, signed tree path, manifest blob, and required skill blobs, so CI proves provenance without a cross-repository secret; local release validation also compares hashes against the real checkout.

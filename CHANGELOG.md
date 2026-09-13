@@ -5,5 +5,5 @@
 - Introduced the public `base`, `windows`, and `gcc` plugins.
 - Migrated native Windows standards from windows-agents into cpp-agents.
 - Renamed routes to `base:*`, `windows:*`, `gcc:*`, and canonical `concertable:*` workflow skills.
-- Added explicit dependencies, compatibility metadata, skill-contract validation, and layered detection tests.
+- Added explicit dependencies, compatibility metadata, signed external skill-contract provenance, and layered detection tests.
 - Retained generated `cpp-standards` and `gpp-standards` aliases through 2027-03-31.

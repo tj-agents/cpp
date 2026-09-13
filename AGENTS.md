@@ -25,4 +25,6 @@ python -m unittest discover -s .agents/hooks/tests
 python -m unittest discover -s .agents/tests
 ```
 
+Before changing the external `concertable:*` contract, also run the suite with `AGENT_STANDARDS_SOURCE` pointing at an exact checkout of the pinned `Concertable/agent-standards` commit. CI independently verifies the checked-in Git tree proof and GitHub signature; the live-checkout comparison is the release-time source refresh gate.
+
 Also validate every `plugins/*` directory with the available Codex and Claude validators. Preserve marketplace ordering: canonical `base`, `windows`, `gcc` first; compatibility aliases last.
