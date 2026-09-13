@@ -133,11 +133,14 @@ above.
   Fixed in the next remediation commit: March 31 remains valid and both gates fail only after the declared
   final supported day.
 
-- [ ] **R12 — MEDIUM — alias payload namespace closure** —
+- [x] **R12 — MEDIUM — alias payload namespace closure** —
   `plugins/cpp-standards/standards/cpp/BUILD.md:38`
   Compatibility payload documents retain canonical-only `base:*`, `windows:*`, and `gcc:*` cross-references
   unavailable to old-only installations. Generate compatibility namespace rewrites and validate that alias
   payloads contain no canonical-only skill identifiers.
+  Fixed in the next remediation commit: compatibility metadata owns namespace and selector mappings;
+  generation applies them to alias standards, skills, and hooks; a payload-wide test rejects canonical
+  skill identifiers in either compatibility package.
 
 Validation on the frozen remediation range: generated drift, route self-test, ten hook tests, eight local
 contract tests, five Codex validators, strict Claude marketplace validation, and five strict Claude plugin
