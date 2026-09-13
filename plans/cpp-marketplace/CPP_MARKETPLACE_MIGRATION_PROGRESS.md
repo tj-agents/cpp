@@ -11,7 +11,7 @@
 
 ## Current state
 
-Phase 1 implementation and review are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. The final incremental pass approved `e5f083b9fcdc1427a166a00cf7ff34f3e002d2f2`; final validation and cpp-agents delivery are next.
+Phase 1 implementation and aggregate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. Final aggregate review and validation of the latest fixing head are next.
 
 ## Next Steps
 
@@ -39,7 +39,7 @@ Done when: all three public plugins are delivered and verified in Codex and Clau
 
 ## Reviews
 
-The full review of `0708f87710211a7726df1a7eccb1da212f9d47d9` requested changes. Its eight findings were repaired in isolated commits. The first incremental review through `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d` found four further issues, all repaired. The second incremental review through `f79f78cf168283ed20baa4bbe82c18fdec1a2a27` found two further issues, both repaired. The final incremental review through `e5f083b9fcdc1427a166a00cf7ff34f3e002d2f2` found nothing and approved the candidate. The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`.
+The initial full review and two incremental repair reviews produced fourteen findings, all repaired. A clean incremental pass approved `e5f083b9fcdc1427a166a00cf7ff34f3e002d2f2`; the delivery preflight then required an aggregate origin/main review of the review-result commit. That aggregate pass through `7cb9d9e589ac819561bb530eb8fb3d9a4ea6c1c3` found two consistency gaps—uppercase write-time routes and retired identities in the canonical hook—and both are repaired. The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`; one final aggregate pass will establish the exact delivery watermark.
 
 ## Decisions, discoveries, blockers, and deviations
 
