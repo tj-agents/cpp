@@ -51,11 +51,14 @@
   the compatibility copy emits only `cpp-standards:*`, `gpp-standards:*`, and the legacy
   `windows-standards:*` namespace, with an old-only regression test.
 
-- [ ] **R4 — HIGH — external skill contract provenance** —
+- [x] **R4 — HIGH — external skill contract provenance** —
   `.agents/plugins/skill-contract.json:2`, `.agents/tests/test_marketplace_contract.py:98`
   Broken external skill validation is self-referential: a hand-authored local assertion is checked against
   generated routes, but not against the installed or source `concertable@agent-standards` package. Pin
   the source/version and validate its actual skill inventory.
+  Fixed in the next remediation commit: the external contract now pins the canonical repository,
+  `concertable` 0.1.6 manifest, exact source commit, skills root, and skill names; CI checks out that
+  commit and the contract test verifies its real manifest and files.
 
 - [ ] **R5 — MEDIUM — complete Windows detection** — `.agents/hooks/session_context.py:76`
   Windows marker detection scans only the first 200 tracked C++ files. A native Windows repository whose

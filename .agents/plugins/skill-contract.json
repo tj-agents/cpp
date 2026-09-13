@@ -2,6 +2,11 @@
   "externalPlugins": {
     "concertable": {
       "marketplace": "agent-standards",
+      "repository": "https://github.com/Concertable/agent-standards",
+      "sourceCommit": "93d8bd57fbfbd793acdebe542f7ae270a0c1d2a1",
+      "manifest": "plugins/concertable/.codex-plugin/plugin.json",
+      "skillsRoot": "plugins/concertable/codex-skills",
+      "version": "0.1.6",
       "skills": ["docs-and-debt", "skill-routes"]
     }
   }
