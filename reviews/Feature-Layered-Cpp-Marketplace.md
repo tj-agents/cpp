@@ -230,11 +230,14 @@ and 9 marketplace/contract tests passed (the pinned external-source case remains
   Fixed in the next remediation commit: source, test, build, and Windows-resource regexes use scoped
   case-insensitive groups, with explicit `MAIN.CPP` and `APP.RC` route assertions.
 
-- [ ] **R16 — MEDIUM — canonical hook identity classification** — `MIGRATION.md:16`,
+- [x] **R16 — MEDIUM — canonical hook identity classification** — `MIGRATION.md:16`,
   `.agents/hooks/session_context.py:22`
   The migration classifies old names in canonical hooks as errors, while the shared source and generated
   `base` hook contain an unreachable legacy branch. Generate package-specific messages from canonical hook
   data so `base` contains only canonical identities and the compatibility payload alone receives rewrites.
+  Fixed in the next remediation commit: the authored hook contains canonical messages only, compatibility
+  generation rewrites that body, and validation rejects retired identifiers in both authored and generated
+  base hooks.
 
 Validation on the frozen aggregate candidate: 62 generated files current, route self-test, 12 hook tests,
 9 contract tests, all five Codex validators, and strict Claude marketplace plus plugin validation passed.
