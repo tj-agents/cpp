@@ -1,0 +1,8 @@
+{
+  "externalPlugins": {
+    "concertable": {
+      "marketplace": "agent-standards",
+      "skills": ["docs-and-debt", "skill-routes"]
+    }
+  }
+}

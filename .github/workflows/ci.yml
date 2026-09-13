@@ -16,5 +16,7 @@ jobs:
         run: python3 -m py_compile .agents/hooks/session_context.py
       - name: Test session routing
         run: python3 -m unittest discover -s .agents/hooks/tests
+      - name: Test marketplace and dependency contracts
+        run: python3 -m unittest discover -s .agents/tests
       - name: Check skill-route generator
         run: python3 .agents/gen_skill_routes.py --self-test

@@ -10,8 +10,8 @@ Four companion standards set the frame:
   `std::`; `nonstd-lite` for older standards; roll my own only as a last resort).
 
 This file is the **platform/toolchain-agnostic** base — no GCC, MSVC, Linux, or
-Windows assumptions. Toolchain-specific plugins layer on top: **`gpp-standards`**
-for GCC/Linux and **`windows-standards`** for MSVC/Win32. Keep this file neutral;
+Windows assumptions. Toolchain-specific plugins layer on top: **`gcc`** for
+GCC/Linux and **`windows`** for MSVC/clang-cl/Win32. Keep this file neutral;
 platform specifics go in those plugins, not here.
 
 ## How to use it

@@ -23,19 +23,30 @@ class SessionContextTests(unittest.TestCase):
             with patch.object(session_context, "tracked_project", return_value=(root, files)):
                 return session_context.context_for(root / "nested", platform)
 
-    def test_gpp_route_wins_on_windows(self) -> None:
+    def test_gcc_route_wins_on_windows(self) -> None:
+        context = self.context("gcc", "win32", ["app/src/main.cpp"])
+
+        self.assertTrue(any("gcc:gcc-toolchain" in line for line in context))
+        self.assertFalse(any("windows@cpp-agents" in line for line in context))
+
+    def test_legacy_gpp_kind_maps_to_gcc(self) -> None:
         context = self.context("gpp", "win32", ["app/src/main.cpp"])
 
-        self.assertTrue(any("gpp-standards:gpp-toolchain" in line for line in context))
-        self.assertFalse(any("windows-standards" in line for line in context))
+        self.assertTrue(any("gcc:gcc-toolchain" in line for line in context))
 
     def test_windows_route_wins_on_linux(self) -> None:
         context = self.context("windows", "linux", ["app/src/main.cpp"])
 
-        self.assertTrue(any("windows-standards" in line for line in context))
-        self.assertFalse(any("gpp-standards" in line for line in context))
+        self.assertTrue(any("windows:win32-style" in line for line in context))
+        self.assertFalse(any("gcc@cpp-agents" in line for line in context))
 
-    def test_portable_route_suppresses_host_layer(self) -> None:
+    def test_generic_route_suppresses_host_layer(self) -> None:
+        context = self.context("generic", "linux", ["app/src/main.cpp"])
+
+        self.assertEqual(1, len(context))
+        self.assertIn("base@cpp-agents", context[0])
+
+    def test_legacy_portable_kind_maps_to_generic(self) -> None:
         context = self.context("portable", "linux", ["app/src/main.cpp"])
 
         self.assertEqual(1, len(context))
@@ -53,7 +64,10 @@ class SessionContextTests(unittest.TestCase):
             ):
                 context = session_context.context_for(source.parent, "win32")
 
-        self.assertTrue(any("windows-standards" in line for line in context))
+        self.assertTrue(any("windows:win32-style" in line for line in context))
+
+    def test_non_cpp_repository_gets_no_context(self) -> None:
+        self.assertEqual([], self.context(None, "linux", ["README.md"]))
 
 
 if __name__ == "__main__":

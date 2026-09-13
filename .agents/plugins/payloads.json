@@ -1,8 +1,31 @@
 {
-  "description": "Generic C++ standards plus an independently installable GCC/Linux toolchain layer for Claude Code and Codex.",
+  "$comment": "Generator contract for canonical layers, dependencies, hook ownership, and time-bounded compatibility aliases.",
+  "description": "Composable base, Windows, and GCC/Linux C++ standards for Claude Code and Codex.",
+  "publicPlugins": ["base", "windows", "gcc"],
   "payloads": {
+    "base": ["cpp"],
+    "windows": ["windows"],
+    "gcc": ["gcc"],
     "cpp-standards": ["cpp"],
-    "gpp-standards": ["gpp"]
+    "gpp-standards": ["gcc"]
   },
-  "hooks": "cpp-standards"
+  "dependencies": {
+    "windows": ["base"],
+    "gcc": ["base"],
+    "gpp-standards": ["cpp-standards"]
+  },
+  "hooks": ["base", "cpp-standards"],
+  "compatibilityAliases": {
+    "cpp-standards": {
+      "replacedBy": "base",
+      "removeAfter": "2027-03-31"
+    },
+    "gpp-standards": {
+      "replacedBy": "gcc",
+      "removeAfter": "2027-03-31",
+      "skillAliases": {
+        "gcc-toolchain": "gpp-toolchain"
+      }
+    }
+  }
 }

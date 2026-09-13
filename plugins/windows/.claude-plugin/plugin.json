@@ -1,0 +1,1 @@
+{"name":"windows","version":"0.3.0","description":"Native Windows, MSVC, clang-cl, and Win32 C++ conventions layered on the base plugin.","author":{"name":"Tommy Seery","url":"https://github.com/tomjseery"},"repository":"https://github.com/tomjseery/cpp-agents","keywords":["standards","windows","win32","msvc","clang-cl","cpp","wil"],"skills":"./skills/"}
