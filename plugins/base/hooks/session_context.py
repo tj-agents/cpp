@@ -20,6 +20,7 @@ WINDOWS_MARKERS = (
     "defwindowproc",
 )
 LEGACY_PLUGIN_NAME = "cpp-standards"
+PLUGIN_NAME = "base"
 
 
 def context_messages(plugin_name: str) -> tuple[str, str, str]:
@@ -112,7 +113,6 @@ def is_native_windows(cwd: Path, files: list[str]) -> bool:
 def context_for(
     cwd: Path,
     platform: str = sys.platform,
-    plugin_name: str | None = None,
 ) -> list[str]:
     root, files = tracked_project(cwd)
     layers = declared_layers(root)
@@ -126,9 +126,7 @@ def context_for(
         elif platform.startswith("linux"):
             layers.add("gcc")
 
-    base_message, windows_message, gcc_message = context_messages(
-        plugin_name or Path(__file__).resolve().parents[1].name
-    )
+    base_message, windows_message, gcc_message = context_messages(PLUGIN_NAME)
     context = [base_message]
     if "windows" in layers:
         context.append(windows_message)

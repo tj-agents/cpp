@@ -4,8 +4,8 @@
 
 **Review status:** `complete`
 **Judgment:** `changes-requested`
-**Reviewed up to commit:** `0708f87710211a7726df1a7eccb1da212f9d47d9`
-**Security-reviewed up to commit:** `0708f87710211a7726df1a7eccb1da212f9d47d9`
+**Reviewed up to commit:** `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d`
+**Security-reviewed up to commit:** `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d`
 
 ## Review pass — 2026-09-13 — full
 
@@ -92,3 +92,49 @@ Validation on the frozen candidate: generated drift check, route self-test, seve
 contract tests, all five Codex payload validators, the Claude marketplace validator, and all five Claude
 payload validators passed. These checks establish the candidate state but do not resolve the findings
 above.
+
+## Review pass — 2026-09-13 — incremental
+
+**Candidate base:** `0708f87710211a7726df1a7eccb1da212f9d47d9`
+**Candidate head:** `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d`
+**Candidate branch:** `Feature/Layered-Cpp-Marketplace`
+**Candidate scope:** `all`
+**Candidate path-set:** `sha256:b4e09369557da637be879c753461f913f976bb9173b47e9fc1810e7a6364cb7c` `(31 paths)`
+**Candidate bundle:** `C:\Users\tommy\source\repos\cpp\windows\cpp-agents\.git\agent-workflow\runs\cpp-marketplace-migration\review\26151dd32c2d232b5a42dbe6ee254d81fc45561983ec7039e6bb06815e528fa2`
+**Candidate bundle identity:** `sha256:1795e4739f7e58b5253d087a91b65c18498a86753b8adf7b0ca02836b1bc89f2`
+**Work-order path:** `reviews/Feature-Layered-Cpp-Marketplace.md`
+**Work-order mode:** `append`
+**Pass judgment:** `changes-requested`
+
+### Findings
+
+- [x] **R9 — HIGH — installed compatibility-hook identity** —
+  `.agents/hooks/session_context.py:129`
+  The hook infers its plugin from `parents[1]`, which is the version directory in real Codex and Claude
+  caches, so the compatibility payload still emits canonical namespaces after installation. Bake the
+  identity into each generated hook or correctly resolve a versioned cache layout, and test that layout
+  without injecting the plugin name.
+  Fixed in the next remediation commit: generation binds an explicit plugin identity into each hook copy,
+  and the regression imports the compatibility hook from a realistic versioned cache path without an
+  identity override.
+
+- [ ] **R10 — MEDIUM — bounded session detection** — `.agents/hooks/session_context.py:99`
+  Removing the 200-file cap changed the hook to synchronous full-file reads across the entire C++ corpus
+  under a five-second timeout. Large generic/GCC repositories can lose even base context. Use an efficient,
+  bounded repository-wide search while preserving late-file detection coverage.
+
+- [ ] **R11 — MEDIUM — compatibility end-date semantics** —
+  `.agents/sync-generated.ps1:272`, `.agents/tests/test_marketplace_contract.py:82`
+  Documentation says aliases remain through and are removed after 2027-03-31, but validation rejects them
+  on March 31. Align the checks so the documented final supported day remains valid.
+
+- [ ] **R12 — MEDIUM — alias payload namespace closure** —
+  `plugins/cpp-standards/standards/cpp/BUILD.md:38`
+  Compatibility payload documents retain canonical-only `base:*`, `windows:*`, and `gcc:*` cross-references
+  unavailable to old-only installations. Generate compatibility namespace rewrites and validate that alias
+  payloads contain no canonical-only skill identifiers.
+
+Validation on the frozen remediation range: generated drift, route self-test, ten hook tests, eight local
+contract tests, five Codex validators, strict Claude marketplace validation, and five strict Claude plugin
+validations passed. The external-source test is exercised by CI with its pinned checkout. The passing gates
+did not cover the four defects above.
