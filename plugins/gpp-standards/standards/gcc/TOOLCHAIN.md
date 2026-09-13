@@ -7,21 +7,26 @@ layer; `windows` is the independent MSVC / Win32 sibling.
 
 ## The toolchain — GCC / g++
 
-**Portable and Linux work uses GCC (`g++`).** New projects target C++23 (g++ 16).
+**Linux-oriented work uses GCC (`g++`).** New projects target C++23 (g++ 16).
 This is the GCC/Linux tier's toolchain — the sibling to the Windows tier's MSVC; the two
 are independent, neither is "the default".
 
 - **g++** — the GNU C++ compiler (the "G" is for GNU, as in the GNU Compiler
   Collection, GCC).
 - **gdb** — the debugger here.
+- **perf** — the profiler to learn for Linux work; not started yet.
 - **GNU / Linux conventions** — I came from Windows, so explain Linux/toolchain
   conventions (the OS/hardware boundary, shells, paths, linking) when relevant.
-- **MinGW** (GCC that emits native Windows `.exe`s) is *not* used for native
-  Windows work — that's the `windows` plugin's MSVC job. It only matters if I
-  ever want a GCC-built Windows binary, which I don't by default.
+
+## Learning calibration
+
+- GCC/g++ is comfortable for compiling ordinary C++, and GDB basics such as
+  breakpoints have been used.
+- GNU's project/toolchain history, Linux linking and loader behavior, shell and
+  path conventions, and `perf` still need explanation before they are assumed.
 
 ## See also
 
 - `base` — the platform-agnostic base, which still applies here.
 - `windows` — the sibling MSVC / Win32 tier.
-- `base:cpp-direction` — the skill tree containing the GCC / g++ / GDB picks.
+- `base:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.

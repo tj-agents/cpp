@@ -32,11 +32,14 @@
   `--layer` inputs compose platform layers, legacy `--kind` values remain accepted, and both the route
   self-test and hook tests prove `base + windows + gcc` activation.
 
-- [ ] **R2 — HIGH — one rule, one owner** — `standards/cpp/KNOWLEDGE.md:102`,
+- [x] **R2 — HIGH — one rule, one owner** — `standards/cpp/KNOWLEDGE.md:102`,
   `standards/cpp/DIRECTION.md:25`, `standards/cpp/LIBRARIES.md:9`
   The `base` payload still contains Windows-, GCC-, GDB-, and Linux-specific rules, including material
   duplicated by `standards/windows/KNOWLEDGE.md`. Move platform-specific guidance to its owning Windows
   or GCC domain and leave only platform-neutral C++ guidance in `standards/cpp`.
+  Fixed in the next remediation commit: base now expresses only neutral systems foundations and
+  platform-selected tool categories; GCC/GDB/perf choices and their learning calibration live solely in
+  `standards/gcc/TOOLCHAIN.md`, while Windows-specific calibration remains solely in the Windows domain.
 
 - [ ] **R3 — HIGH — compatibility installation contract** —
   `plugins/cpp-standards/hooks/session_context.py:92`
