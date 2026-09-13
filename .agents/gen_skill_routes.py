@@ -8,9 +8,10 @@ import tempfile
 from pathlib import Path
 
 
-CPP_PATH = r"\.(c|cc|cpp|cxx|h|hh|hpp|hxx|ixx)$"
-BUILD_PATH = r"(^|/)(CMakeLists\.txt|CMakePresets\.json|[^/]+\.cmake)$"
-TEST_PATH = r"(^|/)(tests?|test)/.*\.(c|cc|cpp|cxx|h|hh|hpp|hxx)$|(_test|_tests)\.(c|cc|cpp|cxx)$"
+CPP_PATH = r"(?i:\.(c|cc|cpp|cxx|h|hh|hpp|hxx|ixx))$"
+BUILD_PATH = r"(?i:(^|/)(CMakeLists\.txt|CMakePresets\.json|[^/]+\.cmake))$"
+TEST_PATH = r"(?i:(^|/)(tests?|test)/.*\.(c|cc|cpp|cxx|h|hh|hpp|hxx)|(_test|_tests)\.(c|cc|cpp|cxx))$"
+WINDOWS_RESOURCE_PATH = r"(?i:\.(rc|manifest))$"
 KIND_ALIASES = {"portable": "generic", "gpp": "gcc"}
 CANONICAL_KINDS = ("generic", "gcc", "windows")
 PLATFORM_LAYERS = ("windows", "gcc")
@@ -81,7 +82,7 @@ def routes(kind_or_layers: str | list[str] | tuple[str, ...]) -> dict:
         result.extend(
             [
                 {
-                    "path": rf"{CPP_PATH}|\.(rc|manifest)$",
+                    "path": rf"{CPP_PATH}|{WINDOWS_RESOURCE_PATH}",
                     "skills": [
                         "windows:windows-overview",
                         "windows:win32-style",
@@ -188,6 +189,15 @@ def self_test() -> int:
                 "windows:win32-style",
             },
             ("windows", "app/app.manifest"): {
+                "windows:windows-overview",
+                "windows:win32-style",
+            },
+            ("windows", "app/src/MAIN.CPP"): {
+                "base:cpp-style",
+                "windows:windows-overview",
+                "windows:win32-style",
+            },
+            ("windows", "app/APP.RC"): {
                 "windows:windows-overview",
                 "windows:win32-style",
             },

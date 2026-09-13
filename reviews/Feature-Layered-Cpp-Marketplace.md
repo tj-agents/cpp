@@ -3,9 +3,9 @@
 > **This file is a work order, not a discussion.** Fix open `[ ]` findings directly and tick each `[x]` as it lands. Record a durable disposition for anything intentionally not fixed.
 
 **Review status:** `complete`
-**Judgment:** `approved`
-**Reviewed up to commit:** `e5f083b9fcdc1427a166a00cf7ff34f3e002d2f2`
-**Security-reviewed up to commit:** `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d`
+**Judgment:** `changes-requested`
+**Reviewed up to commit:** `7cb9d9e589ac819561bb530eb8fb3d9a4ea6c1c3`
+**Security-reviewed up to commit:** `7cb9d9e589ac819561bb530eb8fb3d9a4ea6c1c3`
 
 ## Review pass — 2026-09-13 — full
 
@@ -206,3 +206,37 @@ test.
 
 Verification on the frozen tree: 62 generated files current, route self-test passed, 12 hook tests passed,
 and 9 marketplace/contract tests passed (the pinned external-source case remains CI-owned).
+
+## Review pass — 2026-09-13 — final aggregate
+
+**Candidate base:** `f08caa4396ffc51cc9d9a9d21d419d225f8bdaf3`
+**Candidate head:** `7cb9d9e589ac819561bb530eb8fb3d9a4ea6c1c3`
+**Candidate branch:** `Feature/Layered-Cpp-Marketplace`
+**Candidate scope:** `all`
+**Candidate path-set:** `sha256:6d1f9cf3cc00b763e09084e1b7a4b5c388b5d38a1a941e923f20a9399da36d6c` `(87 paths)`
+**Candidate bundle:** `C:\Users\tommy\source\repos\cpp\windows\cpp-agents\.git\agent-workflow\runs\cpp-marketplace-migration\review\61b2994ac07d9e9a713e57f667a2c31da3bdde342112bb9792befa0f0fe9ca88`
+**Candidate bundle identity:** `sha256:1ae8d693d260884deafc5c2bbc3ed1f1d41a8c68a8459b015c6ee7ae74f5b696`
+**Work-order path:** `reviews/Feature-Layered-Cpp-Marketplace.md`
+**Work-order mode:** `append`
+**Pass judgment:** `changes-requested`
+
+### Findings
+
+- [x] **R15 — MEDIUM — case-insensitive write-time routes** —
+  `.agents/gen_skill_routes.py:11`
+  Session detection recognizes uppercase C++ suffixes, but generated route regexes and the self-test matcher
+  are case-sensitive, so `MAIN.CPP` receives no write-time skills. Make source/resource extension routes
+  case-insensitive and add uppercase routing assertions.
+  Fixed in the next remediation commit: source, test, build, and Windows-resource regexes use scoped
+  case-insensitive groups, with explicit `MAIN.CPP` and `APP.RC` route assertions.
+
+- [ ] **R16 — MEDIUM — canonical hook identity classification** — `MIGRATION.md:16`,
+  `.agents/hooks/session_context.py:22`
+  The migration classifies old names in canonical hooks as errors, while the shared source and generated
+  `base` hook contain an unreachable legacy branch. Generate package-specific messages from canonical hook
+  data so `base` contains only canonical identities and the compatibility payload alone receives rewrites.
+
+Validation on the frozen aggregate candidate: 62 generated files current, route self-test, 12 hook tests,
+9 contract tests, all five Codex validators, and strict Claude marketplace plus plugin validation passed.
+Those gates did not assert uppercase write routes or require the canonical hook payload to be free of retired
+identities.
