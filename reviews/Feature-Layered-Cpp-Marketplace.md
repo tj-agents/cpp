@@ -3,8 +3,8 @@
 > **This file is a work order, not a discussion.** Fix open `[ ]` findings directly and tick each `[x]` as it lands. Record a durable disposition for anything intentionally not fixed.
 
 **Review status:** `complete`
-**Judgment:** `changes-requested`
-**Reviewed up to commit:** `f79f78cf168283ed20baa4bbe82c18fdec1a2a27`
+**Judgment:** `approved`
+**Reviewed up to commit:** `e5f083b9fcdc1427a166a00cf7ff34f3e002d2f2`
 **Security-reviewed up to commit:** `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d`
 
 ## Review pass — 2026-09-13 — full
@@ -183,3 +183,26 @@ did not cover the four defects above.
 Validation on the frozen second repair range: generated drift, eleven hook tests, nine contract tests,
 and both harness validators passed. Those tests did not resolve qualified alias identifiers or exercise
 uppercase Git path matching.
+
+## Review pass — 2026-09-13 — incremental
+
+**Candidate base:** `f79f78cf168283ed20baa4bbe82c18fdec1a2a27`
+**Candidate head:** `e5f083b9fcdc1427a166a00cf7ff34f3e002d2f2`
+**Candidate branch:** `Feature/Layered-Cpp-Marketplace`
+**Candidate scope:** `all`
+**Candidate path-set:** `sha256:9dd9d0a1a7591ba34db2eb02af828113f8272a37bd4afb5b4a32b9debca3154e` `(11 paths)`
+**Candidate bundle:** `C:\Users\tommy\source\repos\cpp\windows\cpp-agents\.git\agent-workflow\runs\cpp-marketplace-migration\review\2d7f6bd695f27357121ff94b4e3b41e5cb217772341dd17e95eaaf7dba6211b6`
+**Candidate bundle identity:** `sha256:0c9868d3d698bce6c11c3a38ae57260375659757adc5e930f47a69f43bbdee3b`
+**Work-order path:** `reviews/Feature-Layered-Cpp-Marketplace.md`
+**Work-order mode:** `append`
+**Pass judgment:** `approved`
+
+### Findings
+
+No findings. Exact compatibility skill identifiers resolve against their generated or declared legacy
+inventories, generated hook identity is independent of cache layout, repository-wide marker detection is
+bounded through Git's quiet search, and case-insensitive pathspec behavior is proven by a real Git-backed
+test.
+
+Verification on the frozen tree: 62 generated files current, route self-test passed, 12 hook tests passed,
+and 9 marketplace/contract tests passed (the pinned external-source case remains CI-owned).
