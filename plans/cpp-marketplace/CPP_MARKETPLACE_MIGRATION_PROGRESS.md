@@ -11,7 +11,7 @@
 
 ## Current state
 
-Phase 1 implementation and full-candidate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. The fixing head now needs the fresh incremental review and final validation before delivery.
+Phase 1 implementation and both completed review-remediation rounds are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. The latest fixing head now needs a clean incremental pass and final validation before delivery.
 
 ## Next Steps
 
@@ -33,13 +33,13 @@ Done when: all three public plugins are delivered and verified in Codex and Clau
 
 - Generated payload check: 62 files current from 11 skills and 11 documents.
 - Route generator: canonical generic/GCC/Windows cases, composed Windows+GCC layers, and legacy kind normalization passed.
-- Tests: 10 session-detection tests and 8 marketplace/dependency/identifier contract tests passed, including the pinned real `concertable` 0.1.6 source inventory.
+- Tests: 11 session-detection tests and 9 marketplace/dependency/identifier contract tests passed, including the pinned real `concertable` 0.1.6 source inventory.
 - Codex plugin validator passed for all five canonical/compatibility payloads; Claude plugin and marketplace validation passed.
 - `git diff --check` passed.
 
 ## Reviews
 
-The full review of `0708f87710211a7726df1a7eccb1da212f9d47d9` requested changes. Eight findings were repaired in isolated commits: composability, one-rule ownership, alias-only hook namespaces, real external skill provenance, complete Windows scanning, Windows CMake ownership routing, harness CI, and alias expiry. The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`; a fresh incremental pass is next.
+The full review of `0708f87710211a7726df1a7eccb1da212f9d47d9` requested changes. Its eight findings were repaired in isolated commits. The first incremental review through `91d26fe31e8bcaade1fd187e00bf3f6bf5f37c0d` found four further issues: installed-cache hook identity, bounded repository scanning, inclusive alias end-date semantics, and compatibility payload namespace closure. Those are repaired in isolated commits. The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`; a clean incremental pass over the second repair range is next.
 
 ## Decisions, discoveries, blockers, and deviations
 
