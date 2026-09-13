@@ -41,12 +41,15 @@
   platform-selected tool categories; GCC/GDB/perf choices and their learning calibration live solely in
   `standards/gcc/TOOLCHAIN.md`, while Windows-specific calibration remains solely in the Windows domain.
 
-- [ ] **R3 — HIGH — compatibility installation contract** —
+- [x] **R3 — HIGH — compatibility installation contract** —
   `plugins/cpp-standards/hooks/session_context.py:92`
   The compatibility alias hook emits only canonical `base:*`, `windows:*`, and `gcc:*` identifiers. An
   existing alias-only installation is therefore told to load plugins that are not installed, including
   `gcc:gcc-toolchain` rather than its shipped legacy alias. Generate a compatibility-specific hook and
   cover the old-only installation path.
+  Fixed in the next remediation commit: the single authored hook derives its installed plugin identity;
+  the compatibility copy emits only `cpp-standards:*`, `gpp-standards:*`, and the legacy
+  `windows-standards:*` namespace, with an old-only regression test.
 
 - [ ] **R4 — HIGH — external skill contract provenance** —
   `.agents/plugins/skill-contract.json:2`, `.agents/tests/test_marketplace_contract.py:98`
