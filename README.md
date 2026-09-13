@@ -64,6 +64,8 @@ Follow [MIGRATION.md](MIGRATION.md) for the install-before-route-update sequence
 
 Markdown under `standards/` and routers under `.agents/skills/` are source. `.agents/sync-generated.ps1` creates self-contained Codex and Claude plugin payloads; generated plugin files and `.claude/skills/` are never edited directly.
 
+Validation requires Git, Python, PowerShell 7, and GnuPG. On Windows, the tests automatically use the GPG executable bundled with Git for Windows when `gpg` is not on `PATH`. Contract refreshes additionally require an authenticated GitHub CLI so the release gate can bind the pinned commit to the private `Concertable/agent-standards` repository.
+
 ```powershell
 pwsh .agents/sync-generated.ps1
 pwsh .agents/sync-generated.ps1 -Check

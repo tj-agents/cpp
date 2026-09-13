@@ -22,6 +22,10 @@ def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def canonical_text_bytes(path: Path) -> bytes:
+    return path.read_bytes().replace(b"\r\n", b"\n")
+
+
 def load_generator():
     spec = importlib.util.spec_from_file_location("gen_skill_routes", GENERATOR)
     module = importlib.util.module_from_spec(spec)
@@ -174,6 +178,31 @@ class MarketplaceContractTests(unittest.TestCase):
         ).stdout.strip()
         self.assertEqual(contract["sourceCommit"], revision)
 
+        origin = subprocess.run(
+            ["git", "-C", str(source), "remote", "get-url", "origin"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=True,
+        ).stdout.strip()
+        repository_match = re.fullmatch(
+            r"(?:https://github\.com/|git@github\.com:)([^/]+/[^/]+?)(?:\.git)?",
+            origin,
+        )
+        self.assertIsNotNone(repository_match, origin)
+        expected_slug = contract["repository"].removeprefix("https://github.com/").removesuffix(".git")
+        self.assertEqual(expected_slug.casefold(), repository_match.group(1).casefold())
+        remote_revision = subprocess.run(
+            ["gh", "api", f"repos/{expected_slug}/commits/{revision}", "--jq", ".sha"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=True,
+        ).stdout.strip()
+        self.assertEqual(revision, remote_revision)
+
         def source_bytes(relative_path: str) -> bytes:
             return subprocess.run(
                 ["git", "-C", str(source), "show", f"{revision}:{relative_path}"],
@@ -221,7 +250,7 @@ class MarketplaceContractTests(unittest.TestCase):
         self.assertEqual(tree_ids["codex-plugin"], entry_id(trees["concertable"], ".codex-plugin"))
         self.assertEqual(tree_ids["codex-skills"], entry_id(trees["concertable"], "codex-skills"))
 
-        manifest_bytes = (evidence_root / "plugin.json").read_bytes()
+        manifest_bytes = canonical_text_bytes(evidence_root / "plugin.json")
         self.assertEqual(provenance["manifestBlob"], git_object_id("blob", manifest_bytes))
         self.assertEqual(provenance["manifestBlob"], entry_id(trees["codex-plugin"], "plugin.json"))
         self.assertEqual(contract["manifestSha256"], hashlib.sha256(manifest_bytes).hexdigest())
@@ -234,8 +263,20 @@ class MarketplaceContractTests(unittest.TestCase):
         for skill, blob_id in provenance["skillBlobs"].items():
             self.assertEqual(tree_ids[skill], entry_id(trees["codex-skills"], skill))
             self.assertEqual(blob_id, entry_id(trees[skill], "SKILL.md"))
+            skill_bytes = canonical_text_bytes(evidence_root / "skills" / skill / "SKILL.md")
+            self.assertEqual(blob_id, git_object_id("blob", skill_bytes))
+            self.assertEqual(contract["skillSha256"][skill], hashlib.sha256(skill_bytes).hexdigest())
+            front_matter = skill_bytes.decode("utf-8").split("---", 2)[1]
+            fields = {
+                key: value
+                for line in front_matter.splitlines()
+                if ":" in line
+                for key, value in [line.split(":", 1)]
+            }
+            self.assertEqual(skill, fields.get("name", "").strip())
+            self.assertTrue(fields.get("description", "").strip())
 
-        commit_bytes = (evidence_root / "commit.txt").read_bytes()
+        commit_bytes = canonical_text_bytes(evidence_root / "commit.txt")
         if not provenance["commitObjectEndsWithNewline"]:
             self.assertTrue(commit_bytes.endswith(b"\n"))
             commit_bytes = commit_bytes[:-1]
@@ -248,6 +289,8 @@ class MarketplaceContractTests(unittest.TestCase):
             keyring.mkdir()
             environment = os.environ.copy()
             environment["GNUPGHOME"] = gpg_home(keyring)
+            environment["GIT_CONFIG_NOSYSTEM"] = "1"
+            environment["GIT_CONFIG_GLOBAL"] = os.devnull
             gpg = find_gpg()
             key_file = evidence_root / "github-web-flow.asc"
             keys = subprocess.run(
@@ -279,13 +322,28 @@ class MarketplaceContractTests(unittest.TestCase):
                 check=True,
             ).stdout.decode("ascii").strip()
             self.assertEqual(contract["sourceCommit"], written)
-            subprocess.run(
-                ["git", "verify-commit", contract["sourceCommit"]],
+            verification = subprocess.run(
+                [
+                    "git",
+                    "-c", "gpg.format=openpgp",
+                    "-c", f"gpg.program={Path(gpg).as_posix()}",
+                    "verify-commit", "--raw", contract["sourceCommit"],
+                ],
                 capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
                 cwd=repository,
                 env=environment,
                 check=True,
             )
+            status = verification.stdout + verification.stderr
+            valid_signers = {
+                line.split()[2]
+                for line in status.splitlines()
+                if "[GNUPG:] VALIDSIG " in line
+            }
+            self.assertEqual({provenance["signingKeyFingerprint"]}, valid_signers)
 
     def test_canonical_sources_contain_no_retired_plugin_identifiers(self) -> None:
         retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
