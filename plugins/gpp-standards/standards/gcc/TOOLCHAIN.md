@@ -29,4 +29,4 @@ are independent, neither is "the default".
 
 - `base` — the platform-agnostic base, which still applies here.
 - `windows` — the sibling MSVC / Win32 tier.
-- `base:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.
+- `cpp-standards:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.

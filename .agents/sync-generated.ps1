@@ -195,6 +195,18 @@ foreach ($entry in $manifestJson.plugins) {
     }
 }
 
+function Rewrite-CompatibilityIdentifiers([string]$body, [string]$pluginName) {
+    if (-not $compatibilityAliases.ContainsKey($pluginName)) { return $body }
+    $alias = $compatibilityAliases[$pluginName]
+    foreach ($property in $alias.identifierAliases.PSObject.Properties) {
+        $body = $body.Replace("$($property.Name):", "$($property.Value):")
+    }
+    foreach ($property in $alias.selectorAliases.PSObject.Properties) {
+        $body = $body.Replace($property.Name, $property.Value)
+    }
+    return $body
+}
+
 # Which plugin ships which domains. A consumer installs per stack, so the split is authored rather
 # than inferred from a plugin's name - and cross-checked both ways against the marketplace so the two
 # cannot drift into disagreeing about what exists.
@@ -323,7 +335,8 @@ foreach ($plugin in $plugins) {
         $pluginDomains[$plugin.Name] -contains (($_ -split '/')[1])
     })
     foreach ($doc in $mine) {
-        $generated["plugins/$($plugin.Name)/$doc"] = Read-Lf (Join-Path $repoRoot $doc)
+        $docBody = Rewrite-CompatibilityIdentifiers (Read-Lf (Join-Path $repoRoot $doc)) $plugin.Name
+        $generated["plugins/$($plugin.Name)/$doc"] = $docBody
         $owner = @($routers.Values | Where-Object { $_.Doc -eq $doc })[0]
         $skillName = $owner.Name
         $skillBody = Rewrite-ForPlugin $owner.Body
@@ -334,6 +347,7 @@ foreach ($plugin in $plugins) {
                 $skillBody = [regex]::Replace($skillBody, "(?m)^name: $([regex]::Escape($owner.Name))$", "name: $skillName")
             }
         }
+        $skillBody = Rewrite-CompatibilityIdentifiers $skillBody $plugin.Name
         # skills/<name>/SKILL.md -> the plugin's own copy of the tree, two levels up.
         $generated["plugins/$($plugin.Name)/skills/$skillName/SKILL.md"] = $skillBody
     }
@@ -347,6 +361,7 @@ foreach ($plugin in $plugins) {
                 }
                 $hookBody = $hookBody.Replace($identityLine, "PLUGIN_NAME = `"$($plugin.Name)`"")
             }
+            $hookBody = Rewrite-CompatibilityIdentifiers $hookBody $plugin.Name
             $generated["plugins/$($plugin.Name)/hooks/$($hook.Name)"] = $hookBody
         }
     }

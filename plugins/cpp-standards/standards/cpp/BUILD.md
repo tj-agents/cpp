@@ -35,7 +35,7 @@ build output.
 
 ## Dependencies
 
-Follow `base:cpp-libraries` before adding one. When CMake owns a source
+Follow `cpp-standards:cpp-libraries` before adding one. When CMake owns a source
 dependency, use a pinned release/tag through `FetchContent`, mark third-party
 headers `SYSTEM`, and disable that dependency's unnecessary tests or packaging
 targets. Do not track a floating default branch.

@@ -18,13 +18,33 @@
   "compatibilityAliases": {
     "cpp-standards": {
       "replacedBy": "base",
-      "removeAfter": "2027-03-31"
+      "removeAfter": "2027-03-31",
+      "identifierAliases": {
+        "base": "cpp-standards",
+        "windows": "windows-standards",
+        "gcc": "gpp-standards"
+      },
+      "selectorAliases": {
+        "base@cpp-agents": "cpp-standards@cpp-agents",
+        "windows@cpp-agents": "windows-standards@windows-agents",
+        "gcc@cpp-agents": "gpp-standards@cpp-agents"
+      }
     },
     "gpp-standards": {
       "replacedBy": "gcc",
       "removeAfter": "2027-03-31",
       "skillAliases": {
         "gcc-toolchain": "gpp-toolchain"
+      },
+      "identifierAliases": {
+        "base": "cpp-standards",
+        "windows": "windows-standards",
+        "gcc": "gpp-standards"
+      },
+      "selectorAliases": {
+        "base@cpp-agents": "cpp-standards@cpp-agents",
+        "windows@cpp-agents": "windows-standards@windows-agents",
+        "gcc@cpp-agents": "gpp-standards@cpp-agents"
       }
     }
   }
