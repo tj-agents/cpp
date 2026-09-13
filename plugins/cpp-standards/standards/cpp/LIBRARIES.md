@@ -6,7 +6,8 @@ a backport **only when the standard I'm targeting doesn't have the feature yet.*
 ## The rule
 
 1. **Default to `std::`, always.** Use the standard library directly. New
-   projects target C++23 (g++16), so in practice everything is just `std::`.
+   projects target C++23 when their selected toolchain supports it, so in
+   practice everything is just `std::`.
 2. **Only reach for a backport when my target standard lacks the feature** —
    i.e. on an older-standard project. Never add one to a project whose standard
    already has the type: on a modern compiler the backport is just an alias to

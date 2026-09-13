@@ -99,24 +99,21 @@ perfect forwarding / `std::forward`, variadic templates (`Args&&...`),
 conditions, template specialization, placement-new (`::new (ptr) T(...)`),
 manual special-member writing, concepts/`requires`, ranges.
 
-## Systems / toolchain / Win32 — background (not yet covered, teach before using)
+## Platform-neutral systems foundations — background (not yet covered, teach before using)
 
-I came to C++ via LeetCode (single-file, compile-and-run), so the layer *under*
-the language — how a program talks to the OS, what a toolchain actually produces
+I came to C++ via LeetCode (single-file, compile-and-run), so the portable layer
+*under* the language — how a program talks to an OS and what a toolchain produces
 — is new. None of the following are known yet; teach each before relying on it:
 
-- **GNU** — what the name means (the GNU project; GCC = "GNU Compiler
-  Collection"; the "G" in `g++`).
 - **The OS / hardware boundary** — that a program can't touch hardware itself and
   must *ask the OS* to draw, read files, allocate, etc.
-- **Win32 API** — the set of functions Windows exposes for those requests.
-- **System DLLs** — `kernel32` / `user32` / `gdi32` / `shell32`; always present
-  on any Windows machine. (Static vs dynamic *linking* itself: shaky.)
 - **"Native" binary** — code that calls the OS directly, with no translation layer.
-- **MinGW / MinGW-w64** — GCC ported to emit native Windows `.exe`s.
-- **Cygwin / WSL** — the contrast: a POSIX *emulation* layer / a Linux subsystem.
-- **PE (Portable Executable)** — the Windows file format for `.exe` / `.dll`.
-- **ABI** — the compiled, machine-level calling contract (vs API = the
-  source-level one); why clang-on-Windows assumed the *MSVC* ABI and broke.
+- **Static vs dynamic linking** — whether dependency code is copied into the
+  program or resolved from a shared library at load/runtime.
+- **API vs ABI** — the source-level contract versus the compiled, machine-level
+  calling and data-layout contract.
 - **Name mangling / `extern "C"`** — C++ encodes argument types into symbol
   names; `extern "C"` opts a symbol out so C code can link to it.
+
+The `windows:windows-cpp-knowledge` and `gcc:gcc-toolchain` skills own the
+platform/toolchain-specific calibration that layers on these foundations.

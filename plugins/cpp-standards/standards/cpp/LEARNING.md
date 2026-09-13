@@ -74,8 +74,9 @@ platform specifics go in those plugins, not here.
 - **When scaffolding, produce a clean working skeleton and stop.** Don't
   pre-write the logic or stub out the API "for me to fill in" — that's the part
   I want to write. Use the configured `newcpp` scaffold when it is available, then hand it over.
-- Treat the tooling (CMake, gdb, clang-tidy, git) as things to learn, not skip
-  past — but explain them in chat, not as comment-essays in config files.
+- Treat the tooling (CMake, the selected platform debugger, clang-tidy, git) as
+  things to learn, not skip past — but explain them in chat, not as
+  comment-essays in config files.
 - Keep `KNOWLEDGE.md` up to date as I learn more — move things out of 🟡 and
   "not yet covered" when I've got them.
 - **Never add or promote a concept in `KNOWLEDGE.md` just because you explained
