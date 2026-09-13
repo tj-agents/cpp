@@ -19,6 +19,21 @@ WINDOWS_MARKERS = (
     "createwindowex",
     "defwindowproc",
 )
+LEGACY_PLUGIN_NAME = "cpp-standards"
+
+
+def context_messages(plugin_name: str) -> tuple[str, str, str]:
+    if plugin_name == LEGACY_PLUGIN_NAME:
+        return (
+            "This is a C++ repository. Apply cpp-standards@cpp-agents. Load cpp-standards:cpp-style and cpp-standards:cpp-libraries before code changes, and cpp-standards:cpp-learning plus cpp-standards:cpp-knowledge before deciding how to teach or implement unfamiliar logic.",
+            "Native Windows C++ was detected. Apply windows-standards@windows-agents on top of cpp-standards: windows-standards:windows-overview, windows-standards:win32-style, and windows-standards:windows-cpp-knowledge.",
+            "GCC/Linux C++ applies to this repository. Apply gpp-standards@cpp-agents and gpp-standards:gpp-toolchain on top of cpp-standards.",
+        )
+    return (
+        "This is a C++ repository. Apply base@cpp-agents. Load base:cpp-style and base:cpp-libraries before code changes, and base:cpp-learning plus base:cpp-knowledge before deciding how to teach or implement unfamiliar logic.",
+        "Native Windows C++ was detected. Apply windows@cpp-agents on top of base: windows:windows-overview, windows:win32-style, and windows:windows-cpp-knowledge.",
+        "GCC/Linux C++ applies to this repository. Apply gcc@cpp-agents and gcc:gcc-toolchain on top of base.",
+    )
 
 
 def project_root(cwd: Path) -> Path:
@@ -94,7 +109,11 @@ def is_native_windows(cwd: Path, files: list[str]) -> bool:
     return False
 
 
-def context_for(cwd: Path, platform: str = sys.platform) -> list[str]:
+def context_for(
+    cwd: Path,
+    platform: str = sys.platform,
+    plugin_name: str | None = None,
+) -> list[str]:
     root, files = tracked_project(cwd)
     layers = declared_layers(root)
     if not is_cpp_project(files) and layers is None:
@@ -107,17 +126,14 @@ def context_for(cwd: Path, platform: str = sys.platform) -> list[str]:
         elif platform.startswith("linux"):
             layers.add("gcc")
 
-    context = [
-        "This is a C++ repository. Apply base@cpp-agents. Load base:cpp-style and base:cpp-libraries before code changes, and base:cpp-learning plus base:cpp-knowledge before deciding how to teach or implement unfamiliar logic."
-    ]
+    base_message, windows_message, gcc_message = context_messages(
+        plugin_name or Path(__file__).resolve().parents[1].name
+    )
+    context = [base_message]
     if "windows" in layers:
-        context.append(
-            "Native Windows C++ was detected. Apply windows@cpp-agents on top of base: windows:windows-overview, windows:win32-style, and windows:windows-cpp-knowledge."
-        )
+        context.append(windows_message)
     if "gcc" in layers:
-        context.append(
-            "GCC/Linux C++ applies to this repository. Apply gcc@cpp-agents and gcc:gcc-toolchain on top of base."
-        )
+        context.append(gcc_message)
     return context
 
 

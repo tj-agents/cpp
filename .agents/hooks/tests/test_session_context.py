@@ -75,6 +75,34 @@ class SessionContextTests(unittest.TestCase):
         self.assertTrue(any("windows@cpp-agents" in line for line in context))
         self.assertTrue(any("gcc@cpp-agents" in line for line in context))
 
+    def test_compatibility_hook_emits_only_legacy_installed_namespaces(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            routes = root / ".agents" / "skill-routes.json"
+            routes.parent.mkdir(parents=True)
+            routes.write_text(
+                json.dumps({"layers": ["base", "windows", "gcc"], "routes": []}),
+                encoding="utf-8",
+            )
+            with patch.object(
+                session_context,
+                "tracked_project",
+                return_value=(root, ["app/src/main.cpp"]),
+            ):
+                context = session_context.context_for(
+                    root,
+                    "win32",
+                    plugin_name="cpp-standards",
+                )
+
+        combined = "\n".join(context)
+        self.assertIn("cpp-standards:cpp-style", combined)
+        self.assertIn("windows-standards:win32-style", combined)
+        self.assertIn("gpp-standards:gpp-toolchain", combined)
+        self.assertNotIn("base:", combined)
+        self.assertNotIn("windows:win32-style", combined)
+        self.assertNotIn("gcc:gcc-toolchain", combined)
+
     def test_windows_marker_is_read_from_repository_root(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
