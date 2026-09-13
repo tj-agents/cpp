@@ -64,7 +64,7 @@ Follow [MIGRATION.md](MIGRATION.md) for the install-before-route-update sequence
 
 Markdown under `standards/` and routers under `.agents/skills/` are source. `.agents/sync-generated.ps1` creates self-contained Codex and Claude plugin payloads; generated plugin files and `.claude/skills/` are never edited directly.
 
-Validation requires Git, Python, PowerShell 7, and GnuPG. On Windows, the tests automatically use the GPG executable bundled with Git for Windows when `gpg` is not on `PATH`. Contract refreshes additionally require an authenticated GitHub CLI so the release gate can bind the pinned commit to the private `Concertable/agent-standards` repository.
+Validation requires Git, Python, PowerShell 7, and GnuPG. On Windows, the tests automatically use the GPG executable bundled with Git for Windows when `gpg` is not on `PATH`. Contract refreshes additionally require an authenticated GitHub CLI so the release gate can bind the pinned commit to the private `Concertable/agent-standards` repository. Before pushing a protected contract change, commit it, push that exact head, and run the repository-bound attestation:
 
 ```powershell
 pwsh .agents/sync-generated.ps1
@@ -72,6 +72,7 @@ pwsh .agents/sync-generated.ps1 -Check
 python .agents/gen_skill_routes.py --self-test
 python -m unittest discover -s .agents/hooks/tests
 python -m unittest discover -s .agents/tests
+pwsh .agents/attest-external-contract.ps1 -AgentStandardsSource C:\path\to\agent-standards
 ```
 
-CI also validates every plugin manifest for both harnesses and rejects broken identifiers, missing dependencies, stale canonical names, generated drift, and incorrect layered activation.
+CI also validates every plugin manifest for both harnesses and rejects broken identifiers, missing dependencies, stale canonical names, generated drift, and incorrect layered activation. The trusted default-branch provenance gate independently requires the exact-head attestation status for changes to the external contract, its evidence, verifier, attestation script, or CI trust path; see [PROVENANCE_GATE.md](PROVENANCE_GATE.md).
