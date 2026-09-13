@@ -118,6 +118,25 @@ class SessionContextTests(unittest.TestCase):
 
         self.assertTrue(any("windows:win32-style" in line for line in context))
 
+    def test_windows_marker_after_two_hundred_sources_is_detected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            files = [f"src/{index:03}.cpp" for index in range(201)]
+            for relative in files:
+                source = root / relative
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_text("int value;\n", encoding="utf-8")
+            (root / files[200]).write_text("#include <windows.h>\n", encoding="utf-8")
+            with patch.object(
+                session_context,
+                "tracked_project",
+                return_value=(root, files),
+            ):
+                context = session_context.context_for(root, "linux")
+
+        self.assertTrue(any("windows:win32-style" in line for line in context))
+        self.assertFalse(any("gcc@cpp-agents" in line for line in context))
+
     def test_non_cpp_repository_gets_no_context(self) -> None:
         self.assertEqual([], self.context(None, "linux", ["README.md"]))
 
