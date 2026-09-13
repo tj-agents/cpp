@@ -1,0 +1,123 @@
+name: External contract provenance
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: read
+  checks: read
+
+jobs:
+  repository-binding:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require maintainer attestation for trust-contract changes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANONICAL_REPOSITORY: tomjseery/cpp-agents
+          EXPECTED_ATTESTER_ID: "183629855"
+          EXPECTED_ATTESTER_LOGIN: tomjseery
+          EXPECTED_PRODUCER_COMMIT: 93d8bd57fbfbd793acdebe542f7ae270a0c1d2a1
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          STATUS_CONTEXT: agent-standards/provenance
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Invalid PR head SHA" >&2
+            exit 1
+          fi
+
+          mapfile -t changed_paths < <(
+            gh api --paginate \
+              "repos/$CANONICAL_REPOSITORY/pulls/$PR_NUMBER/files" \
+              --jq '.[].filename'
+          )
+          requires_attestation=false
+          for path in "${changed_paths[@]}"; do
+            case "$path" in
+              .agents/plugins/skill-contract.json|\
+              .agents/tests/test_marketplace_contract.py|\
+              .agents/attest-external-contract.ps1|\
+              contracts/*|\
+              .github/workflows/ci.yml|\
+              .github/workflows/provenance-gate.yml)
+                requires_attestation=true
+                ;;
+            esac
+          done
+
+          if [[ "$requires_attestation" != true ]]; then
+            echo "No external trust-contract paths changed."
+            exit 0
+          fi
+
+          if [[ "$HEAD_REPOSITORY" != "$CANONICAL_REPOSITORY" ]]; then
+            echo "Trust-contract changes must use a branch in $CANONICAL_REPOSITORY." >&2
+            exit 1
+          fi
+
+          remote_sha=$(gh api "repos/$CANONICAL_REPOSITORY/commits/$HEAD_SHA" --jq '.sha')
+          if [[ "$remote_sha" != "$HEAD_SHA" ]]; then
+            echo "The attested head is not the canonical repository head." >&2
+            exit 1
+          fi
+
+          evidence_blob=$(gh api \
+            "repos/$CANONICAL_REPOSITORY/contents/contracts/concertable-0.1.6/provenance.json?ref=$HEAD_SHA" \
+            --jq '.sha')
+          if [[ ! "$evidence_blob" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Invalid provenance evidence blob." >&2
+            exit 1
+          fi
+
+          expected_description="agent-standards@${EXPECTED_PRODUCER_COMMIT:0:12}; evidence ${evidence_blob:0:12}"
+          expected_target="https://github.com/Concertable/agent-standards/commit/$EXPECTED_PRODUCER_COMMIT"
+          statuses=$(gh api "repos/$CANONICAL_REPOSITORY/commits/$HEAD_SHA/statuses")
+
+          collisions=$(jq --arg context "$STATUS_CONTEXT" '[
+            .[] | select((.context | ascii_downcase) == ($context | ascii_downcase) and .context != $context)
+          ] | length' <<<"$statuses")
+          if [[ "$collisions" != "0" ]]; then
+            echo "A case-colliding status context exists." >&2
+            exit 1
+          fi
+
+          status=$(jq -c --arg context "$STATUS_CONTEXT" '[
+            .[] | select(.context == $context)
+          ][0] // empty' <<<"$statuses")
+          if [[ -z "$status" ]]; then
+            echo "Missing $STATUS_CONTEXT status for $HEAD_SHA. Run the repository attestation script, then rerun this job." >&2
+            exit 1
+          fi
+
+          checks=$(gh api -H 'Accept: application/vnd.github+json' \
+            "repos/$CANONICAL_REPOSITORY/commits/$HEAD_SHA/check-runs")
+          check_collisions=$(jq --arg context "$STATUS_CONTEXT" '[
+            .check_runs[] | select((.name | ascii_downcase) == ($context | ascii_downcase))
+          ] | length' <<<"$checks")
+          if [[ "$check_collisions" != "0" ]]; then
+            echo "A check run collides with the dedicated status context." >&2
+            exit 1
+          fi
+
+          jq -e \
+            --arg context "$STATUS_CONTEXT" \
+            --arg description "$expected_description" \
+            --arg target "$expected_target" \
+            --arg login "$EXPECTED_ATTESTER_LOGIN" \
+            --argjson id "$EXPECTED_ATTESTER_ID" \
+            '.state == "success"
+             and .context == $context
+             and .description == $description
+             and .target_url == $target
+             and .creator.login == $login
+             and .creator.id == $id' <<<"$status" >/dev/null
+
+          echo "Verified repository-bound maintainer attestation for $HEAD_SHA."
