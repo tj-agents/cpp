@@ -67,9 +67,11 @@
   Fixed in the next remediation commit: detection examines the complete tracked C++ candidate set and a
   201-file regression proves a final-file Win32 marker selects Windows rather than the Linux host layer.
 
-- [ ] **R6 — MEDIUM — Windows CMake ownership route** — `.agents/gen_skill_routes.py:67`
+- [x] **R6 — MEDIUM — Windows CMake ownership route** — `.agents/gen_skill_routes.py:67`
   Windows CMake rules live in `windows:win32-style`, but the Windows build route loads only
   `windows:windows-overview`. Route build files to the owning skill and cover this case in the self-test.
+  Fixed in the next remediation commit: Windows build routes now load `windows:win32-style` and the
+  self-test asserts the complete base-plus-Windows CMake skill set.
 
 - [ ] **R7 — MEDIUM — installable schema validation** — `.github/workflows/ci.yml:12`
   CI does not run the Codex or Claude marketplace/plugin validators that the README claims. Add both
