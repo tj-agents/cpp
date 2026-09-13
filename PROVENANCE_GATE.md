@@ -9,7 +9,7 @@ The check runs as `pull_request_target`, reads its workflow from the trusted def
 1. Review and merge the PR that first adds this workflow. `pull_request_target` cannot run a workflow that is not yet on the default branch, so this introduction PR is explicitly the sole unprotected bootstrap.
 2. On the producer migration PR, run the repository attestation script against the pinned private checkout and rerun the new gate if its initial missing-status run failed.
 3. Confirm the gate succeeds from the default-branch workflow.
-4. Add `External contract provenance / repository-binding` to the `main` branch's required checks and require branches to be up to date before merging. Do not mark the bootstrap PR itself as protected retroactively.
+4. Where the repository plan supports it, add `External contract provenance / repository-binding` to the `main` branch's required checks and require branches to be up to date before merging. Do not mark the bootstrap PR itself as protected retroactively. Until private-repository rulesets are available, a green gate is a mandatory maintainer merge precondition; [TECH_DEBT.md](TECH_DEBT.md) owns the objective enforcement follow-up.
 
 This repository must use direct, strictly up-to-date pull-request merges while this check is required. Do not enable GitHub's merge queue: queue entries are synthetic `merge_group` commits, while the security boundary depends on a trusted `pull_request_target` workflow and an attestation bound to the exact PR head. A merge-group workflow would execute a workflow tree that includes pull-request changes and would therefore weaken that boundary.
 

@@ -15,7 +15,7 @@ Phase 1 implementation and aggregate review remediation are complete locally. cp
 
 ## Next Steps
 
-Commit and push the attestation script and trusted-gate integration, run the authenticated exact-source attestation for that head, close R22 through incremental review, and own both CI and the provenance check to green. Then merge the cpp-agents producer before beginning windows-agents deprecation.
+Close R22 through incremental review, then merge the cpp-agents producer before beginning windows-agents deprecation. Both exact-head PR CI run 34787644835 and provenance run 34787643014 attempt 2 are green at `5b409b25b5696a6c96779e22c556255dd1c33fb4`.
 
 Scope: whole plan through all remaining phases and terminal delivery.
 Current slice: Phase 1 immutable candidate, review, and cpp-agents delivery.
@@ -48,3 +48,4 @@ The initial full review and two incremental repair reviews produced fourteen fin
 - Winwrap had a pre-existing untracked `.codex/` directory before this migration; preserve it and do not sweep it into unrelated commits.
 - PR #2 run 34781877587 failed because the current-repository `GITHUB_TOKEN` cannot read the separate private `Concertable/agent-standards` repository. The contract now carries the exact source commit plus an offline-verifiable GitHub signature, signed tree path, manifest blob, and required skill blobs, so CI proves provenance without a cross-repository secret; local release validation also compares hashes against the real checkout.
 - The organization policy disables deploy keys, so no deploy key or Actions secret was retained. Bootstrap PR #3 merged the reviewed `pull_request_target` status verifier at `82ff5c1b7fda627935d5f5b38b9371c69d8c91a8`; authenticated source validation remains local to the approved maintainer, and the trusted workflow verifies its exact-head status contract.
+- GitHub returned 403 for both branch-protection and ruleset APIs because this private repository's current plan does not support them. `TECH_DEBT.md` records the objective enforcement condition; until then, delivery treats the green trusted gate as a manual merge precondition.
