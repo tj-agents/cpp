@@ -1,0 +1,26 @@
+{
+  "externalPlugins": {
+    "concertable": {
+      "marketplace": "agent-standards",
+      "repository": "https://github.com/Concertable/agent-standards",
+      "sourceCommit": "93d8bd57fbfbd793acdebe542f7ae270a0c1d2a1",
+      "provenance": "contracts/concertable-0.1.6",
+      "manifest": "plugins/concertable/.codex-plugin/plugin.json",
+      "manifestSha256": "f524ea5e1c1b80bac638c2ead4328dbfa9875253737129fe062a974b17198704",
+      "skillsRoot": "plugins/concertable/codex-skills",
+      "version": "0.1.6",
+      "skills": ["docs-and-debt", "skill-routes"],
+      "skillSha256": {
+        "docs-and-debt": "7bc2e0baa12b0536f0375a128d095044e176e5cbbcaccc1cfe11007ff8067735",
+        "skill-routes": "27639569387d2af18b6d76e38eb9d8a89c4b8ff94b5408c945c969699b76c1ac"
+      }
+    }
+  },
+  "legacyExternalPlugins": {
+    "windows-standards": {
+      "marketplace": "windows-agents",
+      "version": "0.1.0",
+      "skills": ["windows-overview", "win32-style", "windows-cpp-knowledge"]
+    }
+  }
+}

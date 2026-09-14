@@ -9,6 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install provenance verifier
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gnupg
+          gpg --version
       - name: Check generated payloads
         shell: pwsh
         run: .agents/sync-generated.ps1 -Check
@@ -16,5 +21,24 @@ jobs:
         run: python3 -m py_compile .agents/hooks/session_context.py
       - name: Test session routing
         run: python3 -m unittest discover -s .agents/hooks/tests
+      - name: Test marketplace and dependency contracts
+        run: python3 -m unittest discover -s .agents/tests
       - name: Check skill-route generator
         run: python3 .agents/gen_skill_routes.py --self-test
+      - name: Install pinned marketplace harnesses
+        run: npm install --global @openai/codex@0.154.0 @anthropic-ai/claude-code@2.1.268
+      - name: Validate and install with Codex
+        shell: bash
+        run: |
+          codex plugin marketplace add .
+          for plugin in base windows gcc cpp-standards gpp-standards; do
+            codex plugin add "$plugin@cpp-agents"
+          done
+          codex plugin list --json
+      - name: Validate marketplace and plugins with Claude Code
+        shell: bash
+        run: |
+          claude plugin validate --strict .claude-plugin/marketplace.json
+          for plugin in base windows gcc cpp-standards gpp-standards; do
+            claude plugin validate --strict "plugins/$plugin"
+          done
