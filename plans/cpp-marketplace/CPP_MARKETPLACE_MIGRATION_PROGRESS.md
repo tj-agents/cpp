@@ -11,11 +11,11 @@
 
 ## Current state
 
-Phase 1 implementation and aggregate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. Offline signed evidence and the authenticated local release gate are complete. Reviewed bootstrap PRs #3 and #4 placed the no-secret exact-head gate and its data-only attester on canonical `main`. Review finding R26 identified Windows current-directory executable hijacking in that trusted attester; reviewed trust-root rotation PR #5 fixed it by pinning absolute Git/GitHub CLI executables outside the candidate and merged as `069064e390b8420e2bef1c65e5789bfdea958fae`. The producer branch now contains that canonical trust root.
+Phase 1 implementation and aggregate review remediation are complete locally. cpp-agents now authors generic, Windows, and GCC standards once and generates the `base`, `windows`, and `gcc` public payloads plus two time-bounded in-marketplace aliases. Routes and detection use a composable ordered layer set and the canonical `concertable:*` workflow namespace. Offline signed evidence and the authenticated local release gate are complete. Reviewed bootstrap PRs #3 and #4 placed the no-secret exact-head gate and its data-only attester on canonical `main`. Review finding R26 identified Windows current-directory executable hijacking in that trusted attester; reviewed trust-root rotation PR #5 fixed it by pinning absolute Git/GitHub CLI executables outside the candidate and merged as `069064e390b8420e2bef1c65e5789bfdea958fae`. The producer branch now contains that canonical trust root. Review finding R27 added credential-free static coverage on every CI platform and executable-resolution behavior tests on a dedicated Windows runner.
 
 ## Next Steps
 
-Commit and publish the reconciled producer head, invoke the trusted attester from the exact clean `069064e390b8420e2bef1c65e5789bfdea958fae` `main` checkout, require exact-head CI and provenance green, close R26 through incremental review, then merge cpp-agents before beginning windows-agents deprecation. Earlier exact-head CI and provenance proved `ce64d7fb9de266bbffefd0adb912983b0667e206`; the post-rotation producer head must receive new evidence.
+Commit and publish the R27 remediation head, require its Linux and Windows CI plus trusted provenance green, complete its incremental review, then merge cpp-agents before beginning windows-agents deprecation. Exact-head CI, provenance status 54143363894, and provenance run 34884542869 attempt 2 proved `5f08df75be0f394262a22ba9f1ab7f3a7c1ffc72`; the test-remediation head must receive new evidence.
 
 Scope: whole plan through all remaining phases and terminal delivery.
 Current slice: Phase 1 immutable candidate, review, and cpp-agents delivery.
@@ -33,13 +33,13 @@ Done when: all three public plugins are delivered and verified in Codex and Clau
 
 - Generated payload check: 62 files current from 11 skills and 11 documents.
 - Route generator: canonical generic/GCC/Windows cases, composed Windows+GCC layers, and legacy kind normalization passed.
-- Tests: 12 session-detection tests and 11 marketplace/dependency/identifier contract tests passed, including immutable source evidence and verification against the real pinned `concertable` 0.1.6 checkout.
+- Tests: 12 session-detection tests and 15 marketplace, dependency, identifier, provenance, and attester-safety tests passed, including four credential-free attester checks and verification against the real pinned `concertable` 0.1.6 checkout.
 - Codex plugin validator passed for all five canonical/compatibility payloads; Claude plugin and marketplace validation passed.
 - `git diff --check` passed.
 
 ## Reviews
 
-The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`. Findings R1-R25 are repaired. The exact-head review at `ce64d7fb9de266bbffefd0adb912983b0667e206` found R26 in the trusted attester; reviewed root-rotation PR #5 repaired it on canonical `main`. One final incremental pass over the integration merge and this ledger update will establish the delivery watermark.
+The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`. Findings R1-R27 are repaired locally. R26 required reviewed root-rotation PR #5; the first post-rotation integration review then found R27's missing Windows regression harness. One final incremental pass over the test remediation will establish the delivery watermark.
 
 ## Decisions, discoveries, blockers, and deviations
 
@@ -50,4 +50,5 @@ The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`. Findin
 - The organization policy disables deploy keys, so no deploy key or Actions secret was retained. Bootstrap PR #3 merged the reviewed `pull_request_target` status verifier at `82ff5c1b7fda627935d5f5b38b9371c69d8c91a8`; authenticated source validation remains local to the approved maintainer, and the trusted workflow verifies its exact-head status contract.
 - Review found that a candidate-owned attester would execute candidate Python under the maintainer credential. Bootstrap PR #4 replaced it with a trusted `main` attester that treats the candidate as Git data, pins all protected objects, and binds the producer commit to authenticated canonical ancestry; it merged at `e340081cfefc8f89f60b2cbf74c0e370626cc8a5` after explicit approval of the documented root-rotation exception.
 - Review then found that unqualified Git and GitHub CLI launches could resolve a candidate-owned executable from the caller's current directory. Root-rotation PR #5 resolves trusted absolute application paths from canonical `main`, rejects paths inside the candidate, and reuses those paths for every child process. It merged at `069064e390b8420e2bef1c65e5789bfdea958fae`; its post-merge CI run 34883850725 passed.
+- The post-rotation integration review found no defect in the fix but identified missing durable Windows coverage. `.agents/tests/test_attester_safety.py` now parses and statically constrains the script everywhere, while `.github/workflows/attester-safety.yml` exercises candidate `PATH` rejection and current-directory isolation on Windows.
 - GitHub returned 403 for both branch-protection and ruleset APIs because this private repository's current plan does not support them. `TECH_DEBT.md` records the objective enforcement condition; until then, delivery treats the green trusted gate as a manual merge precondition.
