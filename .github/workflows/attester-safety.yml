@@ -1,0 +1,18 @@
+name: Attester safety
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-resolution:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test trusted attester parsing and executable resolution
+        run: python -m unittest discover -s .agents/tests -p test_attester_safety.py
