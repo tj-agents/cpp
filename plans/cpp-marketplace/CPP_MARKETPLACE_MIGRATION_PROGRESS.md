@@ -15,7 +15,7 @@ Phase 1 implementation and aggregate review remediation are complete locally. cp
 
 ## Next Steps
 
-Commit and publish the canonical-root integration, post a new attestation from exact clean `b7e669de505b9ec4823cf4d1c240418aa9aabf96`, require exact-head Linux, Windows, and trusted provenance checks, complete one final incremental review, then merge cpp-agents before beginning windows-agents deprecation.
+Commit and publish the R31 documentation repair, post a new attestation from exact clean `b7e669de505b9ec4823cf4d1c240418aa9aabf96`, require exact-head Linux, Windows, and trusted provenance checks, complete one final documentation delta review, then merge cpp-agents before beginning windows-agents deprecation.
 
 Scope: whole plan through all remaining phases and terminal delivery.
 Current slice: Phase 1 immutable candidate, review, and cpp-agents delivery.
@@ -39,7 +39,7 @@ Done when: all three public plugins are delivered and verified in Codex and Clau
 
 ## Reviews
 
-The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`. Findings R1-R30 are repaired. R26 required reviewed root-rotation PR #5; R28 required reviewed root-rotation PR #6. One final incremental pass over the canonical-root integration will establish the producer delivery watermark.
+The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`. Findings R1-R31 are repaired locally. R26 required reviewed root-rotation PR #5; R28 required reviewed root-rotation PR #6. The integration review found R31's unconditional branch-protection instruction; the repaired wording again matches `TECH_DEBT.md`. One final documentation delta pass will establish the producer delivery watermark.
 
 ## Decisions, discoveries, blockers, and deviations
 
@@ -53,4 +53,5 @@ The canonical work order is `reviews/Feature-Layered-Cpp-Marketplace.md`. Findin
 - The post-rotation integration review found no defect in the fix but identified missing durable Windows coverage. `.agents/tests/test_attester_safety.py` now parses and statically constrains the script everywhere, while `.github/workflows/attester-safety.yml` exercises candidate `PATH` rejection and current-directory isolation on Windows.
 - Review of that harness found it was not yet part of the trust closure, its static scan omitted an interval, and checkout retained an unnecessary credential. The scan now covers the complete script and the workflow has explicit read-only permissions with credential persistence disabled; its exact files were protected and pinned through root-rotation PR #6.
 - Root-rotation PR #6 additionally changed the protected workflow to invoke the exact pinned test under Python isolated mode on both Ubuntu and Windows, closing candidate module shadowing. Its exact reviewed head `b7f68da00c4868855af9c02bd141855c3bb5bc61`, ordinary CI, and both isolated matrix legs passed before the approved manual rotation; post-merge CI and safety run 34890326801 passed at `b7e669de505b9ec4823cf4d1c240418aa9aabf96`.
+- Canonical-root integration restored an older unconditional branch-protection bootstrap step even though the current private-repository plan returns 403. R31 restores the capability-qualified step and keeps green provenance as a mandatory manual precondition until `TECH_DEBT.md`'s objective resolution condition is met.
 - GitHub returned 403 for both branch-protection and ruleset APIs because this private repository's current plan does not support them. `TECH_DEBT.md` records the objective enforcement condition; until then, delivery treats the green trusted gate as a manual merge precondition.
