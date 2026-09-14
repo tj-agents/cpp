@@ -1,24 +1,21 @@
 {
   "name": "cpp-standards",
-  "version": "0.2.0",
-  "description": "Generic C++ coding, build, testing, library, learning, and knowledge standards for Tommy's projects.",
+  "version": "0.3.0",
+  "description": "Deprecated compatibility alias for base@cpp-agents; remove after 2027-03-31.",
   "author": {
     "name": "Tommy Seery",
     "url": "https://github.com/tomjseery"
   },
   "repository": "https://github.com/tomjseery/cpp-agents",
-  "keywords": ["standards", "cpp", "cmake", "learning"],
+  "keywords": ["standards", "cpp", "compatibility", "deprecated"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "C++ Standards",
-    "shortDescription": "Tommy's platform-neutral C++ conventions.",
-    "longDescription": "Generic C++ style, build, testing, dependency choices, learning workflow, direction, and current knowledge. Platform-specific rules are separate plugins.",
+    "displayName": "C++ Standards (Deprecated)",
+    "shortDescription": "Compatibility alias; migrate to base.",
+    "longDescription": "Temporary compatibility alias for base@cpp-agents. Install base, regenerate routes, then remove this plugin before 2027-03-31.",
     "developerName": "Tommy Seery",
     "category": "Productivity",
     "capabilities": ["Instructions", "Hooks"],
-    "defaultPrompt": [
-      "Review this C++ change against my standards.",
-      "Teach me the C++ concepts this task needs."
-    ]
+    "defaultPrompt": ["Migrate this repository to base@cpp-agents."]
   }
 }

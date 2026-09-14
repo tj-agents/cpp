@@ -19,8 +19,8 @@ has already standardized on another framework.
 A unit test has no real filesystem, process, network, database, message pump, or
 operating-system UI dependency. Test platform-neutral logic at that tier.
 Anything that boots or manipulates a real external boundary is an integration
-test and must be named and run as such. Native Windows behavior may need a
-separate Windows integration target rather than being disguised as a unit test.
+test and must be named and run as such. Platform-specific behavior may need a
+separate platform integration target rather than being disguised as a unit test.
 
 ## Write useful cases
 

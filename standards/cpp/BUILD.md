@@ -1,8 +1,8 @@
 # Build conventions — C++ (Tommy)
 
 Use CMake as the project model and presets as the human-facing build interface.
-These rules are platform-neutral; `gpp-standards` owns GCC/Linux details and
-`windows-standards` owns MSVC/Win32 details.
+These rules are platform-neutral; `gcc` owns GCC/Linux details and `windows`
+owns MSVC, clang-cl, and Win32 details.
 
 ## Model the build with targets
 
@@ -35,7 +35,7 @@ build output.
 
 ## Dependencies
 
-Follow `cpp-standards:cpp-libraries` before adding one. When CMake owns a source
+Follow `base:cpp-libraries` before adding one. When CMake owns a source
 dependency, use a pinned release/tag through `FetchContent`, mark third-party
 headers `SYSTEM`, and disable that dependency's unnecessary tests or packaging
 targets. Do not track a floating default branch.

@@ -24,9 +24,9 @@ Generated:
   plugins/<p>/standards/**                full copy of the tree, for that same reason.
   plugins/<p>/hooks/*                     full copy of the hook AND its hooks.json wiring, generated so
                                           the matcher cannot drift from the tool names the hook acts on.
-                                          Only the ONE plugin payloads.json names as `hooks` gets it -
-                                          a copy per plugin fires the router once per installed plugin.
-                                          - that drift shipped a plugin inert for every Codex write.
+                                          Only `base` and an explicit time-bounded compatibility alias
+                                          may receive it. Multiple canonical owners would duplicate it;
+                                          omitting the legacy owner would break existing installations.
   plugins/<p>/.claude-plugin/plugin.json  Claude manifest generated from the canonical Codex manifest.
   .claude-plugin/marketplace.json         Claude marketplace generated from the canonical Codex
                                           marketplace without duplicating plugin metadata.
@@ -169,7 +169,7 @@ if ($problems) {
 
 $pluginRoot = Join-Path $repoRoot 'plugins'
 $plugins = @()
-if (Test-Path $pluginRoot) { $plugins = @(Get-ChildItem -Path $pluginRoot -Directory) }
+if (Test-Path $pluginRoot) { $plugins = @(Get-ChildItem -Path $pluginRoot -Directory | Sort-Object Name) }
 
 # Refuse to generate against a marketplace that points at a plugin that is not there, or a plugin
 # with no manifest of its own - an unroutable package installs and delivers nothing.
@@ -189,6 +189,25 @@ foreach ($entry in $manifestJson.plugins) {
     if (-not (Test-Path (Join-Path $source '.codex-plugin/plugin.json'))) {
         throw "Plugin '$($entry.name)' has no canonical .codex-plugin/plugin.json."
     }
+    $pluginManifest = ConvertFrom-Json (Read-Lf (Join-Path $source '.codex-plugin/plugin.json'))
+    if ($pluginManifest.name -ne $entry.name) {
+        throw "Marketplace entry '$($entry.name)' points at a manifest named '$($pluginManifest.name)'."
+    }
+}
+
+function Rewrite-CompatibilityIdentifiers([string]$body, [string]$pluginName) {
+    if (-not $compatibilityAliases.ContainsKey($pluginName)) { return $body }
+    $alias = $compatibilityAliases[$pluginName]
+    foreach ($property in $alias.qualifiedSkillAliases.PSObject.Properties) {
+        $body = $body.Replace($property.Name, $property.Value)
+    }
+    foreach ($property in $alias.identifierAliases.PSObject.Properties) {
+        $body = $body.Replace("$($property.Name):", "$($property.Value):")
+    }
+    foreach ($property in $alias.selectorAliases.PSObject.Properties) {
+        $body = $body.Replace($property.Name, $property.Value)
+    }
+    return $body
 }
 
 # Which plugin ships which domains. A consumer installs per stack, so the split is authored rather
@@ -198,6 +217,10 @@ $payloadsFile = Join-Path $repoRoot '.agents/plugins/payloads.json'
 if (-not (Test-Path $payloadsFile)) { throw "Missing .agents/plugins/payloads.json." }
 $payloadsJson = ConvertFrom-Json (Read-Lf $payloadsFile)
 $payloads = $payloadsJson.payloads
+$publicPlugins = @($payloadsJson.publicPlugins)
+if (-not $publicPlugins -or (($manifestJson.plugins | Select-Object -First $publicPlugins.Count).name -join ',') -ne ($publicPlugins -join ',')) {
+    throw "marketplace.json must list payloads.json publicPlugins first and in the same order."
+}
 $pluginDomains = @{}
 foreach ($property in $payloads.PSObject.Properties) {
     if ($declared -notcontains $property.Name) {
@@ -226,18 +249,66 @@ if ($unshipped) {
     throw "standards domain(s) '$($unshipped -join ', ')' are in no plugin, so a clone cannot install them."
 }
 
-# Exactly ONE plugin ships the hook. Copying it into every plugin registers the same PreToolUse matcher
-# once per installed plugin, so a single write fires the router two or three times.
-$hookOwner = $payloadsJson.hooks
+# Dependencies are an explicit repository contract because neither supported marketplace manifest has a
+# portable dependency field. Validate existence and cycles here so a platform layer cannot silently ship
+# without its base.
+$dependencies = @{}
+if ($payloadsJson.dependencies) {
+    foreach ($property in $payloadsJson.dependencies.PSObject.Properties) {
+        if ($declared -notcontains $property.Name) { throw "dependencies names missing plugin '$($property.Name)'." }
+        $dependencies[$property.Name] = @($property.Value)
+        foreach ($dependency in $dependencies[$property.Name]) {
+            if ($declared -notcontains $dependency) { throw "plugin '$($property.Name)' depends on missing plugin '$dependency'." }
+            if ($dependency -eq $property.Name) { throw "plugin '$($property.Name)' depends on itself." }
+        }
+    }
+}
+function Assert-AcyclicDependency([string]$name, [hashtable]$active, [hashtable]$complete) {
+    if ($active.ContainsKey($name)) { throw "Plugin dependency cycle includes '$name'." }
+    if ($complete.ContainsKey($name)) { return }
+    $active[$name] = $true
+    if ($dependencies.ContainsKey($name)) {
+        foreach ($dependency in @($dependencies[$name])) { Assert-AcyclicDependency $dependency $active $complete }
+    }
+    $active.Remove($name)
+    $complete[$name] = $true
+}
+$completeDependencies = @{}
+foreach ($name in $declared) { Assert-AcyclicDependency $name @{} $completeDependencies }
+
+$compatibilityAliases = @{}
+if ($payloadsJson.compatibilityAliases) {
+    foreach ($property in $payloadsJson.compatibilityAliases.PSObject.Properties) {
+        if ($declared -notcontains $property.Name) { throw "compatibility alias '$($property.Name)' is missing from marketplace.json." }
+        if ($publicPlugins -contains $property.Name) { throw "compatibility alias '$($property.Name)' cannot be a public plugin." }
+        if ($publicPlugins -notcontains $property.Value.replacedBy) { throw "compatibility alias '$($property.Name)' has unknown replacement '$($property.Value.replacedBy)'." }
+        try { $removeAfter = [datetime]::ParseExact($property.Value.removeAfter, 'yyyy-MM-dd', $null) }
+        catch { throw "compatibility alias '$($property.Name)' needs a yyyy-MM-dd removeAfter date." }
+        if ($removeAfter.Date -lt [datetime]::Today) {
+            throw "compatibility alias '$($property.Name)' expired on $($property.Value.removeAfter); remove it before generating a release."
+        }
+        $compatibilityAliases[$property.Name] = $property.Value
+    }
+}
+
+# The canonical base and its temporary compatibility alias both need standalone detection. Installing
+# both briefly during migration duplicates only the same idempotent session context; the alias disappears
+# at its declared removal date.
+$hookOwners = @($payloadsJson.hooks)
 $hookFiles = @()
 if (Test-Path $hookSource) {
     $hookFiles = @(Get-ChildItem -Path $hookSource -File | Where-Object { $_.Extension -in '.py', '.json' })
 }
-if ($hookFiles.Count -and -not $hookOwner) {
+if ($hookFiles.Count -and -not $hookOwners) {
     throw ".agents/hooks holds $($hookFiles.Count) file(s) but payloads.json names no 'hooks' owner, so every plugin would ship a duplicate copy."
 }
-if ($hookOwner -and ($declared -notcontains $hookOwner)) {
-    throw "payloads.json assigns the hooks to '$hookOwner', which marketplace.json does not declare."
+foreach ($hookOwner in $hookOwners) {
+    if ($declared -notcontains $hookOwner) {
+        throw "payloads.json assigns the hooks to '$hookOwner', which marketplace.json does not declare."
+    }
+    if ($hookOwner -ne 'base' -and -not $compatibilityAliases.ContainsKey($hookOwner)) {
+        throw "Only base or a declared compatibility alias may ship the C++ detection hook; found '$hookOwner'."
+    }
 }
 
 # relative path -> LF-normalized content
@@ -267,15 +338,27 @@ foreach ($plugin in $plugins) {
         $pluginDomains[$plugin.Name] -contains (($_ -split '/')[1])
     })
     foreach ($doc in $mine) {
-        $generated["plugins/$($plugin.Name)/$doc"] = Read-Lf (Join-Path $repoRoot $doc)
+        $docBody = Rewrite-CompatibilityIdentifiers (Read-Lf (Join-Path $repoRoot $doc)) $plugin.Name
+        $generated["plugins/$($plugin.Name)/$doc"] = $docBody
         $owner = @($routers.Values | Where-Object { $_.Doc -eq $doc })[0]
+        $skillName = $owner.Name
+        $skillBody = Rewrite-ForPlugin $owner.Body
+        if ($compatibilityAliases.ContainsKey($plugin.Name) -and $compatibilityAliases[$plugin.Name].skillAliases) {
+            $aliasProperty = $compatibilityAliases[$plugin.Name].skillAliases.PSObject.Properties[$owner.Name]
+            if ($aliasProperty) {
+                $skillName = $aliasProperty.Value
+                $skillBody = [regex]::Replace($skillBody, "(?m)^name: $([regex]::Escape($owner.Name))$", "name: $skillName")
+            }
+        }
+        $skillBody = Rewrite-CompatibilityIdentifiers $skillBody $plugin.Name
         # skills/<name>/SKILL.md -> the plugin's own copy of the tree, two levels up.
-        $generated["plugins/$($plugin.Name)/skills/$($owner.Name)/SKILL.md"] =
-            (Rewrite-ForPlugin $owner.Body)
+        $generated["plugins/$($plugin.Name)/skills/$skillName/SKILL.md"] = $skillBody
     }
-    if ($plugin.Name -eq $hookOwner) {
+    if ($hookOwners -contains $plugin.Name) {
         foreach ($hook in $hookFiles) {
-            $generated["plugins/$($plugin.Name)/hooks/$($hook.Name)"] = Read-Lf $hook.FullName
+            $hookBody = Read-Lf $hook.FullName
+            $hookBody = Rewrite-CompatibilityIdentifiers $hookBody $plugin.Name
+            $generated["plugins/$($plugin.Name)/hooks/$($hook.Name)"] = $hookBody
         }
     }
 }

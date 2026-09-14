@@ -1,8 +1,8 @@
 # Build conventions — C++ (Tommy)
 
 Use CMake as the project model and presets as the human-facing build interface.
-These rules are platform-neutral; `gpp-standards` owns GCC/Linux details and
-`windows-standards` owns MSVC/Win32 details.
+These rules are platform-neutral; `gcc` owns GCC/Linux details and `windows`
+owns MSVC, clang-cl, and Win32 details.
 
 ## Model the build with targets
 
