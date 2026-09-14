@@ -35,13 +35,10 @@ class AttesterSafetyTests(unittest.TestCase):
         self.assertIn("foreach ($executable in @($gitExecutable, $ghExecutable))", source)
         self.assertIn("Test-PathWithin -Path $executable -Root $consumerRoot", source)
 
-        resolution_prefix = source[:resolve_git]
-        execution_body = source[source.index("if ($CandidateSha -notmatch"):]
-        self.assertNotRegex(resolution_prefix, r"(?m)^\s*&\s+(?:git|gh)(?:\.exe)?\b")
-        self.assertNotRegex(execution_body, r"(?m)^\s*&\s+(?:git|gh)(?:\.exe)?\b")
-        self.assertNotRegex(execution_body, r"(?m)\|\s*(?:git|gh)(?:\.exe)?\s")
-        self.assertNotIn('$start.FileName = "git"', execution_body)
-        self.assertNotIn('$start.FileName = "gh"', execution_body)
+        self.assertNotRegex(source, r"(?m)^\s*&\s+(?:git|gh)(?:\.exe)?\b")
+        self.assertNotRegex(source, r"(?m)\|\s*(?:git|gh)(?:\.exe)?\s")
+        self.assertNotIn('$start.FileName = "git"', source)
+        self.assertNotIn('$start.FileName = "gh"', source)
 
     @unittest.skipUnless(os.name == "nt", "Windows command resolution regression")
     def test_candidate_path_executables_are_rejected(self) -> None:
