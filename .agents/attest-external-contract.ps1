@@ -37,7 +37,7 @@ function Invoke-CheckedGit {
         [Parameter(Mandatory = $true)][string] $Repository,
         [Parameter(ValueFromRemainingArguments = $true)][string[]] $Arguments
     )
-    $output = & git --no-replace-objects -C $Repository @Arguments
+    $output = & $gitExecutable --no-replace-objects -C $Repository @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "git failed in ${Repository}: git $($Arguments -join ' ')"
     }
@@ -46,7 +46,7 @@ function Invoke-CheckedGit {
 
 function Invoke-CheckedGh {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]] $Arguments)
-    $output = & gh @Arguments
+    $output = & $ghExecutable @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "GitHub CLI failed: gh $($Arguments -join ' ')"
     }
@@ -59,7 +59,7 @@ function Get-GitBlobBytes {
         [Parameter(Mandatory = $true)][string] $ObjectSpec
     )
     $start = [System.Diagnostics.ProcessStartInfo]::new()
-    $start.FileName = "git"
+    $start.FileName = $gitExecutable
     $start.UseShellExecute = $false
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
@@ -123,9 +123,31 @@ function Assert-CanonicalRemote {
     }
 }
 
+function Test-PathWithin {
+    param(
+        [Parameter(Mandatory = $true)][string] $Path,
+        [Parameter(Mandatory = $true)][string] $Root
+    )
+    $relative = [IO.Path]::GetRelativePath($Root, $Path)
+    return -not [IO.Path]::IsPathRooted($relative) -and
+        $relative -ne ".." -and
+        -not $relative.StartsWith("..$([IO.Path]::DirectorySeparatorChar)", [StringComparison]::Ordinal)
+}
+
 $trustedRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $consumerRoot = (Resolve-Path -LiteralPath $ConsumerSource).Path
 $producerRoot = (Resolve-Path -LiteralPath $AgentStandardsSource).Path
+Set-Location -LiteralPath $trustedRoot
+
+$gitExecutable = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+$ghExecutable = (Get-Command gh -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+$gitExecutable = (Resolve-Path -LiteralPath $gitExecutable).Path
+$ghExecutable = (Resolve-Path -LiteralPath $ghExecutable).Path
+foreach ($executable in @($gitExecutable, $ghExecutable)) {
+    if (Test-PathWithin -Path $executable -Root $consumerRoot) {
+        throw "Refusing candidate-owned executable: $executable"
+    }
+}
 
 if ($CandidateSha -notmatch "^[0-9a-f]{40}$") {
     throw "CandidateSha must be a full lowercase Git commit SHA."
@@ -136,7 +158,7 @@ $remoteMain = (Invoke-CheckedGh api "repos/$consumerRepository/git/ref/heads/mai
 if ($trustedHead -ne $remoteMain) {
     throw "Run the attester from an exact checkout of the canonical main branch."
 }
-& git --no-replace-objects -C $trustedRoot diff --quiet HEAD -- .agents/attest-external-contract.ps1
+& $gitExecutable --no-replace-objects -C $trustedRoot diff --quiet HEAD -- .agents/attest-external-contract.ps1
 if ($LASTEXITCODE -ne 0) {
     throw "The trusted attester differs from canonical main."
 }
@@ -241,7 +263,7 @@ $body = [ordered]@{
     description = $description
     target_url = $targetUrl
 } | ConvertTo-Json -Compress
-$status = $body | gh api --method POST "repos/$consumerRepository/statuses/$CandidateSha" --input - | Out-String | ConvertFrom-Json
+$status = $body | & $ghExecutable api --method POST "repos/$consumerRepository/statuses/$CandidateSha" --input - | Out-String | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to post the repository-bound status."
 }
