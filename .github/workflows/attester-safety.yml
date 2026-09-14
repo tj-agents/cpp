@@ -1,0 +1,21 @@
+name: Attester safety
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-resolution:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test trusted attester parsing and executable resolution
+        run: python -I .agents/tests/test_attester_safety.py
