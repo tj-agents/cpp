@@ -56,7 +56,7 @@ repository guidance.
 
 ## Compatibility migration
 
-`cpp-standards@cpp-agents` and `gpp-standards@cpp-agents` remain generated compatibility aliases through 2027-03-31. `windows-standards@windows-agents` remains available from the deprecated forwarding repository for the same interval. New configurations must use only `base`, `windows`, and `gcc`.
+`cpp-standards@cpp-agents` and `gpp-standards@cpp-agents` remain generated compatibility aliases through 2027-03-31. The archived `windows-agents` repository retains a frozen `windows-standards` migration snapshot for the same interval; it is not an active marketplace. New configurations must use only `base`, `windows`, and `gcc` from this repository.
 
 Follow [MIGRATION.md](MIGRATION.md) for the install-before-route-update sequence and the exhaustive classification of retired names.
 
