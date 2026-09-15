@@ -10,10 +10,10 @@ The compatibility window ends after **2027-03-31**.
 |---|---|---|---|
 | `cpp-standards@cpp-agents` | Compatibility alias generated from the `base` source | `base@cpp-agents` | Remove after 2027-03-31 |
 | `gpp-standards@cpp-agents` | Compatibility alias generated from the `gcc` source; retains the legacy `gpp-toolchain` skill | `gcc@cpp-agents` and `gcc:gcc-toolchain` | Remove after 2027-03-31 |
-| `windows-standards@windows-agents` | Deprecated forwarding package generated from the released Windows source | `windows@cpp-agents` | Remove/archive after 2027-03-31 and consumer verification |
+| `windows-standards@windows-agents` | Frozen migration snapshot in the archived `windows-agents` repository | `windows@cpp-agents` | Remove after 2027-03-31 |
 | `agent-process:*` | Erroneous retired workflow identity | `concertable:*` from `concertable@agent-standards` | No compatibility use in generated routes |
 
-References in this file, compatibility manifests/metadata/tests, and the windows-agents deprecation notice are intentional. Occurrences in canonical standards, hooks, route output, examples, or new consumer configuration are errors. Historical project documents may retain an old name only when changing it would falsify a dated record; each such survivor must be reported explicitly.
+References in this file, compatibility manifests/metadata/tests, and the archived windows-agents migration notice are intentional. Occurrences in canonical standards, hooks, route output, examples, or new consumer configuration are errors. Historical project documents may retain an old name only when changing it would falsify a dated record; each such survivor must be reported explicitly.
 
 ## Safe migration order
 
@@ -24,6 +24,9 @@ References in this file, compatibility manifests/metadata/tests, and the windows
 4. Confirm Codex and Claude resolve the new packages and route identifiers.
 5. Remove old packages. A short overlap can emit duplicate base session context because both base packages remain standalone during migration; it does not duplicate authored rules or write-time routes.
 6. Remove the `windows-agents` marketplace only after no enabled plugin or repository configuration uses it.
+
+That sequence is complete for every known consumer. `windows-agents` was archived on 2026-09-15 and is
+retained read-only only for unknown legacy installations during the compatibility window.
 
 Codex native-Windows example:
 
