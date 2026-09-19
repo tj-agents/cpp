@@ -146,14 +146,11 @@ for admin).
 
 ## Build (CMake + MSVC or clang-cl)
 
-- A preset selecting the MSVC toolset (x64 Native Tools env, `-G "Visual Studio 17
-  2022"`, Ninja + `cl`, or Ninja + `clang-cl`). `clang-cl` must use the MSVC ABI
-  and Windows SDK environment; do not substitute MinGW `clang++` or GCC. No
-  `-municode` — that's MinGW.
+- Generic compiler, SDK, runtime, build-system and editor configuration lives in
+  [MSVC.md](MSVC.md). The following settings apply specifically to Win32 app targets.
 - `add_executable(app WIN32 …)` → GUI subsystem (`WinMain`, no console); omit `WIN32`
   for a console app (`main`).
 - `target_compile_definitions(app PRIVATE UNICODE _UNICODE)`;
-  `target_compile_options(app PRIVATE /utf-8 /permissive- /W4 /EHsc)`.
 - MSVC auto-links many system libs via `#pragma comment(lib, …)`; link the rest
   (`comctl32`, `ole32`, …) explicitly.
 - WIL via `FetchContent` (`GIT_SHALLOW`, `SYSTEM`, `WIL_BUILD_TESTS`/`_PACKAGING` OFF),

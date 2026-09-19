@@ -10,6 +10,7 @@ only ever be delivered one way, which is why the bodies moved out.
 
 Authored:
   standards/<domain>/**.md                the standards themselves
+  standards/<domain>/**.ps1, **.in         bundled text scripts and templates
   .agents/skills/<name>/SKILL.md          router: front matter + the root-relative path of its doc
   .agents/hooks/*                         the write-time router hook
   .agents/plugins/marketplace.json
@@ -144,6 +145,14 @@ if (Test-Path $standardsDir) {
         Sort-Object)
 }
 if (-not $docs) { throw "No standards docs found under standards/." }
+
+# Bundled text scripts/templates travel with their owning standards domain.
+$resources = @(Get-ChildItem -LiteralPath $standardsDir -Recurse -Force -File |
+    Where-Object { $_.Extension -ne '.md' } |
+    ForEach-Object {
+        if ($_.Extension -notin '.ps1', '.in') { throw "Unsupported standards resource: $($_.FullName)" }
+        To-RepoRelative $_.FullName $repoRoot
+    })
 
 # Neither structure may grow an orphan.
 $problems = @()
@@ -353,6 +362,11 @@ foreach ($plugin in $plugins) {
         $skillBody = Rewrite-CompatibilityIdentifiers $skillBody $plugin.Name
         # skills/<name>/SKILL.md -> the plugin's own copy of the tree, two levels up.
         $generated["plugins/$($plugin.Name)/skills/$skillName/SKILL.md"] = $skillBody
+    }
+    foreach ($resource in $resources) {
+        if ($pluginDomains[$plugin.Name] -contains (($resource -split '/')[1])) {
+            $generated["plugins/$($plugin.Name)/$resource"] = Read-Lf (Join-Path $repoRoot $resource)
+        }
     }
     if ($hookOwners -contains $plugin.Name) {
         foreach ($hook in $hookFiles) {

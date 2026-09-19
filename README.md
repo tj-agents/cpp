@@ -14,6 +14,16 @@ The layers compose. Install `base + windows` for a native Windows repository and
 
 ## Install
 
+The Windows layer separates [MSVC toolchain guidance](standards/windows/MSVC.md)
+(`windows:msvc-toolchain`) from [Win32 API design](standards/windows/WIN32.md).
+Use the toolchain standard for any MSVC C++ application or library; it does not assume
+a GUI, a kernel driver, one architecture, or a particular Visual Studio release.
+
+[MSVC scaffold](standards/windows/SCAFFOLD.md) (`windows:msvc-scaffold`) adds a small x64
+console starter with C++20/23 selection, CMake presets and reusable PowerShell build helpers.
+It copies supplied formatting/analysis configurations and refuses existing destinations.
+Specialized project types retain their own build and runtime contracts.
+
 Claude Code:
 
 ```text
