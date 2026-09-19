@@ -20,6 +20,10 @@ cross-toolchain repository    -> base + windows + gcc when both genuinely apply
 
 A rule has one authored home. Router skills each own one document. Self-contained plugin payloads and temporary compatibility aliases are generated copies, checked for drift, rather than additional authored sources.
 
+Text scripts (`.ps1`) and templates (`.in`) under a standards domain are supporting resources,
+not additional rule documents. The generator copies them with that domain so relative links
+work in installed plugins. The MSVC scaffold is the first consumer of this resource path.
+
 ## Source-to-package flow
 
 `.agents/plugins/marketplace.json` is the canonical Codex marketplace. `.agents/plugins/payloads.json` declares public plugins, payload domains, dependencies, hook owners, compatibility aliases, skill-name aliases, and removal dates. `.agents/plugins/skill-contract.json` pins external workflow skills that generated routes may reference. `contracts/` carries non-executable, signed Git provenance for that external contract so ordinary CI can verify the pinned content without duplicating its workflow standards. A trusted default-branch status gate then binds protected consumer heads to an authenticated check of the private producer repository without storing a cross-repository credential; its trust boundary and recovery contract are in `PROVENANCE_GATE.md`.

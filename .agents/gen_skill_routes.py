@@ -12,6 +12,7 @@ CPP_PATH = r"(?i:\.(c|cc|cpp|cxx|h|hh|hpp|hxx|ixx))$"
 BUILD_PATH = r"(?i:(^|/)(CMakeLists\.txt|CMakePresets\.json|[^/]+\.cmake))$"
 TEST_PATH = r"(?i:(^|/)(tests?|test)/.*\.(c|cc|cpp|cxx|h|hh|hpp|hxx)|(_test|_tests)\.(c|cc|cpp|cxx))$"
 WINDOWS_RESOURCE_PATH = r"(?i:\.(rc|manifest))$"
+MSVC_BUILD_PATH = r"(?i:\.(vcxproj|props|targets|sln|slnx))$"
 KIND_ALIASES = {"portable": "generic", "gpp": "gcc"}
 CANONICAL_KINDS = ("generic", "gcc", "windows")
 PLATFORM_LAYERS = ("windows", "gcc")
@@ -90,8 +91,8 @@ def routes(kind_or_layers: str | list[str] | tuple[str, ...]) -> dict:
                     "note": "Native Windows layer generated for an MSVC/clang-cl/Win32 project.",
                 },
                 {
-                    "path": BUILD_PATH,
-                    "skills": ["windows:windows-overview", "windows:win32-style"],
+                    "path": rf"{BUILD_PATH}|{MSVC_BUILD_PATH}",
+                    "skills": ["windows:windows-overview", "windows:msvc-toolchain"],
                 },
             ]
         )
@@ -205,8 +206,15 @@ def self_test() -> int:
                 "base:cpp-build",
                 "base:cpp-libraries",
                 "windows:windows-overview",
-                "windows:win32-style",
+                "windows:msvc-toolchain",
             },
+            ("windows", "library/library.vcxproj"): {
+                "windows:windows-overview", "windows:msvc-toolchain",
+            },
+            ("windows", "build/common.props"): {
+                "windows:windows-overview", "windows:msvc-toolchain",
+            },
+            ("generic", "library/library.vcxproj"): set(),
             (("windows", "gcc"), "app/src/main.cpp"): {
                 "base:cpp-style",
                 "windows:windows-overview",
