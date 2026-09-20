@@ -1,6 +1,6 @@
 ---
 name: gpp-toolchain
-description: GCC, g++, GDB, and Linux-specific C++ conventions layered on the platform-neutral base plugin.
+description: GCC, g++, GDB, and Linux-specific C++ toolchain conventions layered on cpp.
 kind: contract
 domain: cpp
 ---

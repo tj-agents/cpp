@@ -12,6 +12,7 @@ import sys
 
 FRONTMATTER = re.compile(r"\A---\n(?P<header>.*?)\n---\n(?P<body>.*)\Z", re.DOTALL)
 NAME = re.compile(r"^[a-z][a-z0-9-]*$")
+RETIRED_DOC_REFERENCES = ("BUILD.md", "DIRECTION.md", "KNOWLEDGE.md", "LEARNING.md", "LIBRARIES.md", "MSVC.md", "OVERVIEW.md", "SCAFFOLD.md", "STYLE.md", "TESTING.md", "TOOLCHAIN.md", "WIN32.md")
 
 
 def read(path: Path) -> str:
@@ -60,6 +61,9 @@ def discover(root: Path, config: dict) -> dict[str, dict]:
                 raise ValueError(f"{path}: domain does not match scope declaration")
             if name in found:
                 raise ValueError(f"Duplicate public skill name: {name}")
+            retired = [reference for reference in RETIRED_DOC_REFERENCES if reference in body]
+            if retired:
+                raise ValueError(f"{path}: retired internal document reference(s): {', '.join(retired)}")
             found[name] = {
                 "name": name,
                 "body": body,
@@ -72,7 +76,45 @@ def discover(root: Path, config: dict) -> dict[str, dict]:
     return found
 
 
+def validated_generated_roots(root: Path, config: dict) -> list[Path]:
+    resolved_root = root.resolve()
+    allowed_indexes = {
+        (resolved_root / scope["root"] / "INDEX.md").resolve()
+        for scope in config["scopes"]
+    }
+    authored = [
+        *(resolved_root / scope["root"] for scope in config["scopes"]),
+        *(resolved_root / value for value in config["host_manifest_roots"].values()),
+        resolved_root / ".agents/hooks",
+        resolved_root / ".agents/plugins/sources.json",
+        resolved_root / ".agents/plugins/payloads.json",
+        *(resolved_root / resource["source"] for resource in config.get("resources", [])),
+    ]
+    result: list[Path] = []
+    seen: set[Path] = set()
+    for value in config["generated_roots"]:
+        relative = PurePosixPath(value)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError(f"Invalid generated root: {value}")
+        lexical = resolved_root.joinpath(*relative.parts)
+        path = lexical.resolve()
+        if path == resolved_root or not path.is_relative_to(resolved_root):
+            raise ValueError(f"Generated root escapes or equals repository root: {value}")
+        if lexical.is_symlink():
+            raise ValueError(f"Generated root must not be a symlink: {value}")
+        overlaps = [source for source in authored if path == source or path.is_relative_to(source) or source.is_relative_to(path)]
+        if overlaps and path not in allowed_indexes:
+            names = ", ".join(source.relative_to(resolved_root).as_posix() for source in overlaps)
+            raise ValueError(f"Generated root overlaps authored source ({names}): {value}")
+        if path in seen:
+            raise ValueError(f"Duplicate generated root: {value}")
+        seen.add(path)
+        result.append(path)
+    return result
+
+
 def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) -> list[str]:
+    validated_generated_roots(root, config)
     packages = config["packages"]
     public = payloads["publicPlugins"]
     if public != ["cpp", "gpp", "msvc", "win32"]:
@@ -244,10 +286,7 @@ def synchronize(root: Path, check: bool) -> int:
         print(f"generated outputs current: {len(expected)} files, {len(discover(root, config))} definitions")
         return 0
 
-    for value in config["generated_roots"]:
-        path = (root / value).resolve()
-        if not path.is_relative_to(root.resolve()):
-            raise ValueError(f"Generated root escapes repository: {value}")
+    for path in validated_generated_roots(root, config):
         if path.is_dir():
             shutil.rmtree(path)
         elif path.exists():

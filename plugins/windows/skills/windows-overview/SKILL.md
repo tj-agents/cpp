@@ -1,27 +1,24 @@
 ---
 name: windows-overview
-description: Orientation for Tommy's native Windows C++ tier including MSVC, WIL, Unicode, project scope, and layering over generic C++.
+description: Orientation for Tommy's user-mode Win32 C++ tier including Unicode, WIL, project scope, and independent toolchain selection.
 kind: knowledge
 domain: cpp
 ---
 
-# Windows / Win32 — the MSVC tier
+# Windows / Win32 API tier
 
-This tier covers **MSVC/clang-cl C++ toolchains and native Windows APIs**.
-`windows:msvc-toolchain` is the generic toolchain standard for applications and libraries,
-including console and portable-library projects with no Win32 boundary. It does not
-require WIL, a GUI, one architecture, or one Visual Studio version.
+This tier covers user-mode native Windows APIs. It owns Win32, Unicode boundaries,
+Windows resources, callbacks, handles, and supported helper libraries. It does not choose
+a compiler. A consuming repository selects `gpp` or `msvc` separately when it needs one.
 
-Load the shared `base` plugin first and this tier's `base:cpp-knowledge`
-calibration. Use `windows:win32-style` when writing Windows API glue; that boundary
-adds Unicode and WIL resource conventions. Language-version defaults remain in base.
+Load `cpp` first, then `windows:windows-cpp-knowledge` for calibration and
+`windows:win32-style` when writing Windows API glue. Language-version defaults remain in
+`cpp`. If the repository selects MSVC/clang-cl, also load `windows:msvc-toolchain`; if it
+selects G++, load `gpp:gpp-toolchain` instead.
 
-> **Calibration:** I have *not* learned Win32 — `KNOWLEDGE.md` is at ground
-> zero. Teach each concept in chat before relying on it, and never promote anything
-> from these docs into a `WHAT_I_KNOW`: they're the style we're *aiming* at, not what
-> I know.
-
-Compiler and editor-diagnostic guidance lives in `windows:msvc-toolchain`.
+> **Calibration:** I have *not* learned Win32 — `windows:windows-cpp-knowledge` is at
+> ground zero. Teach each concept in chat before relying on it, and never promote a
+> concept merely because it was explained.
 
 ## Projects
 
