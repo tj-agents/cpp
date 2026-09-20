@@ -12,7 +12,11 @@ import sys
 
 FRONTMATTER = re.compile(r"\A---\n(?P<header>.*?)\n---\n(?P<body>.*)\Z", re.DOTALL)
 NAME = re.compile(r"^[a-z][a-z0-9-]*$")
-RETIRED_DOC_REFERENCE = re.compile(r"(?<![A-Za-z0-9_-])(?:BUILD|DIRECTION|KNOWLEDGE|LEARNING|LIBRARIES|MSVC|OVERVIEW|SCAFFOLD|STYLE|TESTING|TOOLCHAIN|WIN32)\.md(?![A-Za-z0-9_-])")
+RETIRED_DOC_REFERENCE = re.compile(r"(?<![A-Za-z0-9_.-])(?:BUILD|DIRECTION|KNOWLEDGE|LEARNING|LIBRARIES|MSVC|OVERVIEW|SCAFFOLD|STYLE|TESTING|TOOLCHAIN|WIN32)\.md(?=$|[#?\s)\]}>,\"`;:]|\.(?=$|\s))")
+EXPECTED_SCOPE_ROOTS = (".agents/base", ".agents/gpp", ".agents/msvc", ".agents/win32")
+EXPECTED_HOST_ADAPTER_ROOTS = {"agents": ".agents/skills", "codex": ".codex/skills", "claude": ".claude/skills"}
+EXPECTED_PACKAGE_ROOT = "plugins"
+EXPECTED_MARKETPLACE_OUTPUTS = {"codex": ".agents/plugins/marketplace.json", "claude": ".claude-plugin/marketplace.json"}
 
 
 def read(path: Path) -> str:
@@ -77,11 +81,20 @@ def discover(root: Path, config: dict) -> dict[str, dict]:
 
 
 def expected_generated_roots(config: dict) -> set[str]:
+    scope_roots = tuple(scope["root"] for scope in config["scopes"])
+    if scope_roots != EXPECTED_SCOPE_ROOTS:
+        raise ValueError(f"Scope roots must remain repository-owned paths: {EXPECTED_SCOPE_ROOTS}")
+    if config["host_adapter_roots"] != EXPECTED_HOST_ADAPTER_ROOTS:
+        raise ValueError(f"Host adapter roots must remain repository-owned paths: {EXPECTED_HOST_ADAPTER_ROOTS}")
+    if config["package_root"] != EXPECTED_PACKAGE_ROOT:
+        raise ValueError(f"Package root must remain the repository-owned path: {EXPECTED_PACKAGE_ROOT}")
+    if config["marketplace_outputs"] != EXPECTED_MARKETPLACE_OUTPUTS:
+        raise ValueError(f"Marketplace outputs must remain repository-owned paths: {EXPECTED_MARKETPLACE_OUTPUTS}")
     return {
-        *config["host_adapter_roots"].values(),
-        config["package_root"],
-        *config["marketplace_outputs"].values(),
-        *(f"{scope['root']}/INDEX.md" for scope in config["scopes"]),
+        *EXPECTED_HOST_ADAPTER_ROOTS.values(),
+        EXPECTED_PACKAGE_ROOT,
+        *EXPECTED_MARKETPLACE_OUTPUTS.values(),
+        *(f"{scope_root}/INDEX.md" for scope_root in EXPECTED_SCOPE_ROOTS),
     }
 
 
