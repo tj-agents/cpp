@@ -1,6 +1,0 @@
-#include <cstdio>
-
-int main() {
-    std::puts("__PROJECT__ is ready.");
-    return 0;
-}
