@@ -5,33 +5,111 @@
   },
   "plugins": [
     {
-      "name": "base",
-      "source": { "source": "local", "path": "./plugins/base" },
-      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "name": "cpp",
+      "source": {
+        "source": "local",
+        "path": "./plugins/cpp"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
       "category": "Productivity"
     },
     {
-      "name": "windows",
-      "source": { "source": "local", "path": "./plugins/windows" },
-      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "name": "gpp",
+      "source": {
+        "source": "local",
+        "path": "./plugins/gpp"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "msvc",
+      "source": {
+        "source": "local",
+        "path": "./plugins/msvc"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "win32",
+      "source": {
+        "source": "local",
+        "path": "./plugins/win32"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "base",
+      "source": {
+        "source": "local",
+        "path": "./plugins/base"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
       "category": "Productivity"
     },
     {
       "name": "gcc",
-      "source": { "source": "local", "path": "./plugins/gcc" },
-      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "source": {
+        "source": "local",
+        "path": "./plugins/gcc"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "windows",
+      "source": {
+        "source": "local",
+        "path": "./plugins/windows"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
       "category": "Productivity"
     },
     {
       "name": "cpp-standards",
-      "source": { "source": "local", "path": "./plugins/cpp-standards" },
-      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "source": {
+        "source": "local",
+        "path": "./plugins/cpp-standards"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
       "category": "Productivity"
     },
     {
       "name": "gpp-standards",
-      "source": { "source": "local", "path": "./plugins/gpp-standards" },
-      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "source": {
+        "source": "local",
+        "path": "./plugins/gpp-standards"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
       "category": "Productivity"
     }
   ]

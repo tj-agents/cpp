@@ -1,41 +1,40 @@
-# C++ standards delivery architecture
+# Architecture
 
-## One marketplace, three composable layers
+## Source ownership
 
-```text
-generic C++ repository        -> base
-native Windows C++ repository -> base + windows
-GCC/Linux C++ repository      -> base + gcc
-cross-toolchain repository    -> base + windows + gcc when both genuinely apply
-```
+`.agents/` is the sole host-neutral source. A capability's complete frontmatter and guidance
+live together at `.agents/<scope>/<kind>/<name>/SKILL.md`. The four scopes are:
 
-`base`, `windows`, and `gcc` are technical-standard layers in `tomjseery/cpp-agents`. `concertable@agent-standards` remains separate because it owns process: planning, review, testing workflow, delivery, repository management, and the shared write-time router.
+- `base`: platform-neutral C++ contracts and knowledge, published as `cpp`;
+- `gpp`: the G++/GCC toolchain, published as `gpp`;
+- `msvc`: the MSVC/clang-cl toolchain and scaffold utility, published as `msvc`;
+- `win32`: user-mode Windows API contracts and knowledge, published as `win32`.
 
-## Ownership boundaries
+This layout supersedes the physical `standards/*` paths recorded in
+`CPP_AGENTS_STRUCTURE_HANDOFF.md` while retaining its useful logical separation and scaffold.
+`.codex/` and `.claude/` contain generated host discovery entries only. `plugins/*` is generated
+distribution output. `.agents/plugins/manifests/` is the authored host-manifest source.
 
-- `standards/cpp/` owns only platform-neutral C++ rules.
-- `standards/windows/` owns Win32, Unicode, MSVC/clang-cl, WIL, native-resource lifetime, Windows CMake, and Windows learning guidance.
-- `standards/gcc/` owns GCC, g++, GDB, and Linux-specific guidance.
-- Workflow/process identifiers refer to `concertable:*`; cpp-agents does not copy those rules.
+Each scope has `utility/` and `utility/scripts/`. Empty groups say that no utility exists. The
+MSVC scaffold is the only current utility and owns its scripts/templates under
+`.agents/msvc/utility/scripts/`. Package resource mapping is explicit in `sources.json`.
 
-A rule has one authored home. Router skills each own one document. Self-contained plugin payloads and temporary compatibility aliases are generated copies, checked for drift, rather than additional authored sources.
+## Selection model
 
-## Source-to-package flow
+Every project receives `cpp`. It may select one toolchain (`gpp` or `msvc`) and zero or more API
+layers (`win32`). The route profile records these dimensions separately. Win32 markers may produce
+a suggestion when no profile exists, but detection never applies an API or compiler. MSVC alone
+does not select Win32, a Windows host does not select MSVC, and Win32 does not require MSVC.
 
-`.agents/plugins/marketplace.json` is the canonical Codex marketplace. `.agents/plugins/payloads.json` declares public plugins, payload domains, dependencies, hook owners, compatibility aliases, skill-name aliases, and removal dates. `.agents/plugins/skill-contract.json` pins external workflow skills that generated routes may reference. `contracts/` carries non-executable, signed Git provenance for that external contract so ordinary CI can verify the pinned content without duplicating its workflow standards. A trusted default-branch status gate then binds protected consumer heads to an authenticated check of the private producer repository without storing a cross-repository credential; its trust boundary and recovery contract are in `PROVENANCE_GATE.md`.
+Generated routes contain technical skills only. Engineering workflows are independently owned and
+installed; this repository retains immutable provenance evidence for the historical external
+contract without making it a compulsory new-route dependency.
 
-`.agents/sync-generated.ps1` validates those contracts and generates the local Claude skills, self-contained plugin payloads, the plugin-owned detection hook, Claude manifests and marketplace, and one topic index per standards domain.
+## Compatibility
 
-The compatibility aliases may duplicate generated delivery payloads temporarily, but never own rule text. They are removed after 2027-03-31.
+`base -> cpp` and `gcc -> gpp` are explicit package/selector migrations. `cpp-standards` and
+`gpp-standards` remain aliases through 2027-03-31. Because old `windows` combined compiler and API
+assumptions, its compatibility package contains both `msvc` and `win32` payloads. It must never be
+mapped automatically to only one replacement.
 
-## Detection and routing
-
-The session hook and route generator share canonical kinds: `generic`, `windows`, and `gcc`. They accept legacy `portable` and `gpp` kind values only as input compatibility and normalize them immediately.
-
-An explicit route kind wins over the host. Without one, tracked `.rc`/`.manifest` files or Win32/WIL source markers select Windows; a Linux host selects GCC; otherwise only the base applies. The generator emits canonical kinds and namespaces.
-
-Every matching row fires. Source files receive `base:cpp-style`; build files receive `base:cpp-build` and `base:cpp-libraries`; tests add `base:cpp-testing`; platform rows add `windows:*` or `gcc:gcc-toolchain`; guidance and route-table files use `concertable:docs-and-debt` and `concertable:skill-routes`.
-
-## Compatibility boundary
-
-The supported plugin schemas do not provide one portable cross-harness dependency or rename-alias field. cpp-agents therefore validates dependencies in source metadata and provides generated compatibility packages plus an explicit uninstall/reinstall procedure. See [MIGRATION.md](MIGRATION.md).
+WDK and kernel capabilities remain outside this user-mode architecture until separately validated.
