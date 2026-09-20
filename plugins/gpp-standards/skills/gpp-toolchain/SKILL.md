@@ -37,6 +37,6 @@ are independent, neither is "the default".
 - `cpp-standards` — the platform-neutral compatibility base, which still applies here.
 - This compatibility package does not select a Windows compiler or API layer; migrate to the explicit new identities for that composition.
 - `cpp-standards:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.
-- `cpp-standards:cpp-build` — owns the project layout (`libs/<name>` + `app` + `tests`);
+- `cpp-standards:cpp-structure` — owns the project layout (`libs/<name>` + `app` + `tests`);
   it's the same shape regardless of toolchain.
 - `gpp-standards:gpp-scaffold` — bootstraps a new project into that layout.

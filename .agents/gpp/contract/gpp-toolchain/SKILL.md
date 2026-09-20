@@ -38,6 +38,6 @@ are independent, neither is "the default".
 - `msvc` — the alternative MSVC/clang-cl toolchain when a project selects it.
 - `win32` — an optional user-mode Windows API layer that does not choose a compiler.
 - `cpp:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.
-- `cpp:cpp-build` — owns the project layout (`libs/<name>` + `app` + `tests`);
+- `cpp:cpp-structure` — owns the project layout (`libs/<name>` + `app` + `tests`);
   it's the same shape regardless of toolchain.
 - `gpp:gpp-scaffold` — bootstraps a new project into that layout.

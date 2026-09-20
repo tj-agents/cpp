@@ -37,6 +37,6 @@ are independent, neither is "the default".
 - `base` — the platform-neutral compatibility base, which still applies here.
 - The legacy `windows` package is the combined MSVC/Win32 compatibility layer; migrate to the explicit split before selecting a different compiler/API combination.
 - `base:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.
-- `base:cpp-build` — owns the project layout (`libs/<name>` + `app` + `tests`);
+- `base:cpp-structure` — owns the project layout (`libs/<name>` + `app` + `tests`);
   it's the same shape regardless of toolchain.
 - `gpp:gpp-scaffold` — bootstraps a new project into that layout.
