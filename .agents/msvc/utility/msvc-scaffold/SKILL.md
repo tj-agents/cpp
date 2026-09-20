@@ -9,7 +9,7 @@ domain: cpp
 
 Use `msvc:msvc-toolchain` for toolchain decisions. This skill supplies an initial
 **library + console application** with CMake/Ninja presets, Catch2 tests, and small
-PowerShell entry points, in the project layout `cpp:cpp-build` defines — the same
+PowerShell entry points, in the project layout `cpp:cpp-structure` defines — the same
 shape `gpp:gpp-scaffold` produces for G++. Only the compiler-specific target options
 (warnings flags, runtime linkage) differ between the two; the directory structure
 does not. It is editor-independent and has no Win32, WIL, WinWrap or third-party
@@ -55,7 +55,7 @@ change; a different architecture/generator should use its own build directory an
 The sample `core::greeting()` function and its Catch2 case exist only to prove the scaffold
 builds and tests end to end — replace them with real logic. `Build.ps1 -Test` runs the
 selected CTest preset. Keep reusable logic in `libs/core`; extract a second library target
-under `libs/<new-name>/` only once a second real consumer needs it, per `cpp:cpp-build`.
+under `libs/<new-name>/` only once a second real consumer needs it, per `cpp:cpp-structure`.
 
 For an existing repository, inspect its build entry points and preserve them. Reuse an
 individual helper only where it fits; do not run the new-project generator over the tree.

@@ -1,6 +1,6 @@
 ---
 name: cpp-build
-description: Generic CMake target, preset, dependency, compiler-option, and build-layout conventions for C++ projects.
+description: Generic CMake target, preset, and dependency conventions for C++ projects.
 kind: contract
 domain: cpp
 ---

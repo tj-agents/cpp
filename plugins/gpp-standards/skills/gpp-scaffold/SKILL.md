@@ -9,7 +9,7 @@ domain: cpp
 
 Use `gpp-standards:gpp-toolchain` for toolchain decisions. This skill supplies an initial
 **library + console application** with CMake/Ninja presets and Catch2 tests, in
-the project layout `cpp-standards:cpp-build` defines — the same shape `msvc:msvc-scaffold`
+the project layout `cpp-standards:cpp-structure` defines — the same shape `msvc:msvc-scaffold`
 produces for MSVC. Only the compiler-specific target options (warnings flags,
 runtime linkage) differ between the two; the directory structure does not.
 
