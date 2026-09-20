@@ -38,6 +38,45 @@ class GppScaffoldTests(unittest.TestCase):
                 parsed = subprocess.run(["bash", "-n", str(SCRIPT)])
                 self.assertEqual(0, parsed.returncode, "new-gpp-project.sh")
 
+    def test_generated_sources_actually_compile_under_each_standard(self) -> None:
+        gxx = shutil.which("g++")
+        if not gxx:
+            self.skipTest("g++ not available")
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            for standard in ("20", "23"):
+                name = f"compile_check_{standard}"
+                created = self.run_scaffold("--name", name, "--destination", str(parent), "--cpp-standard", standard)
+                self.assertEqual(0, created.returncode, created.stdout + created.stderr)
+                project = parent / name
+                binary = parent / f"{name}.bin"
+                compiled = subprocess.run(
+                    [
+                        gxx, f"-std=c++{standard}",
+                        "-I", str(project / "libs/core/include"),
+                        str(project / "app/src/main.cpp"),
+                        str(project / "libs/core/src/core.cpp"),
+                        "-o", str(binary),
+                    ],
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(0, compiled.returncode, compiled.stdout + compiled.stderr)
+                run = subprocess.run([str(binary)], capture_output=True, text=True)
+                self.assertEqual(0, run.returncode)
+                self.assertIn(name, run.stdout)
+
+                simple_name = f"{name}_simple"
+                simple = self.run_scaffold("--name", simple_name, "--destination", str(parent), "--cpp-standard", standard, "--simple")
+                self.assertEqual(0, simple.returncode, simple.stdout + simple.stderr)
+                simple_binary = parent / f"{simple_name}.bin"
+                simple_compiled = subprocess.run(
+                    [gxx, f"-std=c++{standard}", str(parent / simple_name / "main.cpp"), "-o", str(simple_binary)],
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(0, simple_compiled.returncode, simple_compiled.stdout + simple_compiled.stderr)
+
     def test_simple_variant(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary) / "destination"

@@ -1,8 +1,8 @@
-#include <print>
+#include <iostream>
 
 #include "core/core.hpp"
 
 int main() {
-    std::println("{}", __NAMESPACE__::greeting());
+    std::cout << __NAMESPACE__::greeting() << '\n';
     return 0;
 }

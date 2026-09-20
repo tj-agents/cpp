@@ -8,13 +8,10 @@ domain: cpp
 # G++ project scaffold
 
 Use `gpp:gpp-toolchain` for toolchain decisions. This skill supplies an initial
-**library + console application** with CMake/Ninja presets, Catch2 tests, and
-`.clang-format`/`.clang-tidy`/`.clangd` matching `cpp:cpp-style`. It follows the
-CMake-community convention (cmake-init, cpp-best-practices templates) of a
-lib+exe+test split from project creation — a deliberate difference from
-`msvc:msvc-scaffold`'s bare single-target starter, which follows the Visual
-Studio console-app convention instead. Both are legitimate; pick the one that
-matches the project's toolchain.
+**library + console application** with CMake/Ninja presets and Catch2 tests, in
+the project layout `cpp:cpp-build` defines — the same shape `msvc:msvc-scaffold`
+produces for MSVC. Only the compiler-specific target options (warnings flags,
+runtime linkage) differ between the two; the directory structure does not.
 
 ## Create a project
 

@@ -25,41 +25,6 @@ are independent, neither is "the default".
 - **GNU / Linux conventions** — I came from Windows, so explain Linux/toolchain
   conventions (the OS/hardware boundary, shells, paths, linking) when relevant.
 
-## Project layout
-
-New G++/CMake projects use this structure, and **it is maintained as the project
-grows** — this is not just what `gpp:gpp-scaffold` bootstraps once, it is how the
-repository stays organized afterward:
-
-- `libs/<name>/include/<name>/` — public headers for library target `<name>`.
-- `libs/<name>/src/` — that library's implementation.
-- `app/src/` — the thin executable target; links libraries, holds no reusable
-  logic of its own.
-- `tests/<name>/` — Catch2 cases for library `<name>`, mirroring `libs/<name>`'s
-  shape 1:1.
-- Root `CMakeLists.txt` + `CMakePresets.json` — the single build entry point;
-  every `libs/*`, `app`, and `tests` directory is `add_subdirectory`'d from
-  there, never built standalone.
-
-Adding new code:
-
-- New reusable logic starts inside the library that will consume it. Extract a
-  second library target under `libs/<new-name>/` only once a second real
-  consumer needs it — the same reactive-extraction rule `base:cpp-style` applies
-  to constants. Don't pre-create empty library directories "for later."
-- A new library gets a matching `tests/<new-name>/` directory the same shape as
-  `libs/<new-name>/`, registered as its own target in `tests/CMakeLists.txt`.
-- `app/` stays thin: it wires libraries together and owns CLI/entry-point
-  concerns, it does not accumulate business logic that belongs in a library.
-
-This is a G++/CMake-community convention (cmake-init, cpp-best-practices style),
-**not** a platform-neutral rule — `msvc:msvc-scaffold` deliberately starts flat
-(`src/main.cpp`, no library split, no tests) following Visual-Studio-console-app
-convention instead; see that skill before assuming this shape applies there too.
-Per `base:cpp-build`, these are defaults for new work, not permission to
-reorganize an existing repository that has already established a different
-shape.
-
 ## Learning calibration
 
 - GCC/g++ is comfortable for compiling ordinary C++, and GDB basics such as
@@ -72,4 +37,6 @@ shape.
 - `base` — the platform-neutral compatibility base, which still applies here.
 - The legacy `windows` package is the combined MSVC/Win32 compatibility layer; migrate to the explicit split before selecting a different compiler/API combination.
 - `base:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.
-- `gpp:gpp-scaffold` — bootstraps a new project into the layout described above.
+- `base:cpp-build` — owns the project layout (`libs/<name>` + `app` + `tests`);
+  it's the same shape regardless of toolchain.
+- `gpp:gpp-scaffold` — bootstraps a new project into that layout.
