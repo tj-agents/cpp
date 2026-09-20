@@ -154,9 +154,9 @@ for admin).
 
 ## Build with the selected toolchain
 
-- Compiler, ABI, runtime, build-system, and editor configuration belong to the selected
-  toolchain skill: `windows:msvc-toolchain` or `gpp:gpp-toolchain`. The following settings
-  apply to the Win32 target independently of that choice.
+- This legacy combined package supplies `windows:msvc-toolchain` for compiler, ABI, runtime,
+  build-system, and editor configuration. Migrate to the explicit split before pairing
+  Win32 with another toolchain. The following settings apply to the Win32 target.
 - `add_executable(app WIN32 …)` selects the GUI subsystem (`WinMain`, no console); omit
   `WIN32` for a console app (`main`). Verify the selected compiler's entry-point contract.
 - Use `target_compile_definitions(app PRIVATE UNICODE _UNICODE)`.

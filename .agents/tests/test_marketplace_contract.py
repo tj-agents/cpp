@@ -354,6 +354,22 @@ class MarketplaceContractTests(unittest.TestCase):
         hooks = [ROOT / ".agents" / "hooks" / "session_context.py", ROOT / "plugins" / "cpp" / "hooks" / "session_context.py"]
         self.assertEqual([], [path.relative_to(ROOT).as_posix() for path in hooks if retired.search(path.read_text(encoding="utf-8"))])
 
+    def test_compatibility_skill_instructions_use_available_namespaces(self) -> None:
+        identifier = re.compile(r"(?<![-/\w])([a-z0-9-]+):(?!:)([a-z][a-z0-9-]+)")
+        directive = re.compile(r"(?i)\b(load|apply|follow|requires?|on top of|supplies)\b")
+        inventories = {plugin: {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")} for plugin in self.payloads["payloads"]}
+        offenders = []
+        for plugin in self.payloads["compatibilityAliases"]:
+            available = {plugin, *self.payloads["dependencies"].get(plugin, [])}
+            for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md"):
+                for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                    if not directive.search(line):
+                        continue
+                    for namespace, skill in identifier.findall(line):
+                        if namespace not in available or skill not in inventories.get(namespace, set()):
+                            offenders.append(f"{path.relative_to(ROOT).as_posix()}:{line_number}: {namespace}:{skill}")
+        self.assertEqual([], offenders)
+
     def test_compatibility_payload_skill_identifiers_resolve(self) -> None:
         identifier = re.compile(r"(?<![-/\w])([a-z0-9-]+):(?!:)([a-z][a-z0-9-]+)")
         inventories = {plugin: {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")} for plugin in self.payloads["payloads"]}

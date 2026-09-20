@@ -69,7 +69,7 @@ def routes(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ())
     if toolchain == "msvc":
         result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{MSVC_BUILD_PATH}", "skills": ["msvc:msvc-toolchain"], "note": "Explicit MSVC/clang-cl toolchain selection."})
     if "win32" in apis:
-        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{WINDOWS_RESOURCE_PATH}", "skills": ["win32:windows-overview", "win32:win32-style"], "note": "Explicit user-mode Win32 API selection; compiler remains independent."})
+        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{MSVC_BUILD_PATH}|{WINDOWS_RESOURCE_PATH}", "skills": ["win32:windows-overview", "win32:win32-style"], "note": "Explicit user-mode Win32 API selection; compiler remains independent."})
     layers = ["cpp", *([toolchain] if toolchain else []), *apis]
     return {
         "_comment": [
@@ -136,12 +136,13 @@ def self_test() -> int:
         (("msvc", ()), "src/main.cpp"): {"cpp:cpp-style", "msvc:msvc-toolchain"},
         (("msvc", ()), "app/app.rc"): set(),
         ((None, ("win32",)), "src/main.cpp"): {"cpp:cpp-style", "win32:windows-overview", "win32:win32-style"},
-        ((None, ("win32",)), "app/app.vcxproj"): set(),
+        ((None, ("win32",)), "app/app.vcxproj"): {"win32:windows-overview", "win32:win32-style"},
         ((None, ("win32",)), "CMakeLists.txt"): {"cpp:cpp-build", "cpp:cpp-libraries", "win32:windows-overview", "win32:win32-style"},
         (("gpp", ("win32",)), "src/main.cpp"): {"cpp:cpp-style", "gpp:gpp-toolchain", "win32:windows-overview", "win32:win32-style"},
         ((None, ()), "tests/core_test.cpp"): {"cpp:cpp-style", "cpp:cpp-testing"},
         ((None, ()), "CMakeLists.txt"): {"cpp:cpp-build", "cpp:cpp-libraries"},
         (("msvc", ()), "lib/lib.vcxproj"): {"msvc:msvc-toolchain"},
+        (("msvc", ("win32",)), "app/app.vcxproj"): {"msvc:msvc-toolchain", "win32:windows-overview", "win32:win32-style"},
     }
     for ((toolchain, apis), path), expected in cases.items():
         actual = skills_for(toolchain, apis, path)

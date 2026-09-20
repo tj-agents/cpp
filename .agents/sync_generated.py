@@ -12,7 +12,7 @@ import sys
 
 FRONTMATTER = re.compile(r"\A---\n(?P<header>.*?)\n---\n(?P<body>.*)\Z", re.DOTALL)
 NAME = re.compile(r"^[a-z][a-z0-9-]*$")
-RETIRED_DOC_REFERENCES = ("BUILD.md", "DIRECTION.md", "KNOWLEDGE.md", "LEARNING.md", "LIBRARIES.md", "MSVC.md", "OVERVIEW.md", "SCAFFOLD.md", "STYLE.md", "TESTING.md", "TOOLCHAIN.md", "WIN32.md")
+RETIRED_DOC_REFERENCE = re.compile(r"(?<![A-Za-z0-9_-])(?:BUILD|DIRECTION|KNOWLEDGE|LEARNING|LIBRARIES|MSVC|OVERVIEW|SCAFFOLD|STYLE|TESTING|TOOLCHAIN|WIN32)\.md(?![A-Za-z0-9_-])")
 
 
 def read(path: Path) -> str:
@@ -61,7 +61,7 @@ def discover(root: Path, config: dict) -> dict[str, dict]:
                 raise ValueError(f"{path}: domain does not match scope declaration")
             if name in found:
                 raise ValueError(f"Duplicate public skill name: {name}")
-            retired = [reference for reference in RETIRED_DOC_REFERENCES if reference in body]
+            retired = retired_doc_references(body)
             if retired:
                 raise ValueError(f"{path}: retired internal document reference(s): {', '.join(retired)}")
             found[name] = {
@@ -76,7 +76,26 @@ def discover(root: Path, config: dict) -> dict[str, dict]:
     return found
 
 
+def expected_generated_roots(config: dict) -> set[str]:
+    return {
+        *config["host_adapter_roots"].values(),
+        config["package_root"],
+        *config["marketplace_outputs"].values(),
+        *(f"{scope['root']}/INDEX.md" for scope in config["scopes"]),
+    }
+
+
+def retired_doc_references(body: str) -> list[str]:
+    return sorted(set(RETIRED_DOC_REFERENCE.findall(body)))
+
+
 def validated_generated_roots(root: Path, config: dict) -> list[Path]:
+    declared = config["generated_roots"]
+    expected = expected_generated_roots(config)
+    if len(declared) != len(set(declared)) or set(declared) != expected:
+        missing = sorted(expected - set(declared))
+        extra = sorted(set(declared) - expected)
+        raise ValueError(f"Generated roots disagree with the source map; missing={missing}, extra={extra}")
     resolved_root = root.resolve()
     allowed_indexes = {
         (resolved_root / scope["root"] / "INDEX.md").resolve()
@@ -91,8 +110,7 @@ def validated_generated_roots(root: Path, config: dict) -> list[Path]:
         *(resolved_root / resource["source"] for resource in config.get("resources", [])),
     ]
     result: list[Path] = []
-    seen: set[Path] = set()
-    for value in config["generated_roots"]:
+    for value in declared:
         relative = PurePosixPath(value)
         if relative.is_absolute() or ".." in relative.parts:
             raise ValueError(f"Invalid generated root: {value}")
@@ -106,9 +124,6 @@ def validated_generated_roots(root: Path, config: dict) -> list[Path]:
         if overlaps and path not in allowed_indexes:
             names = ", ".join(source.relative_to(resolved_root).as_posix() for source in overlaps)
             raise ValueError(f"Generated root overlaps authored source ({names}): {value}")
-        if path in seen:
-            raise ValueError(f"Duplicate generated root: {value}")
-        seen.add(path)
         result.append(path)
     return result
 
@@ -164,6 +179,10 @@ def package_body(skill: dict, package: str, cfg: dict) -> tuple[str, str]:
     output_name = cfg.get("skillAliases", {}).get(skill["name"], skill["name"])
     if output_name != skill["name"]:
         body = re.sub(rf"(?m)^name:\s*{re.escape(skill['name'])}\s*$", f"name: {output_name}", body, count=1)
+    for old, new in cfg.get("contentRewrites", {}).get(skill["name"], {}).items():
+        if old not in body:
+            raise ValueError(f"{package}/{skill['name']}: compatibility content rewrite matched nothing")
+        body = body.replace(old, new)
     for old, new in cfg.get("rewrites", {}).items():
         body = body.replace(old, new)
     if skill["name"] == "msvc-scaffold":
@@ -178,6 +197,7 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
     skills = discover(root, config)
     package_order = validate(root, config, payloads, skills)
     output: dict[str, bytes] = {}
+    package_root = config["package_root"].rstrip("/")
 
     def emit(relative: str, data: str | bytes):
         relative = PurePosixPath(relative).as_posix()
@@ -206,31 +226,31 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             if output_name in emitted_names:
                 raise ValueError(f"{package}: duplicate emitted skill {output_name}")
             emitted_names.add(output_name)
-            emit(f"plugins/{package}/skills/{output_name}/SKILL.md", body)
+            emit(f"{package_root}/{package}/skills/{output_name}/SKILL.md", body)
 
         for host, manifest_root in config["host_manifest_roots"].items():
-            emit(f"plugins/{package}/.{host}-plugin/plugin.json", read(root / manifest_root / f"{package}.json"))
+            emit(f"{package_root}/{package}/.{host}-plugin/plugin.json", read(root / manifest_root / f"{package}.json"))
 
         index = [f"# {package} capabilities", "", "Generated from canonical `.agents/` definitions.", ""]
         for skill in sorted(owned, key=lambda item: item["name"]):
             output_name = cfg.get("skillAliases", {}).get(skill["name"], skill["name"])
             index.append(f"- `{output_name}` — {skill['metadata']['kind']} — `{skill['relative']}`")
         index.append("")
-        emit(f"plugins/{package}/INDEX.md", "\n".join(index))
+        emit(f"{package_root}/{package}/INDEX.md", "\n".join(index))
         selection = {
             "plugin": package,
             "scopes": cfg["scopes"],
             "prerequisites": payloads.get("dependencies", {}).get(package, []),
             "skills": sorted(emitted_names),
         }
-        emit(f"plugins/{package}/selection.json", json.dumps(selection, indent=2) + "\n")
+        emit(f"{package_root}/{package}/selection.json", json.dumps(selection, indent=2) + "\n")
 
         if package in config["hook_packages"]:
             hook = read(root / ".agents/hooks/session_context.py")
             for old, new in cfg.get("hookRewrites", cfg.get("rewrites", {})).items():
                 hook = hook.replace(old, new)
-            emit(f"plugins/{package}/hooks/session_context.py", hook)
-            emit(f"plugins/{package}/hooks/hooks.json", read(root / ".agents/hooks/hooks.json"))
+            emit(f"{package_root}/{package}/hooks/session_context.py", hook)
+            emit(f"{package_root}/{package}/hooks/hooks.json", read(root / ".agents/hooks/hooks.json"))
 
     for resource in config.get("resources", []):
         source = root / resource["source"]
@@ -240,20 +260,20 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             for path in sorted(source.rglob("*")):
                 if path.is_file():
                     suffix = path.relative_to(source).as_posix()
-                    emit(f"plugins/{package}/{resource['destination']}/{suffix}", path.read_bytes())
+                    emit(f"{package_root}/{package}/{resource['destination']}/{suffix}", path.read_bytes())
 
     codex_plugins = []
     claude_plugins = []
     for package in package_order:
         codex_plugins.append({
             "name": package,
-            "source": {"source": "local", "path": f"./plugins/{package}"},
+            "source": {"source": "local", "path": f"./{package_root}/{package}"},
             "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
             "category": "Productivity",
         })
-        claude_plugins.append({"name": package, "source": f"./plugins/{package}"})
-    emit(".agents/plugins/marketplace.json", json.dumps({"name": "cpp-agents", "interface": {"displayName": "C++ Agents"}, "plugins": codex_plugins}, indent=2) + "\n")
-    emit(".claude-plugin/marketplace.json", json.dumps({"name": "cpp-agents", "description": payloads["description"], "owner": {"name": "Tommy Seery"}, "plugins": claude_plugins}, indent=2) + "\n")
+        claude_plugins.append({"name": package, "source": f"./{package_root}/{package}"})
+    emit(config["marketplace_outputs"]["codex"], json.dumps({"name": "cpp-agents", "interface": {"displayName": "C++ Agents"}, "plugins": codex_plugins}, indent=2) + "\n")
+    emit(config["marketplace_outputs"]["claude"], json.dumps({"name": "cpp-agents", "description": payloads["description"], "owner": {"name": "Tommy Seery"}, "plugins": claude_plugins}, indent=2) + "\n")
     return output, config
 
 

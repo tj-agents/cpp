@@ -101,6 +101,12 @@
       "rewrites": {
         "cpp:": "base:",
         "gpp:gpp-toolchain": "gcc:gcc-toolchain"
+      },
+      "contentRewrites": {
+        "gpp-toolchain": {
+          "`cpp` plugin": "`base` plugin",
+          "- `cpp` \u2014 the platform-neutral C++ base, which still applies here.\n- `msvc` \u2014 the alternative MSVC/clang-cl toolchain when a project selects it.\n- `win32` \u2014 an optional user-mode Windows API layer that does not choose a compiler.": "- `base` \u2014 the platform-neutral compatibility base, which still applies here.\n- The legacy `windows` package is the combined MSVC/Win32 compatibility layer; migrate to the explicit split before selecting a different compiler/API combination."
+        }
       }
     },
     "windows": {
@@ -112,6 +118,14 @@
         "cpp:": "base:",
         "msvc:": "windows:",
         "win32:": "windows:"
+      },
+      "contentRewrites": {
+        "windows-overview": {
+          "Load `cpp` first, then `win32:windows-cpp-knowledge` for calibration and\n`win32:win32-style` when writing Windows API glue. Language-version defaults remain in\n`cpp`. If the repository selects MSVC/clang-cl, also load `msvc:msvc-toolchain`; if it\nselects G++, load `gpp:gpp-toolchain` instead.": "Load `base` first, then `win32:windows-cpp-knowledge` for calibration and\n`win32:win32-style` when writing Windows API glue. Language-version defaults remain in\n`base`. This legacy combined package supplies `msvc:msvc-toolchain`; migrate to the\nexplicit `gpp` plus `win32` split before selecting G++ for Win32 work."
+        },
+        "win32-style": {
+          "- Compiler, ABI, runtime, build-system, and editor configuration belong to the selected\n  toolchain skill: `msvc:msvc-toolchain` or `gpp:gpp-toolchain`. The following settings\n  apply to the Win32 target independently of that choice.": "- This legacy combined package supplies `msvc:msvc-toolchain` for compiler, ABI, runtime,\n  build-system, and editor configuration. Migrate to the explicit split before pairing\n  Win32 with another toolchain. The following settings apply to the Win32 target."
+        }
       }
     },
     "cpp-standards": {
@@ -139,6 +153,12 @@
       "rewrites": {
         "cpp:": "cpp-standards:",
         "gpp:": "gpp-standards:"
+      },
+      "contentRewrites": {
+        "gpp-toolchain": {
+          "`cpp` plugin": "`cpp-standards` plugin",
+          "- `cpp` \u2014 the platform-neutral C++ base, which still applies here.\n- `msvc` \u2014 the alternative MSVC/clang-cl toolchain when a project selects it.\n- `win32` \u2014 an optional user-mode Windows API layer that does not choose a compiler.": "- `cpp-standards` \u2014 the platform-neutral compatibility base, which still applies here.\n- This compatibility package does not select a Windows compiler or API layer; migrate to the explicit new identities for that composition."
+        }
       }
     }
   },
@@ -156,5 +176,10 @@
     "cpp",
     "base",
     "cpp-standards"
-  ]
+  ],
+  "package_root": "plugins",
+  "marketplace_outputs": {
+    "codex": ".agents/plugins/marketplace.json",
+    "claude": ".claude-plugin/marketplace.json"
+  }
 }
