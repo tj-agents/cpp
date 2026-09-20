@@ -1,1 +1,45 @@
-{"name":"cpp-agents","description":"Composable base, Windows, and GCC/Linux C++ standards for Claude Code and Codex.","owner":{"name":"Tommy Seery"},"plugins":[{"name":"base","source":"./plugins/base"},{"name":"windows","source":"./plugins/windows"},{"name":"gcc","source":"./plugins/gcc"},{"name":"cpp-standards","source":"./plugins/cpp-standards"},{"name":"gpp-standards","source":"./plugins/gpp-standards"}]}
+{
+  "name": "cpp-agents",
+  "description": "Independent C++, G++, MSVC, and Win32 guidance for Claude Code and Codex.",
+  "owner": {
+    "name": "Tommy Seery"
+  },
+  "plugins": [
+    {
+      "name": "cpp",
+      "source": "./plugins/cpp"
+    },
+    {
+      "name": "gpp",
+      "source": "./plugins/gpp"
+    },
+    {
+      "name": "msvc",
+      "source": "./plugins/msvc"
+    },
+    {
+      "name": "win32",
+      "source": "./plugins/win32"
+    },
+    {
+      "name": "base",
+      "source": "./plugins/base"
+    },
+    {
+      "name": "gcc",
+      "source": "./plugins/gcc"
+    },
+    {
+      "name": "windows",
+      "source": "./plugins/windows"
+    },
+    {
+      "name": "cpp-standards",
+      "source": "./plugins/cpp-standards"
+    },
+    {
+      "name": "gpp-standards",
+      "source": "./plugins/gpp-standards"
+    }
+  ]
+}

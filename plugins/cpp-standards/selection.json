@@ -1,0 +1,16 @@
+{
+  "plugin": "cpp-standards",
+  "scopes": [
+    "base"
+  ],
+  "prerequisites": [],
+  "skills": [
+    "cpp-build",
+    "cpp-direction",
+    "cpp-knowledge",
+    "cpp-learning",
+    "cpp-libraries",
+    "cpp-style",
+    "cpp-testing"
+  ]
+}

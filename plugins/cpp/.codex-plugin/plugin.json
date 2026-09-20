@@ -1,0 +1,26 @@
+{
+  "name": "cpp",
+  "version": "0.1.0",
+  "description": "Platform-neutral modern C++ contracts and learning guidance.",
+  "author": {
+    "name": "Tommy Seery",
+    "url": "https://github.com/tomjseery"
+  },
+  "repository": "https://github.com/tomjseery/cpp-agents",
+  "skills": "./skills/",
+  "keywords": [
+    "cpp",
+    "cmake",
+    "testing",
+    "learning"
+  ],
+  "interface": {
+    "displayName": "cpp",
+    "shortDescription": "Platform-neutral modern C++ contracts and learning guidance.",
+    "developerName": "Tommy Seery",
+    "category": "Productivity",
+    "capabilities": [
+      "Instructions"
+    ]
+  }
+}

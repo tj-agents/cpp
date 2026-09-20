@@ -1,10 +1,11 @@
 ---
 name: cpp-libraries
 description: Tommy's generic C++ dependency policy covering std-first choices, backports, ranges, FetchContent, and reactive extraction.
+kind: contract
+domain: cpp
 ---
 
-# C++ libraries
+# Library conventions — C++ (Tommy)
 
-The standard is `standards/cpp/LIBRARIES.md` in `tomjseery/cpp-agents`, deployed to `~/.agents/standards/cpp/LIBRARIES.md`.
-
-Read and follow it before adding a dependency or creating a shared helper.
+Read and follow the [canonical shared definition](../../base/contract/cpp-libraries/SKILL.md) in full.
+This discovery entry is generated; edit the referenced `.agents/` definition.

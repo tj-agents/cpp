@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 PAYLOADS = ROOT / ".agents" / "plugins" / "payloads.json"
 SKILL_CONTRACT = ROOT / ".agents" / "plugins" / "skill-contract.json"
+SOURCES = ROOT / ".agents" / "plugins" / "sources.json"
 GENERATOR = ROOT / ".agents" / "gen_skill_routes.py"
 
 
@@ -84,12 +85,13 @@ class MarketplaceContractTests(unittest.TestCase):
         cls.marketplace = read_json(MARKETPLACE)
         cls.payloads = read_json(PAYLOADS)
         cls.contract = read_json(SKILL_CONTRACT)
+        cls.sources = read_json(SOURCES)
         cls.generator = load_generator()
 
-    def test_public_plugins_are_the_three_layers_in_order(self) -> None:
-        self.assertEqual(["base", "windows", "gcc"], self.payloads["publicPlugins"])
+    def test_public_plugins_are_the_four_independent_scopes_in_order(self) -> None:
+        self.assertEqual(["cpp", "gpp", "msvc", "win32"], self.payloads["publicPlugins"])
         names = [plugin["name"] for plugin in self.marketplace["plugins"]]
-        self.assertEqual(self.payloads["publicPlugins"], names[:3])
+        self.assertEqual(self.payloads["publicPlugins"], names[:4])
 
     def test_every_marketplace_entry_has_a_matching_manifest_and_payload(self) -> None:
         for entry in self.marketplace["plugins"]:
@@ -102,6 +104,9 @@ class MarketplaceContractTests(unittest.TestCase):
     def test_layer_dependencies_exist_and_are_acyclic(self) -> None:
         names = set(self.payloads["payloads"])
         dependencies = self.payloads["dependencies"]
+        self.assertEqual(["cpp"], dependencies["gpp"])
+        self.assertEqual(["cpp"], dependencies["msvc"])
+        self.assertEqual(["cpp"], dependencies["win32"])
         self.assertEqual(["base"], dependencies["windows"])
         self.assertEqual(["base"], dependencies["gcc"])
         for plugin, required in dependencies.items():
@@ -127,39 +132,30 @@ class MarketplaceContractTests(unittest.TestCase):
     def test_compatibility_aliases_are_time_bounded_and_not_public(self) -> None:
         public = set(self.payloads["publicPlugins"])
         aliases = self.payloads["compatibilityAliases"]
-        self.assertEqual({"cpp-standards", "gpp-standards"}, set(aliases))
+        self.assertEqual({"base", "gcc", "windows", "cpp-standards", "gpp-standards"}, set(aliases))
         for name, alias in aliases.items():
             self.assertNotIn(name, public)
-            self.assertIn(alias["replacedBy"], public)
+            replacements = alias["replacedBy"] if isinstance(alias["replacedBy"], list) else [alias["replacedBy"]]
+            self.assertTrue(set(replacements) <= public)
             self.assertGreaterEqual(date.fromisoformat(alias["removeAfter"]), date.today())
+        self.assertEqual(["msvc", "win32"], aliases["windows"]["replacedBy"])
+        self.assertTrue(aliases["windows"]["requiresExplicitSplit"])
 
     def test_generated_routes_reference_real_skill_contracts(self) -> None:
-        local_skills = {
-            path.parent.name
-            for path in (ROOT / ".agents" / "skills").glob("*/SKILL.md")
-        }
-        public_domains = {
-            plugin: set(self.payloads["payloads"][plugin])
-            for plugin in self.payloads["publicPlugins"]
-        }
-        skill_domains = {}
-        for skill_file in (ROOT / ".agents" / "skills").glob("*/SKILL.md"):
-            text = skill_file.read_text(encoding="utf-8")
-            match = re.search(r"`standards/([^/]+)/", text)
-            self.assertIsNotNone(match, skill_file)
-            skill_domains[skill_file.parent.name] = match.group(1)
-
-        external = self.contract["externalPlugins"]
-        for kind in self.generator.CANONICAL_KINDS:
-            for route in self.generator.routes(kind)["routes"]:
+        scope_plugins = {scope["name"]: scope["plugin"] for scope in self.sources["scopes"]}
+        inventory = {}
+        for scope in self.sources["scopes"]:
+            for skill_file in (ROOT / scope["root"]).glob("*/*/SKILL.md"):
+                inventory[(scope_plugins[scope["name"]], skill_file.parent.name)] = skill_file
+        profiles = [(None, []), ("gpp", []), ("msvc", []), (None, ["win32"]), ("gpp", ["win32"]), ("msvc", ["win32"])]
+        for toolchain, apis in profiles:
+            for route in self.generator.routes(toolchain, apis)["routes"]:
                 for identifier in route.get("skills", []):
                     plugin, skill = identifier.split(":", 1)
-                    if plugin in public_domains:
-                        self.assertIn(skill, local_skills, identifier)
-                        self.assertIn(skill_domains[skill], public_domains[plugin], identifier)
-                    else:
-                        self.assertIn(plugin, external, identifier)
-                        self.assertIn(skill, external[plugin]["skills"], identifier)
+                    self.assertIn((plugin, skill), inventory, identifier)
+                    self.assertIn(plugin, self.payloads["publicPlugins"])
+        all_routes = json.dumps([self.generator.routes(toolchain, apis) for toolchain, apis in profiles])
+        self.assertNotIn("concertable:", all_routes)
 
     def test_external_skill_contract_matches_pinned_agent_standards_source(self) -> None:
         source_value = os.environ.get("AGENT_STANDARDS_SOURCE")
@@ -347,52 +343,29 @@ class MarketplaceContractTests(unittest.TestCase):
 
     def test_canonical_sources_contain_no_retired_plugin_identifiers(self) -> None:
         retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
-        roots = [ROOT / "standards", ROOT / ".agents" / "skills"]
         files = [ROOT / ".agents" / "gen_skill_routes.py"]
-        for source_root in roots:
-            files.extend(source_root.rglob("*.md"))
-        offenders = []
-        for path in files:
-            if retired.search(path.read_text(encoding="utf-8")):
-                offenders.append(path.relative_to(ROOT).as_posix())
+        for scope in self.sources["scopes"]:
+            files.extend((ROOT / scope["root"]).rglob("*.md"))
+        offenders = [path.relative_to(ROOT).as_posix() for path in files if retired.search(path.read_text(encoding="utf-8"))]
         self.assertEqual([], offenders)
 
     def test_canonical_hooks_contain_no_retired_identifiers(self) -> None:
         retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
-        hooks = [
-            ROOT / ".agents" / "hooks" / "session_context.py",
-            ROOT / "plugins" / "base" / "hooks" / "session_context.py",
-        ]
-        self.assertEqual(
-            [],
-            [path.relative_to(ROOT).as_posix() for path in hooks if retired.search(path.read_text(encoding="utf-8"))],
-        )
+        hooks = [ROOT / ".agents" / "hooks" / "session_context.py", ROOT / "plugins" / "cpp" / "hooks" / "session_context.py"]
+        self.assertEqual([], [path.relative_to(ROOT).as_posix() for path in hooks if retired.search(path.read_text(encoding="utf-8"))])
 
     def test_compatibility_payload_skill_identifiers_resolve(self) -> None:
-        identifier = re.compile(r"(?<![-\w])([a-z0-9-]+):([a-z0-9-]+)")
-        inventories = {
-            plugin: {
-                path.parent.name
-                for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")
-            }
-            for plugin in self.payloads["compatibilityAliases"]
-        }
-        inventories.update(
-            {
-                plugin: set(contract["skills"])
-                for plugin, contract in self.contract["legacyExternalPlugins"].items()
-            }
-        )
+        identifier = re.compile(r"(?<![-/\w])([a-z0-9-]+):(?!:)([a-z][a-z0-9-]+)")
+        inventories = {plugin: {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")} for plugin in self.payloads["payloads"]}
+        inventories.update({plugin: set(contract["skills"]) for plugin, contract in self.contract["legacyExternalPlugins"].items()})
         offenders = []
         for plugin in self.payloads["compatibilityAliases"]:
-            root = ROOT / "plugins" / plugin
+            package_root = ROOT / "plugins" / plugin
             for pattern in ("*.md", "*.py"):
-                for path in root.rglob(pattern):
+                for path in package_root.rglob(pattern):
                     for namespace, skill in identifier.findall(path.read_text(encoding="utf-8")):
                         if namespace not in inventories or skill not in inventories[namespace]:
-                            offenders.append(
-                                f"{path.relative_to(ROOT).as_posix()}: {namespace}:{skill}"
-                            )
+                            offenders.append(f"{path.relative_to(ROOT).as_posix()}: {namespace}:{skill}")
         self.assertEqual([], offenders)
 
 

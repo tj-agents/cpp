@@ -1,21 +1,25 @@
 {
   "name": "cpp-standards",
-  "version": "0.3.0",
-  "description": "Deprecated compatibility alias for base@cpp-agents; remove after 2027-03-31.",
+  "version": "0.4.0",
+  "description": "Deprecated compatibility package for cpp@cpp-agents; remove after 2027-03-31.",
   "author": {
     "name": "Tommy Seery",
     "url": "https://github.com/tomjseery"
   },
   "repository": "https://github.com/tomjseery/cpp-agents",
-  "keywords": ["standards", "cpp", "compatibility", "deprecated"],
   "skills": "./skills/",
+  "keywords": [
+    "cpp",
+    "compatibility",
+    "deprecated"
+  ],
   "interface": {
-    "displayName": "C++ Standards (Deprecated)",
-    "shortDescription": "Compatibility alias; migrate to base.",
-    "longDescription": "Temporary compatibility alias for base@cpp-agents. Install base, regenerate routes, then remove this plugin before 2027-03-31.",
+    "displayName": "cpp-standards",
+    "shortDescription": "Deprecated compatibility package for cpp@cpp-agents; remove after 2027-03-31.",
     "developerName": "Tommy Seery",
     "category": "Productivity",
-    "capabilities": ["Instructions", "Hooks"],
-    "defaultPrompt": ["Migrate this repository to base@cpp-agents."]
+    "capabilities": [
+      "Instructions"
+    ]
   }
 }

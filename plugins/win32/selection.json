@@ -1,0 +1,14 @@
+{
+  "plugin": "win32",
+  "scopes": [
+    "win32"
+  ],
+  "prerequisites": [
+    "cpp"
+  ],
+  "skills": [
+    "win32-style",
+    "windows-cpp-knowledge",
+    "windows-overview"
+  ]
+}
