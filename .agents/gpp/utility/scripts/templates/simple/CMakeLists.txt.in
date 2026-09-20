@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.20)
+project(__PROJECT__ LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD __CPP_STANDARD__)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+add_executable(__PROJECT__ main.cpp)

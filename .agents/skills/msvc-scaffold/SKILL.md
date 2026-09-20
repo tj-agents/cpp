@@ -1,6 +1,6 @@
 ---
 name: msvc-scaffold
-description: Create a small MSVC C++ console project from reusable CMake presets and PowerShell helpers, or reuse those helpers in a compatible existing project.
+description: Create a small MSVC C++ project with a library target and Catch2 tests from reusable CMake presets and PowerShell helpers, or reuse those helpers in a compatible existing project.
 kind: utility
 domain: cpp
 ---
