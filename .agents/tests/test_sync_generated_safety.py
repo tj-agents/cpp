@@ -91,8 +91,10 @@ class GeneratedRootSafetyTests(unittest.TestCase):
     def test_retired_reference_match_uses_exact_basename_boundaries(self) -> None:
         self.assertEqual(["STYLE.md", "WIN32.md"], sync_generated.retired_doc_references("See docs/STYLE.md and `WIN32.md`."))
         self.assertEqual([], sync_generated.retired_doc_references("See CODING_STYLE.md and PORTABLE_WIN32.md."))
-        self.assertEqual([], sync_generated.retired_doc_references("Keep STYLE.md.bak, WIN32.md.old, and prefix.STYLE.md."))
+        self.assertEqual([], sync_generated.retired_doc_references("Keep STYLE.md.bak, WIN32.md.old, prefix.STYLE.md, and STYLE.md/path."))
         self.assertEqual(["STYLE.md", "WIN32.md"], sync_generated.retired_doc_references("See STYLE.md#rules and WIN32.md?plain=1."))
+        self.assertEqual(["STYLE.md"], sync_generated.retired_doc_references("Use 'STYLE.md', **STYLE.md**, or STYLE.md!"))
+        self.assertEqual(["STYLE.md"], sync_generated.retired_doc_references("A sentence names STYLE.md. Then it ends with STYLE.md."))
 
 
 if __name__ == "__main__":
