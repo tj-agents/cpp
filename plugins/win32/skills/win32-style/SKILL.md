@@ -1,6 +1,6 @@
 ---
 name: win32-style
-description: Native Win32 C++ design rules covering Unicode, MSVC, WIL, RAII handles, callbacks, object lifetimes, errors, and thin OS glue.
+description: Native Win32 C++ design rules covering Unicode, WIL, RAII handles, callbacks, object lifetimes, errors, and thin OS glue across selected toolchains.
 kind: contract
 domain: cpp
 ---
@@ -16,12 +16,13 @@ break it — not negotiable) or **[style]** (house taste, but hold it).
 
 | Library | For | Verdict |
 |---|---|---|
-| **WIL** (`microsoft/wil`) | RAII handles (`unique_handle`, `unique_hfile`, `unique_hmenu`…), `wil::com_ptr`, error macros | **Default** for classic Win32/COM. Header-only |
+| **WIL** (`microsoft/wil`) | RAII handles (`unique_handle`, `unique_hfile`, `unique_hmenu`…), `wil::com_ptr`, error macros | Preferred for classic Win32/COM when supported by the selected toolchain |
 | **C++/WinRT** | Windows Runtime APIs (`winrt::com_ptr`) | Use for WinRT |
 | **WRL `ComPtr`** | — | Legacy only; never start new code on it |
 
 WIL doesn't violate the std-first rule: it covers Win32/COM resources `std::` has no
-equivalent for. *Learning carve-out:* hand-roll **one** RAII handle wrapper, once, to
+equivalent for. Do not select MSVC merely to obtain WIL; confirm support in the project's
+chosen toolchain and use an appropriate RAII owner when WIL is unavailable. *Learning carve-out:* hand-roll **one** RAII handle wrapper, once, to
 meet the mechanism (`= delete` copy, move-only, the sentinel problem below) — then use
 WIL's.
 
@@ -144,24 +145,25 @@ aren't worth it for windows you create.
 
 ## Manifest — the standard four settings
 
-MSVC auto-embeds a default; customize by adding a `.manifest` to the target's sources.
+Declare the application manifest in the target's sources and verify how the selected toolchain embeds it.
 Baseline: **DPI awareness** `Per-Monitor v2` (via the manifest, not
 `SetProcessDpiAwarenessContext`), **Common Controls v6** (`<dependency>` on
 `Microsoft.Windows.Common-Controls` 6.0 — themed, not Win95-grey), **`activeCodePage =
 UTF-8`** (Win10 1903+), **`requestedExecutionLevel = asInvoker`** (don't silently ask
 for admin).
 
-## Build (CMake + MSVC or clang-cl)
+## Build with the selected toolchain
 
-- Generic compiler, SDK, runtime, build-system and editor configuration lives in
-  `msvc:msvc-toolchain`. The following settings apply specifically to Win32 app targets.
-- `add_executable(app WIN32 …)` → GUI subsystem (`WinMain`, no console); omit `WIN32`
-  for a console app (`main`).
-- `target_compile_definitions(app PRIVATE UNICODE _UNICODE)`;
-- MSVC auto-links many system libs via `#pragma comment(lib, …)`; link the rest
-  (`comctl32`, `ole32`, …) explicitly.
-- WIL via `FetchContent` (`GIT_SHALLOW`, `SYSTEM`, `WIL_BUILD_TESTS`/`_PACKAGING` OFF),
-  exposing `WIL::WIL`.
+- Compiler, ABI, runtime, build-system, and editor configuration belong to the selected
+  toolchain skill: `msvc:msvc-toolchain` or `gpp:gpp-toolchain`. The following settings
+  apply to the Win32 target independently of that choice.
+- `add_executable(app WIN32 …)` selects the GUI subsystem (`WinMain`, no console); omit
+  `WIN32` for a console app (`main`). Verify the selected compiler's entry-point contract.
+- Use `target_compile_definitions(app PRIVATE UNICODE _UNICODE)`.
+- Link required Windows import libraries such as `comctl32` and `ole32` explicitly through
+  the build model. Compiler-specific auto-link directives do not replace target ownership.
+- Where the selected toolchain supports WIL, consume it through a pinned target and disable
+  its unneeded tests/packaging. Otherwise use a tested resource owner supported by that toolchain.
 
 ## References
 

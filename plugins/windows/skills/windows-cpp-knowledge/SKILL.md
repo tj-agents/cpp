@@ -8,8 +8,8 @@ domain: cpp
 # What I know — Windows / Win32 (Tommy)
 
 Companion to `base:cpp-knowledge`, but for the Windows-native layer: the
-Win32 API, the toolchain that builds native `.exe`s, COM, and everything in that
-world. Same purpose — so anyone (me or Claude) can calibrate to my level. Same
+Win32 API, Windows executable model, COM, and everything in that world. Toolchain
+knowledge is recorded here only where it intersects the platform boundary. Same purpose — so anyone (me or Claude) can calibrate to my level. Same
 rule: **nothing moves into "comfortable" until I've *proven* it** (written it or
 explained it back), not just had it explained to me. I'm the sole judge.
 
@@ -40,21 +40,16 @@ Rough learning order. None of this is known yet.
 - PE (Portable Executable) — the Windows `.exe` / `.dll` file format.
 - Static vs dynamic linking; import libraries (a `.lib` that resolves to a DLL).
 
-**Toolchain & build** *(MSVC is the toolchain for native Windows C++; g++ stays for portable/Linux work.)*
-- MSVC — Microsoft's compiler (`cl.exe`) + Build Tools for Visual Studio; the
-  Windows default and what this tier targets.
-- clang-cl — Clang in MSVC-compatible mode (same ABI); drop-in alternative.
-- Key `cl` flags: `/std:c++23`, `/utf-8`, `/permissive-`, `/EHsc`, `/W4`.
-- MinGW / GCC, Cygwin, WSL — the *other* worlds (GCC ABI / POSIX emulation /
-  Linux subsystem). Not used for native Windows here; g++ stays for my
-  cross-platform / Linux C++.
-- ABI — the machine-level calling contract; why a GCC-built lib won't link into
-  an MSVC build (and why clang-cl, on the MSVC ABI, will).
+**Toolchain & build** *(selected independently from the Win32 API)*
+- MSVC (`cl.exe`), clang-cl, and MinGW/G++ are distinct compiler and ABI choices.
+- The project profile selects `msvc` or `gpp`; the Windows host and Win32 API do not.
+- ABI — the machine-level calling contract and why libraries must match the selected
+  compiler, runtime, architecture, and calling convention.
 - Name mangling / `extern "C"` — opting a symbol out of C++ mangling.
-- Subsystem: console (`main`) vs GUI (`WinMain`); CMake's `WIN32` flag.
+- Subsystem: console (`main`) vs GUI (`WinMain`); CMake's `WIN32` target option.
 - The `UNICODE` / `_UNICODE` defines; embedding the app manifest (DPI, Common
-  Controls v6, UTF-8 code page) via the linker / a `.manifest` file.
-- Linking import libs (`user32`, `gdi32`, …) — though MSVC auto-links many.
+  Controls v6, UTF-8 code page) through the selected toolchain.
+- Linking Windows import libraries (`user32`, `gdi32`, …) explicitly in the build model.
 
 **Handles & objects**
 - `HANDLE` / `HWND` / `HKEY` / `HDC` and friends — opaque OS resource handles.

@@ -1,6 +1,6 @@
 ---
 name: gcc-toolchain
-description: GCC, g++, GDB, and Linux-specific C++ conventions layered on the platform-neutral base plugin.
+description: GCC, g++, GDB, and Linux-specific C++ toolchain conventions layered on cpp.
 kind: contract
 domain: cpp
 ---
@@ -8,9 +8,9 @@ domain: cpp
 # g++ / Linux conventions — C++ (Tommy)
 
 How I write portable / Linux-native C++. These rules sit **on top of** the
-`base` plugin, whose naming, initialization, learning, and std-first
+`cpp` plugin, whose naming, initialization, learning, and std-first
 dependency rules still hold. This file adds only the GCC / GNU / Linux toolchain
-layer; `windows` is the independent MSVC / Win32 sibling.
+layer. API selection, including `win32`, remains independent.
 
 ## The toolchain — GCC / g++
 
@@ -34,6 +34,7 @@ are independent, neither is "the default".
 
 ## See also
 
-- `base` — the platform-agnostic base, which still applies here.
-- `windows` — the sibling MSVC / Win32 tier.
+- `cpp` — the platform-neutral C++ base, which still applies here.
+- `msvc` — the alternative MSVC/clang-cl toolchain when a project selects it.
+- `win32` — an optional user-mode Windows API layer that does not choose a compiler.
 - `base:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.

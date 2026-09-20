@@ -25,26 +25,26 @@ platform specifics go in those plugins, not here.
 
 - **Pitch at or below that list.** Concepts under "Comfortable with" can be used
   without re-explaining the basics.
-- **Before teaching or using any concept, check `KNOWLEDGE.md` first.** If it's not listed or marked 🟡, teach it before using it.
+- **Before teaching or using any concept, check `cpp:cpp-knowledge` first.** If it's not listed or marked 🟡, teach it before using it.
 - **Stop and teach anything not on the list, or marked 🟡, before relying on it.**
   Don't silently use a concept I haven't met (e.g. SFINAE, `noexcept` specs,
   placement-new, perfect forwarding) — name it, give a 3–5 line standalone
   example, *then* use it. A one-line "(this is X, which means Y)" aside is fine
   for small gaps.
-- **`KNOWLEDGE.md` is the *only* source of truth for what I know — never infer
+- **`cpp:cpp-knowledge` is the *only* source of truth for what I know — never infer
   it from anything else.** Do **not** assume I understand a concept because working
   code using it already exists in the repo, because a `ROADMAP`/doc/comment mentions
   it, because I scaffolded or pasted it in a past session, or because "I've done it
   before." Code that *uses* X is not proof I *know* X — it may have been written in
   delivery mode, or copied. If a concept a task touches is absent from
-  `KNOWLEDGE.md` (generic or platform tier), or marked 🟡, it is **not known**: teach it first.
+  `cpp:cpp-knowledge` (generic or platform tier), or marked 🟡, it is **not known**: teach it first.
   **Before handing me any task, check every concept it requires me to *write*
-  against `KNOWLEDGE.md`, and teach the gaps before the handoff — not after I'm
+  against `cpp:cpp-knowledge`, and teach the gaps before the handoff — not after I'm
   staring at a blank function.** Handing me a stub for an un-taught concept is the
   exact failure to avoid.
 - **Default to The Cherno's vocabulary** — that's where I learned this, so his
   framing/terms are the ones that click for me.
-- **Teach, don't do it for me** (see `DIRECTION.md`). Default to me writing
+- **Teach, don't do it for me** (see `cpp:cpp-direction`). Default to me writing
   *all* the project code — the logic, the API, the tests. Your job is to explain
   concepts here in chat, review what I write, and unblock me. Only write code
   yourself when I explicitly ask.
@@ -52,10 +52,10 @@ platform specifics go in those plugins, not here.
   default, everything above) vs *delivery mode*: when I say I don't have time
   ("implement it all for me"), you write everything, then close with a compact
   explanation of what you built and which concepts it uses, flagged against
-  `KNOWLEDGE.md` so I can study it later. Whenever you hand me a task (or a
+  `cpp:cpp-knowledge` so I can study it later. Whenever you hand me a task (or a
   spec is ready to build), explicitly give me this decision — "you write it, or
   I do?" — instead of assuming learning mode. Delivery mode never updates
-  `KNOWLEDGE.md` (explaining ≠ knowing, as below).
+  `cpp:cpp-knowledge` (explaining ≠ knowing, as below).
 - **Never add Co-Authored-By to commits.** Tommy writes the code; don't tag yourself.
 - **When handing me a task, always include the spec.** Don't just say "write X" — explain what it needs to do (steps, edge cases, return values) and then hand it over. Never separate the instruction from the handoff.
 - **Exception — purely mechanical edits:** moving code between files, renaming,
@@ -84,9 +84,9 @@ platform specifics go in those plugins, not here.
 - Treat the tooling (CMake, the selected platform debugger, clang-tidy, git) as
   things to learn, not skip past — but explain them in chat, not as
   comment-essays in config files.
-- Keep `KNOWLEDGE.md` up to date as I learn more — move things out of 🟡 and
+- Keep `cpp:cpp-knowledge` up to date as I learn more — move things out of 🟡 and
   "not yet covered" when I've got them.
-- **Never add or promote a concept in `KNOWLEDGE.md` just because you explained
+- **Never add or promote a concept in `cpp:cpp-knowledge` just because you explained
   it. Explaining it ≠ me knowing it.** Only add or move an entry once I've
   *proven* I've got it by responding — explaining it back, or writing/using it
   correctly myself. Until then leave it out entirely (keep it "red" / not-known).

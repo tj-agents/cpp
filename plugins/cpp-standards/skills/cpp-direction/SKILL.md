@@ -7,7 +7,7 @@ domain: cpp
 
 # North Star — where I'm headed with C++ (Tommy)
 
-The destination these projects are driving toward. `KNOWLEDGE.md` tracks where
+The destination these projects are driving toward. `cpp-standards:cpp-knowledge` tracks where
 I am *now*; this file tracks where I'm going and *how* I want to get there.
 
 ## The goal
@@ -29,12 +29,12 @@ are the tools I'm learning with, not final opinions:
 | # | Area | My pick | Status |
 |---|------|---------|--------|
 | 1 | Build system / generator | **CMake** (+ presets) | learning now |
-| 2 | Debugger | **Selected by platform layer** | see Windows/GCC layer |
+| 2 | Debugger | **Selected by platform layer** | see the selected gpp/msvc toolchain and optional win32 API layer |
 | 3 | IDE / terminal | **VS Code** + **Neovim**; getting comfy in the terminal | learning now |
 | 4 | Testing framework | **Catch2** | seen it (keystore tests) |
-| 5 | Compiler | **Selected by platform layer** | see Windows/GCC layer |
+| 5 | Compiler | **Selected by platform layer** | see the selected gpp/msvc toolchain and optional win32 API layer |
 | 6 | Linting / formatting | **clang-tidy** + **clang-format** | configured, not deeply understood |
-| 7 | Profiler | **Selected by platform layer** | see Windows/GCC layer |
+| 7 | Profiler | **Selected by platform layer** | see the selected gpp/msvc toolchain and optional win32 API layer |
 | 8 | Version control | **git** | basics |
 
 When I level up an area, note it here.

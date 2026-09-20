@@ -65,7 +65,7 @@ Generic C++ language, dependency and CMake conventions remain in the base layer.
   do not make arbitrary C++ ABI boundaries safe.
 - Distinguish SDK import libraries, static libraries and DLLs. Link required system
   libraries and verify deployed dependencies. Do not require WIL, GUI libraries or Win32
-  preprocessor macros in a library that does not use those interfaces; use WIN32.md when
+  preprocessor macros in a library that does not use those interfaces; use `windows:win32-style` when
   that boundary exists.
 
 [Microsoft CRT linkage options](https://learn.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library),
