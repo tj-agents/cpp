@@ -1,10 +1,11 @@
 ---
 name: cpp-build
 description: Generic CMake target, preset, dependency, compiler-option, and build-layout conventions for C++ projects.
+kind: contract
+domain: cpp
 ---
 
-# C++ build
+# Build conventions — C++ (Tommy)
 
-The standard is `standards/cpp/BUILD.md` in `tomjseery/cpp-agents`, deployed to `~/.agents/standards/cpp/BUILD.md`.
-
-Read and follow it before creating or changing CMake targets, presets, build flags, or dependency wiring.
+Read and follow the [canonical shared definition](../../base/contract/cpp-build/SKILL.md) in full.
+This discovery entry is generated; edit the referenced `.agents/` definition.

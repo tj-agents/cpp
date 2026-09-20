@@ -1,10 +1,11 @@
 ---
 name: cpp-direction
 description: Tommy's C++ learning destination and tooling skill tree used when choosing or sequencing learning work.
+kind: knowledge
+domain: cpp
 ---
 
-# C++ direction
+# North Star — where I'm headed with C++ (Tommy)
 
-The standard is `standards/cpp/DIRECTION.md` in `tomjseery/cpp-agents`, deployed to `~/.agents/standards/cpp/DIRECTION.md`.
-
-Read it when planning what Tommy should learn or build next.
+Read and follow the [canonical shared definition](../../base/knowledge/cpp-direction/SKILL.md) in full.
+This discovery entry is generated; edit the referenced `.agents/` definition.

@@ -1,0 +1,26 @@
+{
+  "name": "msvc",
+  "version": "0.1.0",
+  "description": "MSVC and clang-cl toolchain guidance and project scaffold layered on cpp.",
+  "author": {
+    "name": "Tommy Seery",
+    "url": "https://github.com/tomjseery"
+  },
+  "repository": "https://github.com/tomjseery/cpp-agents",
+  "skills": "./skills/",
+  "keywords": [
+    "cpp",
+    "msvc",
+    "clang-cl",
+    "cmake"
+  ],
+  "interface": {
+    "displayName": "msvc",
+    "shortDescription": "MSVC and clang-cl toolchain guidance and project scaffold layered on cpp.",
+    "developerName": "Tommy Seery",
+    "category": "Productivity",
+    "capabilities": [
+      "Instructions"
+    ]
+  }
+}

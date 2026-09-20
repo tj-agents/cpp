@@ -1,0 +1,17 @@
+{
+  "plugin": "windows",
+  "scopes": [
+    "msvc",
+    "win32"
+  ],
+  "prerequisites": [
+    "base"
+  ],
+  "skills": [
+    "msvc-scaffold",
+    "msvc-toolchain",
+    "win32-style",
+    "windows-cpp-knowledge",
+    "windows-overview"
+  ]
+}

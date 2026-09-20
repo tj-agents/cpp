@@ -1,57 +1,97 @@
 {
-  "$comment": "Generator contract for canonical layers, dependencies, hook ownership, and time-bounded compatibility aliases.",
-  "description": "Composable base, Windows, and GCC/Linux C++ standards for Claude Code and Codex.",
-  "publicPlugins": ["base", "windows", "gcc"],
+  "$comment": "Canonical C++ scopes, package dependencies, hooks, and time-bounded compatibility packages.",
+  "description": "Independent C++, G++, MSVC, and Win32 guidance for Claude Code and Codex.",
+  "publicPlugins": [
+    "cpp",
+    "gpp",
+    "msvc",
+    "win32"
+  ],
   "payloads": {
-    "base": ["cpp"],
-    "windows": ["windows"],
-    "gcc": ["gcc"],
-    "cpp-standards": ["cpp"],
-    "gpp-standards": ["gcc"]
+    "cpp": [
+      "base"
+    ],
+    "gpp": [
+      "gpp"
+    ],
+    "msvc": [
+      "msvc"
+    ],
+    "win32": [
+      "win32"
+    ],
+    "base": [
+      "base"
+    ],
+    "gcc": [
+      "gpp"
+    ],
+    "windows": [
+      "msvc",
+      "win32"
+    ],
+    "cpp-standards": [
+      "base"
+    ],
+    "gpp-standards": [
+      "gpp"
+    ]
   },
   "dependencies": {
-    "windows": ["base"],
-    "gcc": ["base"],
-    "gpp-standards": ["cpp-standards"]
+    "gpp": [
+      "cpp"
+    ],
+    "msvc": [
+      "cpp"
+    ],
+    "win32": [
+      "cpp"
+    ],
+    "gcc": [
+      "base"
+    ],
+    "windows": [
+      "base"
+    ],
+    "gpp-standards": [
+      "cpp-standards"
+    ]
   },
-  "hooks": ["base", "cpp-standards"],
+  "hooks": [
+    "cpp",
+    "base",
+    "cpp-standards"
+  ],
   "compatibilityAliases": {
-    "cpp-standards": {
-      "replacedBy": "base",
+    "base": {
+      "replacedBy": "cpp",
       "removeAfter": "2027-03-31",
-      "identifierAliases": {
-        "base": "cpp-standards",
-        "windows": "windows-standards",
-        "gcc": "gpp-standards"
-      },
-      "qualifiedSkillAliases": {
-        "gcc:gcc-toolchain": "gpp-standards:gpp-toolchain"
-      },
       "selectorAliases": {
-        "base@cpp-agents": "cpp-standards@cpp-agents",
-        "windows@cpp-agents": "windows-standards@windows-agents",
-        "gcc@cpp-agents": "gpp-standards@cpp-agents"
+        "base@cpp-agents": "cpp@cpp-agents"
       }
     },
-    "gpp-standards": {
-      "replacedBy": "gcc",
+    "gcc": {
+      "replacedBy": "gpp",
       "removeAfter": "2027-03-31",
       "skillAliases": {
         "gcc-toolchain": "gpp-toolchain"
-      },
-      "identifierAliases": {
-        "base": "cpp-standards",
-        "windows": "windows-standards",
-        "gcc": "gpp-standards"
-      },
-      "qualifiedSkillAliases": {
-        "gcc:gcc-toolchain": "gpp-standards:gpp-toolchain"
-      },
-      "selectorAliases": {
-        "base@cpp-agents": "cpp-standards@cpp-agents",
-        "windows@cpp-agents": "windows-standards@windows-agents",
-        "gcc@cpp-agents": "gpp-standards@cpp-agents"
       }
+    },
+    "windows": {
+      "replacedBy": [
+        "msvc",
+        "win32"
+      ],
+      "removeAfter": "2027-03-31",
+      "requiresExplicitSplit": true
+    },
+    "cpp-standards": {
+      "replacedBy": "cpp",
+      "removeAfter": "2027-03-31"
+    },
+    "gpp-standards": {
+      "replacedBy": "gpp",
+      "removeAfter": "2027-03-31"
     }
   }
 }

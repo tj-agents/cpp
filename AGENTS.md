@@ -1,30 +1,32 @@
-# cpp-agents — working rules
+# cpp-agents
 
-This repository authors Tommy's shared C++ technical standards and delivers them to Claude Code and Codex as one layered marketplace. Read [ARCHITECTURE.md](ARCHITECTURE.md) before changing structure and [MIGRATION.md](MIGRATION.md) before changing a public identity or compatibility promise.
+Read README.md before changing repository structure.
 
-## Keep the three ownership layers exact
+Authored capabilities live only under `.agents/base/<kind>/<name>/`,
+`.agents/gpp/<kind>/<name>/`, `.agents/msvc/<kind>/<name>/`, and
+`.agents/win32/<kind>/<name>/`. Each capability owns its complete `SKILL.md` body there.
+Do not restore a separate `standards/` source tree or author shared definitions in `.codex/`,
+`.claude/`, `.agents/skills/`, or `plugins/`.
 
-- Generic modern C++, CMake, testing, dependency, style, learning, direction, or knowledge rules belong under `standards/cpp/` and ship in `base`.
-- Native Windows, Win32, Unicode, MSVC/clang-cl, WIL, native-resource, Windows CMake, or Windows-learning rules belong under `standards/windows/` and ship in `windows`.
-- GCC, g++, GDB, or Linux-specific rules belong under `standards/gcc/` and ship in `gcc`.
-- Workflow and repository-process rules remain in `Concertable/agent-standards`; generated routes use its published `concertable:*` identifiers.
+`.agents/plugins/sources.json` owns the source/package map and generated-root declaration.
+`.agents/skills/`, `.codex/skills/`, `.claude/skills/`, `.agents/*/INDEX.md`, marketplace
+files, and `plugins/*` are generated. Authored host manifests live under
+`.agents/plugins/manifests/`. Run `pwsh .agents/sync-generated.ps1` after authored changes
+and require `pwsh .agents/sync-generated.ps1 -Check` before delivery.
 
-Never author a rule in a generated plugin tree. Temporary compatibility packages are generated delivery copies with a declared removal date, not additional sources.
+Scope ownership is strict: `base` is platform-neutral C++, `gpp` is the G++/GCC toolchain,
+`msvc` is the MSVC/clang-cl toolchain and scaffold, and `win32` is the user-mode Windows API.
+Toolchain and API selection are independent. Never infer MSVC from the host OS or Win32 use,
+and never make Win32 require one compiler. WDK/kernel guidance remains outside these scopes.
 
-## Keep both harnesses valid
+Every scope has a documented `utility/` and `utility/scripts/` home. Empty homes state that no
+utilities exist. Repository-owned runtime resources ship inside their owning plugin; the MSVC
+scaffold resources are mapped explicitly by `.agents/plugins/sources.json`.
 
-Shared standards, routers, and hook logic are authored under `standards/` and `.agents/`. `pwsh .agents/sync-generated.ps1` produces Claude and installable-plugin forms. A change that leaves either harness stale is incomplete.
+`base`, `gcc`, `windows`, `cpp-standards`, and `gpp-standards` are generated compatibility
+packages only. Preserve their 2027-03-31 window and keep the old combined `windows` payload
+containing both MSVC and Win32; never map it silently to only one new scope.
 
-Before committing, run:
-
-```powershell
-pwsh .agents/sync-generated.ps1
-pwsh .agents/sync-generated.ps1 -Check
-python .agents/gen_skill_routes.py --self-test
-python -m unittest discover -s .agents/hooks/tests
-python -m unittest discover -s .agents/tests
-```
-
-Before changing the external `concertable:*` contract, fetch its origin and run the suite with `AGENT_STANDARDS_SOURCE` pointing at an exact checkout of the pinned `Concertable/agent-standards` commit. That release gate requires authenticated `gh` access and binds the commit to the declared private repository. Commit and push the exact consumer head, then invoke `.agents/attest-external-contract.ps1` from a separate exact, clean checkout of canonical `main`, passing the candidate checkout, full pushed SHA, and producer checkout. Never execute a candidate-owned attester. The trusted default-branch workflow in `PROVENANCE_GATE.md` verifies that status; ordinary CI independently verifies the checked-in Git tree proof and GitHub signature. Git, Python, PowerShell 7, and GnuPG are validation prerequisites; Git for Windows supplies the supported GPG fallback.
-
-Also validate every `plugins/*` directory with the available Codex and Claude validators. Preserve marketplace ordering: canonical `base`, `windows`, `gcc` first; compatibility aliases last.
+Required validation is the generator check, route self-test, hook tests, marketplace and
+attester tests, both host validators when available, and the MSVC scaffold acceptance matrix.
+Keep historical signed provenance unchanged.

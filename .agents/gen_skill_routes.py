@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Generate layered C++ skill routes consumed by concertable's write hook."""
+"""Generate independent C++ toolchain and API skill routes."""
+
+from __future__ import annotations
 
 import argparse
 import json
@@ -13,245 +15,162 @@ BUILD_PATH = r"(?i:(^|/)(CMakeLists\.txt|CMakePresets\.json|[^/]+\.cmake))$"
 TEST_PATH = r"(?i:(^|/)(tests?|test)/.*\.(c|cc|cpp|cxx|h|hh|hpp|hxx)|(_test|_tests)\.(c|cc|cpp|cxx))$"
 WINDOWS_RESOURCE_PATH = r"(?i:\.(rc|manifest))$"
 MSVC_BUILD_PATH = r"(?i:\.(vcxproj|props|targets|sln|slnx))$"
-KIND_ALIASES = {"portable": "generic", "gpp": "gcc"}
-CANONICAL_KINDS = ("generic", "gcc", "windows")
-PLATFORM_LAYERS = ("windows", "gcc")
+TOOLCHAINS = ("gpp", "msvc")
+APIS = ("win32",)
+LEGACY_KINDS = ("generic", "portable", "gcc", "gpp", "windows")
+LEGACY_LAYERS = ("gcc", "windows")
 
 
-def canonical_kind(kind: str) -> str:
-    return KIND_ALIASES.get(kind, kind)
+def normalize(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> tuple[str | None, tuple[str, ...]]:
+    if toolchain not in (None, *TOOLCHAINS):
+        raise ValueError(f"unknown toolchain: {toolchain}")
+    unknown = set(apis) - set(APIS)
+    if unknown:
+        raise ValueError(f"unknown API selection(s): {', '.join(sorted(unknown))}")
+    return toolchain, tuple(api for api in APIS if api in apis)
 
 
-def canonical_layers(value: str | list[str] | tuple[str, ...]) -> tuple[str, ...]:
-    if isinstance(value, str):
-        kind = canonical_kind(value)
-        if kind not in CANONICAL_KINDS:
-            raise ValueError(f"unknown project kind: {value}")
-        requested = () if kind == "generic" else (kind,)
-    else:
-        requested = tuple(value)
-        unknown = set(requested) - set(PLATFORM_LAYERS)
-        if unknown:
-            raise ValueError(f"unknown platform layer(s): {', '.join(sorted(unknown))}")
-    return ("base", *(layer for layer in PLATFORM_LAYERS if layer in requested))
+def legacy_selection(kind: str | None = None, layers: list[str] | tuple[str, ...] = ()) -> tuple[str | None, tuple[str, ...]]:
+    if kind:
+        if kind not in LEGACY_KINDS:
+            raise ValueError(f"unknown legacy kind: {kind}")
+        if kind in ("generic", "portable"):
+            return normalize()
+        if kind in ("gcc", "gpp"):
+            return normalize("gpp")
+        return normalize("msvc", ["win32"])
+    unknown = set(layers) - set(LEGACY_LAYERS)
+    if unknown:
+        raise ValueError(f"unknown legacy layer(s): {', '.join(sorted(unknown))}")
+    toolchain = "gpp" if "gcc" in layers else ("msvc" if "windows" in layers else None)
+    apis = ["win32"] if "windows" in layers else []
+    return normalize(toolchain, apis)
 
 
-def compatibility_kind(layers: tuple[str, ...]) -> str:
-    platforms = layers[1:]
-    if not platforms:
+def compatibility_kind(toolchain: str | None, apis: tuple[str, ...]) -> str:
+    if toolchain is None and not apis:
         return "generic"
-    if len(platforms) == 1:
-        return platforms[0]
+    if toolchain == "gpp" and not apis:
+        return "gpp"
+    if toolchain == "msvc" and apis == ("win32",):
+        return "windows"
     return "composed"
 
 
-def routes(kind_or_layers: str | list[str] | tuple[str, ...]) -> dict:
-    layers = canonical_layers(kind_or_layers)
+def routes(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> dict:
+    toolchain, apis = normalize(toolchain, apis)
     result = [
-        {
-            "path": CPP_PATH,
-            "skills": ["base:cpp-style"],
-            "note": "C++ source floor. More specific routes add to this skill; they do not replace it.",
-        },
-        {
-            "path": BUILD_PATH,
-            "skills": ["base:cpp-build", "base:cpp-libraries"],
-        },
-        {
-            "path": TEST_PATH,
-            "skills": ["base:cpp-testing"],
-        },
-        {
-            "path": r"(^|/)(AGENTS|CLAUDE)\.md$",
-            "skills": ["concertable:docs-and-debt"],
-        },
-        {
-            "path": r"^\.agents/skill-routes\.json$",
-            "skills": ["concertable:skill-routes"],
-        },
+        {"path": CPP_PATH, "skills": ["cpp:cpp-style"], "note": "C++ source floor."},
+        {"path": BUILD_PATH, "skills": ["cpp:cpp-build", "cpp:cpp-libraries"]},
+        {"path": TEST_PATH, "skills": ["cpp:cpp-testing"]},
     ]
-
-    if "gcc" in layers:
-        result.append(
-            {
-                "path": rf"{CPP_PATH}|{BUILD_PATH}",
-                "skills": ["gcc:gcc-toolchain"],
-                "note": "GCC/Linux toolchain layer generated for a gcc project.",
-            }
-        )
-    if "windows" in layers:
-        result.extend(
-            [
-                {
-                    "path": rf"{CPP_PATH}|{WINDOWS_RESOURCE_PATH}",
-                    "skills": [
-                        "windows:windows-overview",
-                        "windows:win32-style",
-                    ],
-                    "note": "Native Windows layer generated for an MSVC/clang-cl/Win32 project.",
-                },
-                {
-                    "path": rf"{BUILD_PATH}|{MSVC_BUILD_PATH}",
-                    "skills": ["windows:windows-overview", "windows:msvc-toolchain"],
-                },
-            ]
-        )
-
+    if toolchain == "gpp":
+        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}", "skills": ["gpp:gpp-toolchain"], "note": "Explicit G++ toolchain selection."})
+    if toolchain == "msvc":
+        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{MSVC_BUILD_PATH}", "skills": ["msvc:msvc-toolchain"], "note": "Explicit MSVC/clang-cl toolchain selection."})
+    if "win32" in apis:
+        result.append({"path": rf"{CPP_PATH}|{WINDOWS_RESOURCE_PATH}", "skills": ["win32:windows-overview", "win32:win32-style"], "note": "Explicit user-mode Win32 API selection; compiler remains independent."})
+    layers = ["cpp", *([toolchain] if toolchain else []), *apis]
     return {
         "_comment": [
             "Generated by tomjseery/cpp-agents .agents/gen_skill_routes.py; do not edit by hand.",
-            "The concertable plugin reads this table before writes and reviews.",
-            "Every matching route fires, so platform and test/build routes layer on the C++ base.",
+            "Toolchain and API selections are independent. Host OS never chooses a compiler.",
+            "Every matching technical route fires; no process plugin is required.",
         ],
-        "kind": compatibility_kind(layers),
-        "layers": list(layers),
+        "kind": compatibility_kind(toolchain, apis),
+        "profile": {"toolchain": toolchain, "apis": list(apis)},
+        "layers": layers,
         "routes": result,
     }
 
 
-def rendered(kind_or_layers: str | list[str] | tuple[str, ...]) -> str:
-    return json.dumps(routes(kind_or_layers), indent=2, ensure_ascii=False) + "\n"
+def routes_from_legacy(kind: str | None = None, layers: list[str] | tuple[str, ...] = ()) -> dict:
+    toolchain, apis = legacy_selection(kind, layers)
+    return routes(toolchain, apis)
+
+
+def rendered(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> str:
+    return json.dumps(routes(toolchain, apis), indent=2, ensure_ascii=False) + "\n"
 
 
 def target_for(root: Path) -> Path:
     return root / ".agents" / "skill-routes.json"
 
 
-def skills_for(kind_or_layers: str | list[str] | tuple[str, ...], path: str) -> set[str]:
-    matched = set()
-    for route in routes(kind_or_layers)["routes"]:
+def skills_for(toolchain: str | None, apis: list[str] | tuple[str, ...], path: str) -> set[str]:
+    matched: set[str] = set()
+    for route in routes(toolchain, apis)["routes"]:
         if re.search(route["path"], path):
             matched.update(route.get("skills") or [])
     return matched
 
 
-def write_or_check(kind_or_layers: str | list[str] | tuple[str, ...], root: Path, check: bool) -> int:
-    layers = canonical_layers(kind_or_layers)
+def write_or_check(toolchain: str | None, apis: list[str], root: Path, check: bool) -> int:
     target = target_for(root)
-    expected = rendered(layers[1:])
-    label = "+".join(layers)
+    expected = rendered(toolchain, apis)
     if check:
-        try:
-            actual = target.read_text(encoding="utf-8")
-        except OSError:
-            actual = None
+        actual = target.read_text(encoding="utf-8") if target.is_file() else None
         if actual != expected:
-            arguments = " ".join(f"--layer {layer}" for layer in layers[1:]) or "--kind generic"
-            print(f"STALE: {target}; regenerate with {arguments} --into {root}")
+            print(f"STALE: {target}")
             return 1
-        print(f"current: {target} ({label})")
+        print(f"current: {target}")
         return 0
-
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(expected, encoding="utf-8", newline="\n")
-    print(f"generated: {target} ({label})")
+    print(f"generated: {target} ({'+'.join(routes(toolchain, apis)['layers'])})")
     return 0
 
 
 def self_test() -> int:
+    profiles = [(None, []), ("gpp", []), ("msvc", []), (None, ["win32"]), ("gpp", ["win32"]), ("msvc", ["win32"])]
     with tempfile.TemporaryDirectory() as temporary:
-        root = Path(temporary)
-        for kind in CANONICAL_KINDS:
-            destination = root / kind
-            if write_or_check(kind, destination, False) != 0:
+        for index, (toolchain, apis) in enumerate(profiles):
+            root = Path(temporary) / str(index)
+            if write_or_check(toolchain, apis, root, False) or write_or_check(toolchain, apis, root, True):
                 return 1
-            if write_or_check(kind, destination, True) != 0:
-                return 1
-            parsed = json.loads(target_for(destination).read_text(encoding="utf-8"))
-            if parsed["kind"] != kind or parsed["layers"][0] != "base" or not parsed["routes"]:
-                return 1
-
-        if routes("portable")["kind"] != "generic" or routes("gpp")["kind"] != "gcc":
-            print("legacy kind aliases do not normalize to canonical kinds")
+    if legacy_selection("windows") != ("msvc", ("win32",)) or legacy_selection("gcc") != ("gpp", ()):
+        print("legacy profile normalization failed")
+        return 1
+    cases = {
+        ((None, ()), "src/main.cpp"): {"cpp:cpp-style"},
+        (("msvc", ()), "src/main.cpp"): {"cpp:cpp-style", "msvc:msvc-toolchain"},
+        (("msvc", ()), "app/app.rc"): set(),
+        ((None, ("win32",)), "src/main.cpp"): {"cpp:cpp-style", "win32:windows-overview", "win32:win32-style"},
+        ((None, ("win32",)), "app/app.vcxproj"): set(),
+        (("gpp", ("win32",)), "src/main.cpp"): {"cpp:cpp-style", "gpp:gpp-toolchain", "win32:windows-overview", "win32:win32-style"},
+        ((None, ()), "tests/core_test.cpp"): {"cpp:cpp-style", "cpp:cpp-testing"},
+        ((None, ()), "CMakeLists.txt"): {"cpp:cpp-build", "cpp:cpp-libraries"},
+        (("msvc", ()), "lib/lib.vcxproj"): {"msvc:msvc-toolchain"},
+    }
+    for ((toolchain, apis), path), expected in cases.items():
+        actual = skills_for(toolchain, apis, path)
+        if actual != expected:
+            print(f"unexpected skills for {toolchain}/{apis}:{path}: {sorted(actual)}")
             return 1
-
-        composed = routes(["windows", "gcc"])
-        if composed["kind"] != "composed" or composed["layers"] != ["base", "windows", "gcc"]:
-            print("platform layers do not compose in canonical order")
-            return 1
-
-        cases = {
-            ("generic", "app/src/main.cpp"): {"base:cpp-style"},
-            ("generic", "tests/core/core_test.cpp"): {
-                "base:cpp-style",
-                "base:cpp-testing",
-            },
-            ("generic", "CMakeLists.txt"): {
-                "base:cpp-build",
-                "base:cpp-libraries",
-            },
-            ("gcc", "libs/core/src/core.cpp"): {
-                "base:cpp-style",
-                "gcc:gcc-toolchain",
-            },
-            ("windows", "app/src/main.cpp"): {
-                "base:cpp-style",
-                "windows:windows-overview",
-                "windows:win32-style",
-            },
-            ("windows", "app/app.manifest"): {
-                "windows:windows-overview",
-                "windows:win32-style",
-            },
-            ("windows", "app/src/MAIN.CPP"): {
-                "base:cpp-style",
-                "windows:windows-overview",
-                "windows:win32-style",
-            },
-            ("windows", "app/APP.RC"): {
-                "windows:windows-overview",
-                "windows:win32-style",
-            },
-            ("windows", "CMakeLists.txt"): {
-                "base:cpp-build",
-                "base:cpp-libraries",
-                "windows:windows-overview",
-                "windows:msvc-toolchain",
-            },
-            ("windows", "library/library.vcxproj"): {
-                "windows:windows-overview", "windows:msvc-toolchain",
-            },
-            ("windows", "build/common.props"): {
-                "windows:windows-overview", "windows:msvc-toolchain",
-            },
-            ("generic", "library/library.vcxproj"): set(),
-            (("windows", "gcc"), "app/src/main.cpp"): {
-                "base:cpp-style",
-                "windows:windows-overview",
-                "windows:win32-style",
-                "gcc:gcc-toolchain",
-            },
-            ("generic", "AGENTS.md"): {"concertable:docs-and-debt"},
-            ("generic", ".agents/skill-routes.json"): {"concertable:skill-routes"},
-        }
-        for (kind_or_layers, path), expected in cases.items():
-            actual = skills_for(kind_or_layers, path)
-            if actual != expected:
-                print(f"unexpected skills for {kind_or_layers}:{path}: {sorted(actual)}")
-                return 1
     print("skill-route generator self-test passed")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--kind", choices=(*CANONICAL_KINDS, *KIND_ALIASES))
-    parser.add_argument("--layer", action="append", choices=PLATFORM_LAYERS, default=[])
+    parser.add_argument("--toolchain", choices=TOOLCHAINS)
+    parser.add_argument("--api", action="append", choices=APIS, default=[])
+    parser.add_argument("--kind", choices=LEGACY_KINDS)
+    parser.add_argument("--layer", action="append", choices=LEGACY_LAYERS, default=[])
     parser.add_argument("--into", type=Path)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
-
     if args.self_test:
-        if args.kind or args.layer or args.into or args.check:
+        if any((args.toolchain, args.api, args.kind, args.layer, args.into, args.check)):
             parser.error("--self-test cannot be combined with generation arguments")
         return self_test()
-    if args.kind and args.layer:
-        parser.error("--kind is the legacy single-classification input; use repeated --layer for composition")
-    if not (args.kind or args.layer) or not args.into:
-        parser.error("--kind or at least one --layer, plus --into, are required unless --self-test is used")
-    selection = args.kind if args.kind else args.layer
-    return write_or_check(selection, args.into.resolve(), args.check)
+    if (args.kind or args.layer) and (args.toolchain or args.api):
+        parser.error("legacy --kind/--layer cannot be combined with --toolchain/--api")
+    if not args.into:
+        parser.error("--into is required")
+    toolchain, apis = legacy_selection(args.kind, args.layer) if (args.kind or args.layer) else normalize(args.toolchain, args.api)
+    return write_or_check(toolchain, list(apis), args.into.resolve(), args.check)
 
 
 if __name__ == "__main__":

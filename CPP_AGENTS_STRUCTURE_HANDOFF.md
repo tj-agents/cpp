@@ -1,3 +1,7 @@
+> **Superseded layout:** P3 implemented the later `.agents/<scope>/<kind>/<name>/SKILL.md`
+> correction. This handoff remains historical evidence for the accepted scaffold and logical
+> scope split; its physical `standards/*` paths are no longer canonical. See `ARCHITECTURE.md`.
+
 # Handoff: separate toolchains, Win32 APIs and reusable utilities
 
 This is a separate cpp-agents correction handoff. It does not replace the sandbox-hwid
