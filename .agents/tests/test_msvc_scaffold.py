@@ -51,6 +51,42 @@ class MsvcScaffoldTests(unittest.TestCase):
                     parsed = subprocess.run(["pwsh", "-NoProfile", "-NonInteractive", "-Command", parser])
                     self.assertEqual(0, parsed.returncode, script)
 
+    def test_project_layout_matches_gpp_scaffold_shape(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            created = self.run_scaffold("-Name", "my-tool", "-Destination", str(parent))
+            self.assertEqual(0, created.returncode, created.stdout + created.stderr)
+            project = parent / "my-tool"
+
+            expected = {
+                "CMakeLists.txt",
+                "CMakePresets.json",
+                ".gitignore",
+                "README.md",
+                "libs/core/CMakeLists.txt",
+                "libs/core/include/core/core.hpp",
+                "libs/core/src/core.cpp",
+                "app/CMakeLists.txt",
+                "app/src/main.cpp",
+                "tests/CMakeLists.txt",
+                "tests/core/core_test.cpp",
+                "scripts/Build.ps1",
+                "scripts/Enter-DevShell.ps1",
+            }
+            actual = {str(p.relative_to(project)).replace("\\", "/") for p in project.rglob("*") if p.is_file()}
+            self.assertEqual(expected, actual)
+
+            # A dashed name is not a valid C++ identifier, so it must be sanitized
+            # for the namespace/target tokens the same way new-gpp-project.sh does.
+            header = (project / "libs/core/include/core/core.hpp").read_text(encoding="utf-8")
+            self.assertIn("namespace my_tool {", header)
+            core_source = (project / "libs/core/src/core.cpp").read_text(encoding="utf-8")
+            self.assertIn('"hello from my-tool"', core_source)
+            main_source = (project / "app/src/main.cpp").read_text(encoding="utf-8")
+            self.assertIn("my_tool::greeting()", main_source)
+            test_source = (project / "tests/core/core_test.cpp").read_text(encoding="utf-8")
+            self.assertIn('my_tool::greeting() == "hello from my-tool"', test_source)
+
     def test_whatif_existing_destination_and_missing_templates(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary) / "destination"
