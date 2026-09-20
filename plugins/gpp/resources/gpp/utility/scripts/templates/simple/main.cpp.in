@@ -1,6 +1,6 @@
-#include <print>
+#include <iostream>
 
 int main() {
-    std::println("hello from __PROJECT__");
+    std::cout << "hello from __PROJECT__" << '\n';
     return 0;
 }
