@@ -1,0 +1,13 @@
+{
+  "plugin": "msvc",
+  "scopes": [
+    "msvc"
+  ],
+  "prerequisites": [
+    "cpp"
+  ],
+  "skills": [
+    "msvc-scaffold",
+    "msvc-toolchain"
+  ]
+}

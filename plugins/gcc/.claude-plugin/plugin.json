@@ -1,1 +1,17 @@
-{"name":"gcc","version":"0.3.0","description":"The GCC, g++, gdb, and Linux delta layered on Tommy\u0027s generic C++ standards.","author":{"name":"Tommy Seery","url":"https://github.com/tomjseery"},"repository":"https://github.com/tomjseery/cpp-agents","keywords":["standards","cpp","gcc","gpp","gdb","linux"],"skills":"./skills/"}
+{
+  "name": "gcc",
+  "version": "0.4.0",
+  "description": "Deprecated compatibility package for gpp@cpp-agents; remove after 2027-03-31.",
+  "author": {
+    "name": "Tommy Seery",
+    "url": "https://github.com/tomjseery"
+  },
+  "repository": "https://github.com/tomjseery/cpp-agents",
+  "skills": "./skills/",
+  "keywords": [
+    "gpp",
+    "gcc",
+    "compatibility",
+    "deprecated"
+  ]
+}

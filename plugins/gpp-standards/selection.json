@@ -1,0 +1,12 @@
+{
+  "plugin": "gpp-standards",
+  "scopes": [
+    "gpp"
+  ],
+  "prerequisites": [
+    "cpp-standards"
+  ],
+  "skills": [
+    "gpp-toolchain"
+  ]
+}

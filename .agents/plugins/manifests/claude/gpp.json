@@ -1,0 +1,18 @@
+{
+  "name": "gpp",
+  "version": "0.1.0",
+  "description": "G++, GCC, GDB, and Linux guidance layered on cpp.",
+  "author": {
+    "name": "Tommy Seery",
+    "url": "https://github.com/tomjseery"
+  },
+  "repository": "https://github.com/tomjseery/cpp-agents",
+  "skills": "./skills/",
+  "keywords": [
+    "cpp",
+    "gpp",
+    "gcc",
+    "gdb",
+    "linux"
+  ]
+}

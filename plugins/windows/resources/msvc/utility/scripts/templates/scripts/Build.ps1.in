@@ -1,0 +1,27 @@
+#Requires -Version 5.1
+[CmdletBinding()]
+param(
+    [ValidateSet('Debug', 'Release')][string]$Configuration = 'Debug',
+    [string]$VsInstallPath,
+    [switch]$Fresh,
+    [switch]$Test
+)
+
+$ErrorActionPreference = 'Stop'
+& (Join-Path $PSScriptRoot 'Enter-DevShell.ps1') -VsInstallPath $VsInstallPath
+$preset = if ($Configuration -eq 'Debug') { 'dev' } else { 'release' }
+Push-Location -LiteralPath (Split-Path -Parent $PSScriptRoot)
+try {
+    $configureArguments = @('--preset', $preset)
+    if ($Fresh) { $configureArguments += '--fresh' }
+    & cmake @configureArguments
+    if ($LASTEXITCODE -ne 0) { throw "CMake configuration failed ($LASTEXITCODE)." }
+    & cmake --build --preset $preset
+    if ($LASTEXITCODE -ne 0) { throw "Build failed ($LASTEXITCODE)." }
+    if ($Test) {
+        & ctest --preset $preset
+        if ($LASTEXITCODE -ne 0) { throw "Tests failed or no tests were defined ($LASTEXITCODE)." }
+    }
+} finally {
+    Pop-Location
+}

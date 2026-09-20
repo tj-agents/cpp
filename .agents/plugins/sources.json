@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "scopes": [
+    {
+      "name": "base",
+      "root": ".agents/base",
+      "layout": "kind",
+      "plugin": "cpp",
+      "domain": "cpp"
+    },
+    {
+      "name": "gpp",
+      "root": ".agents/gpp",
+      "layout": "kind",
+      "plugin": "gpp",
+      "domain": "cpp"
+    },
+    {
+      "name": "msvc",
+      "root": ".agents/msvc",
+      "layout": "kind",
+      "plugin": "msvc",
+      "domain": "cpp"
+    },
+    {
+      "name": "win32",
+      "root": ".agents/win32",
+      "layout": "kind",
+      "plugin": "win32",
+      "domain": "cpp"
+    }
+  ],
+  "host_adapter_roots": {
+    "agents": ".agents/skills",
+    "codex": ".codex/skills",
+    "claude": ".claude/skills"
+  },
+  "host_manifest_roots": {
+    "codex": ".agents/plugins/manifests/codex",
+    "claude": ".agents/plugins/manifests/claude"
+  },
+  "generated_roots": [
+    ".agents/skills",
+    ".codex/skills",
+    ".claude/skills",
+    "plugins",
+    ".agents/plugins/marketplace.json",
+    ".claude-plugin/marketplace.json",
+    ".agents/base/INDEX.md",
+    ".agents/gpp/INDEX.md",
+    ".agents/msvc/INDEX.md",
+    ".agents/win32/INDEX.md"
+  ],
+  "packages": {
+    "cpp": {
+      "scopes": [
+        "base"
+      ]
+    },
+    "gpp": {
+      "scopes": [
+        "gpp"
+      ]
+    },
+    "msvc": {
+      "scopes": [
+        "msvc"
+      ]
+    },
+    "win32": {
+      "scopes": [
+        "win32"
+      ]
+    },
+    "base": {
+      "scopes": [
+        "base"
+      ],
+      "rewrites": {
+        "cpp:": "base:"
+      },
+      "hookRewrites": {
+        "gpp:gpp-toolchain": "gcc:gcc-toolchain",
+        "cpp:": "base:",
+        "cpp@cpp-agents": "base@cpp-agents",
+        "gpp:": "gcc:",
+        "gpp@cpp-agents": "gcc@cpp-agents",
+        "msvc:": "windows:",
+        "msvc@cpp-agents": "windows@cpp-agents",
+        "win32:": "windows:",
+        "win32@cpp-agents": "windows@cpp-agents"
+      }
+    },
+    "gcc": {
+      "scopes": [
+        "gpp"
+      ],
+      "skillAliases": {
+        "gpp-toolchain": "gcc-toolchain"
+      },
+      "rewrites": {
+        "cpp:": "base:",
+        "gpp:gpp-toolchain": "gcc:gcc-toolchain"
+      },
+      "contentRewrites": {
+        "gpp-toolchain": {
+          "`cpp` plugin": "`base` plugin",
+          "- `cpp` \u2014 the platform-neutral C++ base, which still applies here.\n- `msvc` \u2014 the alternative MSVC/clang-cl toolchain when a project selects it.\n- `win32` \u2014 an optional user-mode Windows API layer that does not choose a compiler.": "- `base` \u2014 the platform-neutral compatibility base, which still applies here.\n- The legacy `windows` package is the combined MSVC/Win32 compatibility layer; migrate to the explicit split before selecting a different compiler/API combination."
+        }
+      }
+    },
+    "windows": {
+      "scopes": [
+        "msvc",
+        "win32"
+      ],
+      "rewrites": {
+        "cpp:": "base:",
+        "msvc:": "windows:",
+        "win32:": "windows:"
+      },
+      "contentRewrites": {
+        "windows-overview": {
+          "Load `cpp` first, then `win32:windows-cpp-knowledge` for calibration and\n`win32:win32-style` when writing Windows API glue. Language-version defaults remain in\n`cpp`. If the repository selects MSVC/clang-cl, also load `msvc:msvc-toolchain`; if it\nselects G++, load `gpp:gpp-toolchain` instead.": "Load `base` first, then `win32:windows-cpp-knowledge` for calibration and\n`win32:win32-style` when writing Windows API glue. Language-version defaults remain in\n`base`. This legacy combined package supplies `msvc:msvc-toolchain`; migrate to the\nexplicit `gpp` plus `win32` split before selecting G++ for Win32 work."
+        },
+        "win32-style": {
+          "- Compiler, ABI, runtime, build-system, and editor configuration belong to the selected\n  toolchain skill: `msvc:msvc-toolchain` or `gpp:gpp-toolchain`. The following settings\n  apply to the Win32 target independently of that choice.": "- This legacy combined package supplies `msvc:msvc-toolchain` for compiler, ABI, runtime,\n  build-system, and editor configuration. Migrate to the explicit split before pairing\n  Win32 with another toolchain. The following settings apply to the Win32 target."
+        }
+      }
+    },
+    "cpp-standards": {
+      "scopes": [
+        "base"
+      ],
+      "rewrites": {
+        "cpp:": "cpp-standards:"
+      },
+      "hookRewrites": {
+        "cpp:": "cpp-standards:",
+        "cpp@cpp-agents": "cpp-standards@cpp-agents",
+        "gpp:": "gpp-standards:",
+        "gpp@cpp-agents": "gpp-standards@cpp-agents",
+        "msvc:": "windows:",
+        "msvc@cpp-agents": "windows@cpp-agents",
+        "win32:": "windows:",
+        "win32@cpp-agents": "windows@cpp-agents"
+      }
+    },
+    "gpp-standards": {
+      "scopes": [
+        "gpp"
+      ],
+      "rewrites": {
+        "cpp:": "cpp-standards:",
+        "gpp:": "gpp-standards:"
+      },
+      "contentRewrites": {
+        "gpp-toolchain": {
+          "`cpp` plugin": "`cpp-standards` plugin",
+          "- `cpp` \u2014 the platform-neutral C++ base, which still applies here.\n- `msvc` \u2014 the alternative MSVC/clang-cl toolchain when a project selects it.\n- `win32` \u2014 an optional user-mode Windows API layer that does not choose a compiler.": "- `cpp-standards` \u2014 the platform-neutral compatibility base, which still applies here.\n- This compatibility package does not select a Windows compiler or API layer; migrate to the explicit new identities for that composition."
+        }
+      }
+    }
+  },
+  "resources": [
+    {
+      "plugins": [
+        "msvc",
+        "windows"
+      ],
+      "source": ".agents/msvc/utility/scripts",
+      "destination": "resources/msvc/utility/scripts"
+    }
+  ],
+  "hook_packages": [
+    "cpp",
+    "base",
+    "cpp-standards"
+  ],
+  "package_root": "plugins",
+  "marketplace_outputs": {
+    "codex": ".agents/plugins/marketplace.json",
+    "claude": ".claude-plugin/marketplace.json"
+  }
+}

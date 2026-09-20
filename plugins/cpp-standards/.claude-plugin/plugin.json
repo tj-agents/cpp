@@ -1,1 +1,16 @@
-{"name":"cpp-standards","version":"0.3.0","description":"Deprecated compatibility alias for base@cpp-agents; remove after 2027-03-31.","author":{"name":"Tommy Seery","url":"https://github.com/tomjseery"},"repository":"https://github.com/tomjseery/cpp-agents","keywords":["standards","cpp","compatibility","deprecated"],"skills":"./skills/"}
+{
+  "name": "cpp-standards",
+  "version": "0.4.0",
+  "description": "Deprecated compatibility package for cpp@cpp-agents; remove after 2027-03-31.",
+  "author": {
+    "name": "Tommy Seery",
+    "url": "https://github.com/tomjseery"
+  },
+  "repository": "https://github.com/tomjseery/cpp-agents",
+  "skills": "./skills/",
+  "keywords": [
+    "cpp",
+    "compatibility",
+    "deprecated"
+  ]
+}

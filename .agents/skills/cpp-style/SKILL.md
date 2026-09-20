@@ -1,10 +1,11 @@
 ---
 name: cpp-style
 description: Generic C++ naming, initialization, braces, API documentation, implementation comments, and clang-tidy conventions.
+kind: contract
+domain: cpp
 ---
 
-# C++ style
+# Code conventions — C++ (Tommy)
 
-The standard is `standards/cpp/STYLE.md` in `tomjseery/cpp-agents`, deployed to `~/.agents/standards/cpp/STYLE.md`.
-
-Read and follow it before writing or reviewing C++ code.
+Read and follow the [canonical shared definition](../../base/contract/cpp-style/SKILL.md) in full.
+This discovery entry is generated; edit the referenced `.agents/` definition.

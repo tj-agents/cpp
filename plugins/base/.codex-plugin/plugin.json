@@ -1,24 +1,25 @@
 {
   "name": "base",
-  "version": "0.3.0",
-  "description": "Generic C++ coding, build, testing, library, learning, and knowledge standards for Tommy's projects.",
+  "version": "0.4.0",
+  "description": "Deprecated compatibility package for cpp@cpp-agents; remove after 2027-03-31.",
   "author": {
     "name": "Tommy Seery",
     "url": "https://github.com/tomjseery"
   },
   "repository": "https://github.com/tomjseery/cpp-agents",
-  "keywords": ["standards", "cpp", "cmake", "learning"],
   "skills": "./skills/",
+  "keywords": [
+    "cpp",
+    "compatibility",
+    "deprecated"
+  ],
   "interface": {
-    "displayName": "C++ Base Standards",
-    "shortDescription": "Tommy's platform-neutral C++ conventions.",
-    "longDescription": "Platform-neutral modern C++ style, CMake, testing, dependency choices, learning workflow, direction, and current knowledge. Windows and GCC/Linux rules compose as separate layers.",
+    "displayName": "base",
+    "shortDescription": "Deprecated compatibility package for cpp@cpp-agents; remove after 2027-03-31.",
     "developerName": "Tommy Seery",
     "category": "Productivity",
-    "capabilities": ["Instructions", "Hooks"],
-    "defaultPrompt": [
-      "Review this C++ change against my standards.",
-      "Teach me the C++ concepts this task needs."
+    "capabilities": [
+      "Instructions"
     ]
   }
 }

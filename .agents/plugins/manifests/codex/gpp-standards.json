@@ -1,0 +1,25 @@
+{
+  "name": "gpp-standards",
+  "version": "0.4.0",
+  "description": "Deprecated compatibility package for gpp@cpp-agents; remove after 2027-03-31.",
+  "author": {
+    "name": "Tommy Seery",
+    "url": "https://github.com/tomjseery"
+  },
+  "repository": "https://github.com/tomjseery/cpp-agents",
+  "skills": "./skills/",
+  "keywords": [
+    "gpp",
+    "compatibility",
+    "deprecated"
+  ],
+  "interface": {
+    "displayName": "gpp-standards",
+    "shortDescription": "Deprecated compatibility package for gpp@cpp-agents; remove after 2027-03-31.",
+    "developerName": "Tommy Seery",
+    "category": "Productivity",
+    "capabilities": [
+      "Instructions"
+    ]
+  }
+}

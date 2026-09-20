@@ -8,31 +8,16 @@ from pathlib import Path
 CPP_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".ixx"}
 CPP_FILES = {"CMakeLists.txt", "CMakePresets.json", ".clang-format", ".clang-tidy"}
 ROUTES_FILE = Path(".agents") / "skill-routes.json"
-KIND_ALIASES = {"portable": "generic", "gpp": "gcc"}
-PROJECT_KINDS = {"generic", "gcc", "windows", *KIND_ALIASES}
-PROJECT_LAYERS = {"base", "gcc", "windows"}
-WINDOWS_MARKERS = (
-    "#include <windows.h>",
-    "#include <wil/",
-    "winmain(",
-    "wwinmain(",
-    "createwindowex",
-    "defwindowproc",
-)
-BASE_CONTEXT = "This is a C++ repository. Apply cpp-standards@cpp-agents. Load cpp-standards:cpp-style and cpp-standards:cpp-libraries before code changes, and cpp-standards:cpp-learning plus cpp-standards:cpp-knowledge before deciding how to teach or implement unfamiliar logic."
-WINDOWS_CONTEXT = "Native Windows C++ was detected. Apply windows-standards@windows-agents on top of cpp-standards: windows-standards:windows-overview, windows-standards:win32-style, and windows-standards:windows-cpp-knowledge."
-GCC_CONTEXT = "GCC/Linux C++ applies to this repository. Apply gpp-standards@cpp-agents and gpp-standards:gpp-toolchain on top of base."
+WINDOWS_MARKERS = ("#include <windows.h>", "#include <wil/", "winmain(", "wwinmain(", "createwindowex", "defwindowproc")
+CPP_CONTEXT = "This is a C++ repository. Apply cpp-standards@cpp-agents. Load cpp-standards:cpp-style and cpp-standards:cpp-libraries before code changes, and cpp-standards:cpp-learning plus cpp-standards:cpp-knowledge before teaching or implementing unfamiliar logic."
+GPP_CONTEXT = "The repository explicitly selects G++. Apply gpp-standards@cpp-agents and gpp-standards:gpp-toolchain on top of cpp."
+MSVC_CONTEXT = "The repository explicitly selects MSVC/clang-cl. Apply windows@cpp-agents and windows:msvc-toolchain on top of cpp. This does not select Win32 APIs."
+WIN32_CONTEXT = "The repository explicitly selects user-mode Win32 APIs. Apply windows@cpp-agents, windows:windows-overview, windows:win32-style, and windows:windows-cpp-knowledge. The compiler is selected separately."
+WIN32_SUGGESTION = "Win32 source markers were detected, but no API profile is declared. Consider selecting win32 explicitly; detection does not apply it or choose MSVC."
 
 
 def project_root(cwd: Path) -> Path:
-    result = subprocess.run(
-        ["git", "-C", str(cwd), "rev-parse", "--show-toplevel"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+    result = subprocess.run(["git", "-C", str(cwd), "rev-parse", "--show-toplevel"], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
     if result.returncode == 0 and result.stdout.strip():
         return Path(result.stdout.strip()).resolve()
     for candidate in (cwd, *cwd.parents):
@@ -43,40 +28,41 @@ def project_root(cwd: Path) -> Path:
 
 def tracked_project(cwd: Path) -> tuple[Path, list[str]]:
     root = project_root(cwd)
-    result = subprocess.run(
-        ["git", "-C", str(root), "ls-files"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+    result = subprocess.run(["git", "-C", str(root), "ls-files"], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
     if result.returncode == 0:
         return root, [line for line in result.stdout.splitlines() if line]
     return root, [item.name for item in root.iterdir() if item.is_file()]
 
 
-def declared_layers(root: Path) -> frozenset[str] | None:
+def declared_profile(root: Path) -> tuple[str | None, frozenset[str]] | None:
     try:
-        routes = json.loads((root / ROUTES_FILE).read_text(encoding="utf-8"))
+        declaration = json.loads((root / ROUTES_FILE).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    if not isinstance(routes, dict):
+    if not isinstance(declaration, dict):
         return None
-    layers = routes.get("layers")
-    if (
-        isinstance(layers, list)
-        and layers
-        and all(isinstance(layer, str) for layer in layers)
-        and set(layers) <= PROJECT_LAYERS
-        and "base" in layers
-    ):
-        return frozenset(layers)
-    value = routes.get("kind")
-    if value not in PROJECT_KINDS:
+    profile = declaration.get("profile")
+    if isinstance(profile, dict):
+        toolchain = profile.get("toolchain")
+        apis = profile.get("apis", [])
+        if toolchain in (None, "gpp", "msvc") and isinstance(apis, list) and set(apis) <= {"win32"}:
+            return toolchain, frozenset(apis)
         return None
-    kind = KIND_ALIASES.get(value, value)
-    return frozenset({"base"} if kind == "generic" else {"base", kind})
+    kind = declaration.get("kind")
+    if kind in ("generic", "portable"):
+        return None, frozenset()
+    if kind in ("gcc", "gpp"):
+        return "gpp", frozenset()
+    if kind == "windows":
+        return "msvc", frozenset({"win32"})
+    layers = declaration.get("layers")
+    if isinstance(layers, list):
+        values = set(layers)
+        if values <= {"base", "cpp", "gcc", "gpp", "windows", "msvc", "win32"}:
+            toolchain = "gpp" if values & {"gcc", "gpp"} else ("msvc" if values & {"windows", "msvc"} else None)
+            apis = frozenset({"win32"}) if values & {"windows", "win32"} else frozenset()
+            return toolchain, apis
+    return None
 
 
 def is_cpp_project(files: list[str]) -> bool:
@@ -86,51 +72,43 @@ def is_cpp_project(files: list[str]) -> bool:
 def is_native_windows(cwd: Path, files: list[str]) -> bool:
     if any(Path(file).suffix.lower() in {".manifest", ".rc"} for file in files):
         return True
-    grep_command = ["git", "-C", str(cwd), "grep", "--quiet", "-I", "-i", "-F"]
+    command = ["git", "-C", str(cwd), "grep", "--quiet", "-I", "-i", "-F"]
     for marker in WINDOWS_MARKERS:
-        grep_command.extend(["-e", marker])
-    grep_command.extend(["--", *(f":(icase)*{suffix}" for suffix in sorted(CPP_SUFFIXES))])
-    result = subprocess.run(
-        grep_command,
-        capture_output=True,
-        check=False,
-    )
+        command.extend(["-e", marker])
+    command.extend(["--", *(f":(icase)*{suffix}" for suffix in sorted(CPP_SUFFIXES))])
+    result = subprocess.run(command, capture_output=True, check=False)
     if result.returncode in {0, 1}:
         return result.returncode == 0
-
-    # Non-Git fallbacks still stream rather than loading an arbitrarily large source file at once.
-    candidates = [file for file in files if Path(file).suffix.lower() in CPP_SUFFIXES]
-    for relative in candidates:
+    for relative in (file for file in files if Path(file).suffix.lower() in CPP_SUFFIXES):
         try:
             with (cwd / relative).open(encoding="utf-8", errors="ignore") as source:
-                if any(marker in line.lower() for line in source for marker in WINDOWS_MARKERS):
-                    return True
+                for line in source:
+                    lowered = line.lower()
+                    if any(marker in lowered for marker in WINDOWS_MARKERS):
+                        return True
         except OSError:
             continue
     return False
 
 
-def context_for(
-    cwd: Path,
-    platform: str = sys.platform,
-) -> list[str]:
+def context_for(cwd: Path, platform: str = sys.platform) -> list[str]:
+    del platform
     root, files = tracked_project(cwd)
-    layers = declared_layers(root)
-    if not is_cpp_project(files) and layers is None:
+    profile = declared_profile(root)
+    if not is_cpp_project(files) and profile is None:
         return []
-
-    if layers is None:
-        layers = {"base"}
+    context = [CPP_CONTEXT]
+    if profile is None:
         if is_native_windows(root, files):
-            layers.add("windows")
-        elif platform.startswith("linux"):
-            layers.add("gcc")
-
-    context = [BASE_CONTEXT]
-    if "windows" in layers:
-        context.append(WINDOWS_CONTEXT)
-    if "gcc" in layers:
-        context.append(GCC_CONTEXT)
+            context.append(WIN32_SUGGESTION)
+        return context
+    toolchain, apis = profile
+    if toolchain == "gpp":
+        context.append(GPP_CONTEXT)
+    elif toolchain == "msvc":
+        context.append(MSVC_CONTEXT)
+    if "win32" in apis:
+        context.append(WIN32_CONTEXT)
     return context
 
 

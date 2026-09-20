@@ -1,81 +1,50 @@
 # cpp-agents
 
-Tommy's layered C++ standards marketplace for Claude Code and Codex. One repository owns the generic C++ corpus and both supported platform/toolchain deltas.
+C++ guidance is authored once under `.agents/` and published as four independent plugins.
 
-## Public plugins
-
-| Plugin | Responsibility | Requires |
+| Plugin | Owns | Requires |
 |---|---|---|
-| `base@cpp-agents` | Modern platform-neutral C++, CMake, dependency policy, testing, style, learning guidance, direction, and general C++ knowledge | — |
-| `windows@cpp-agents` | Native Windows development: Win32, Unicode, MSVC and clang-cl, WIL, native-resource ownership, Windows CMake, and Windows learning guidance | `base@cpp-agents` |
-| `gcc@cpp-agents` | GCC, g++, GDB, and Linux-oriented native C++ development | `base@cpp-agents` |
+| `cpp@cpp-agents` | Platform-neutral C++, CMake, testing, dependencies, learning, and knowledge | — |
+| `gpp@cpp-agents` | G++, GCC, GDB, and Linux toolchain details | `cpp` |
+| `msvc@cpp-agents` | MSVC/clang-cl toolchain details and the reusable console scaffold | `cpp` |
+| `win32@cpp-agents` | User-mode Win32, Unicode, WIL, callbacks, and native resources | `cpp` |
 
-The layers compose. Install `base + windows` for a native Windows repository and `base + gcc` for a GCC/Linux repository. A project that genuinely spans both toolchains may install all three.
+Compiler and API choices are separate. A console library can select `cpp + msvc` without
+Win32 guidance. A Win32 project can select `cpp + win32 + gpp` or `cpp + win32 + msvc`.
+The host operating system never silently chooses a compiler.
 
-## Install
+Canonical definitions live at:
 
-Claude Code:
+- `.agents/base/<kind>/<name>/SKILL.md`
+- `.agents/gpp/<kind>/<name>/SKILL.md`
+- `.agents/msvc/<kind>/<name>/SKILL.md`
+- `.agents/win32/<kind>/<name>/SKILL.md`
 
-```text
-/plugin marketplace add tomjseery/cpp-agents
-/plugin install base@cpp-agents
-/plugin install windows@cpp-agents
-```
+`.agents/plugins/sources.json` maps those sources into generated `.agents/skills/`,
+`.codex/skills/`, `.claude/skills/`, and self-contained `plugins/*` packages. The MSVC
+scaffold script and templates are owned by `.agents/msvc/utility/scripts/` and ship inside
+the `msvc` and legacy combined `windows` packages.
 
-Substitute `gcc@cpp-agents` for `windows@cpp-agents` on a GCC/Linux machine or project.
-
-Codex:
-
-```powershell
-codex plugin marketplace add https://github.com/tomjseery/cpp-agents
-codex plugin add base@cpp-agents
-codex plugin add windows@cpp-agents
-```
-
-Substitute `gcc@cpp-agents` for the Windows layer where appropriate. Install `concertable@agent-standards` separately in both harnesses; it owns workflow, planning, review, delivery, repository management, and the write-time skill router.
-
-## Repository routing
-
-`base` carries the C++ session-detection hook. An explicit generated route kind wins over the host platform; otherwise native Windows markers select `windows`, a Linux host selects `gcc`, and every C++ repository receives `base`.
-
-Generate deterministic write-time routes with:
-
-```powershell
-python .agents/gen_skill_routes.py --kind generic --into <project>
-python .agents/gen_skill_routes.py --kind windows --into <project>
-python .agents/gen_skill_routes.py --kind gcc --into <project>
-python .agents/gen_skill_routes.py --layer windows --layer gcc --into <cross-toolchain-project>
-```
-
-The single `--kind` form remains the convenient and compatibility-safe input for ordinary repositories;
-repeat `--layer` when a repository genuinely needs more than one platform layer. Generated tables carry
-an ordered `layers` list with `base` first. They use `base:*`, `windows:*`, `gcc:*`, and `concertable:*`.
-Every matching row fires, so a Windows test receives generic style/testing plus the Windows layer. Project
-`AGENTS.md` files retain project facts; `CLAUDE.md` imports `AGENTS.md` so both harnesses receive the same
-repository guidance.
-
-## Compatibility migration
-
-`cpp-standards@cpp-agents` and `gpp-standards@cpp-agents` remain generated compatibility aliases through 2027-03-31. The archived `windows-agents` repository retains a frozen `windows-standards` migration snapshot for the same interval; it is not an active marketplace. New configurations must use only `base`, `windows`, and `gcc` from this repository.
-
-Follow [MIGRATION.md](MIGRATION.md) for the install-before-route-update sequence and the exhaustive classification of retired names.
-
-## Authoring and validation
-
-Markdown under `standards/` and routers under `.agents/skills/` are source. `.agents/sync-generated.ps1` creates self-contained Codex and Claude plugin payloads; generated plugin files and `.claude/skills/` are never edited directly.
-
-Validation requires Git, Python, PowerShell 7, and GnuPG. On Windows, the tests automatically use the GPG executable bundled with Git for Windows when `gpg` is not on `PATH`. Contract refreshes additionally require an authenticated GitHub CLI so the release gate can bind the pinned commit to the private `Concertable/agent-standards` repository. Before pushing a protected contract change, commit it, push that exact head, and run the repository-bound attestation:
+Generate and verify outputs with:
 
 ```powershell
 pwsh .agents/sync-generated.ps1
 pwsh .agents/sync-generated.ps1 -Check
-python .agents/gen_skill_routes.py --self-test
-python -m unittest discover -s .agents/hooks/tests
-python -m unittest discover -s .agents/tests
-pwsh C:\path\to\clean-cpp-agents-main\.agents\attest-external-contract.ps1 `
-  -ConsumerSource C:\path\to\cpp-agents-candidate `
-  -CandidateSha <full-pushed-sha> `
-  -AgentStandardsSource C:\path\to\agent-standards
+python -B .agents/gen_skill_routes.py --self-test
 ```
 
-CI also validates every plugin manifest for both harnesses and rejects broken identifiers, missing dependencies, stale canonical names, generated drift, and incorrect layered activation. The trusted default-branch provenance gate independently requires the exact-head attestation status for changes to the external contract, its evidence, verifier, attestation script, or CI trust path; see [PROVENANCE_GATE.md](PROVENANCE_GATE.md).
+Generate a consuming repository profile explicitly:
+
+```powershell
+python .agents/gen_skill_routes.py --toolchain msvc --into C:/source/project
+python .agents/gen_skill_routes.py --toolchain gpp --api win32 --into C:/source/project
+python .agents/gen_skill_routes.py --api win32 --into C:/source/project
+```
+
+Legacy `--kind gcc` and `--kind windows` inputs remain accepted for migration. New profiles
+emit only `cpp`, `gpp`, `msvc`, and `win32` identities and contain no compulsory process-plugin
+route. Process workflows may be installed separately from their shared engineering owner.
+
+Compatibility packages `base`, `gcc`, `windows`, `cpp-standards`, and `gpp-standards` remain
+through 2027-03-31. The old `windows` package is a generated combined MSVC plus Win32 bundle;
+consumers must choose the explicit split when migrating.

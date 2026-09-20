@@ -1,10 +1,11 @@
 ---
 name: windows-overview
-description: Orientation for Tommy's native Windows C++ tier including MSVC, WIL, Unicode, project scope, and layering over generic C++.
+description: Orientation for Tommy's user-mode Win32 C++ tier including Unicode, WIL, project scope, and independent toolchain selection.
+kind: knowledge
+domain: cpp
 ---
 
-# Windows C++ overview
+# Windows / Win32 API tier
 
-The standard is `standards/windows/OVERVIEW.md` in `tomjseery/cpp-agents`, deployed to `~/.agents/standards/windows/OVERVIEW.md`.
-
-Read it at the start of native Windows C++ work after loading the generic C++ base.
+Read and follow the [canonical shared definition](../../win32/knowledge/windows-overview/SKILL.md) in full.
+This discovery entry is generated; edit the referenced `.agents/` definition.
