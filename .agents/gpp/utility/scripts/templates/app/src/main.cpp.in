@@ -1,0 +1,8 @@
+#include <iostream>
+
+#include "core/core.hpp"
+
+int main() {
+    std::cout << __NAMESPACE__::greeting() << '\n';
+    return 0;
+}

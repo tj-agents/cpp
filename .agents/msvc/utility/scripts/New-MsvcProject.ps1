@@ -42,6 +42,9 @@ $templates = @(Get-ChildItem -LiteralPath $templateRoot -Recurse -Force -File -F
 if (!$templates.Count) { throw 'The packaged MSVC templates are missing.' }
 if (!$PSCmdlet.ShouldProcess($projectPath, 'Create MSVC console project')) { return }
 
+$namespace = [regex]::Replace($Name, '[^A-Za-z0-9]', '_')
+$namespaceUpper = $namespace.ToUpperInvariant()
+
 New-Item -ItemType Directory -Path $projectPath -ErrorAction Stop | Out-Null
 $utf8 = [Text.UTF8Encoding]::new($false)
 foreach ($template in $templates) {
@@ -50,7 +53,7 @@ foreach ($template in $templates) {
     $target = Join-Path $projectPath $relative
     New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
     $text = [IO.File]::ReadAllText($template.FullName)
-    $text = $text.Replace('__PROJECT__', $Name).Replace('__CPP_STANDARD__', [string]$CppStandard)
+    $text = $text.Replace('__CPP_STANDARD__', [string]$CppStandard).Replace('__NAMESPACE_UPPER__', $namespaceUpper).Replace('__NAMESPACE__', $namespace).Replace('__PROJECT__', $Name)
     [IO.File]::WriteAllText($target, $text, $utf8)
 }
 foreach ($configurationName in $configurations.Keys) {

@@ -1,0 +1,9 @@
+#include "core/core.hpp"
+
+namespace __NAMESPACE__ {
+
+std::string greeting() {
+    return "hello from __PROJECT__";
+}
+
+}  // namespace __NAMESPACE__

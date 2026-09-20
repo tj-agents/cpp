@@ -1,3 +1,4 @@
 # G++ utilities
 
-No G++ utilities are currently defined. This group reserves the section's utility home without inventing a scaffold.
+`gpp-scaffold` owns the reusable library+console project scaffold (`libs/core` + `app`
++ Catch2 tests). Its runtime script and templates live in `scripts/`.

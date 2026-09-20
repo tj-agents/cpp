@@ -1,11 +1,12 @@
 # __PROJECT__
 
-C++__CPP_STANDARD__ console starter using MSVC x64, CMake 3.28+ and Ninja.
+C++__CPP_STANDARD__ project using MSVC x64, CMake 3.28+ and Ninja, with a
+`libs/core` library target, a thin `app` executable, and Catch2 tests.
 Use VS Code, Neovim or Visual Studio. Install the compiler/Windows SDK and CMake/Ninja;
 the build helper discovers an existing C++ installation and does not install tools.
 
 ```powershell
-./scripts/Build.ps1
+./scripts/Build.ps1 -Test
 ./build/dev/bin/__PROJECT__.exe
 ./scripts/Build.ps1 -Configuration Release
 ```
@@ -14,13 +15,14 @@ Or run `./scripts/Enter-DevShell.ps1`, then use the CMake `dev`/`release` preset
 An editor launched from that shell inherits the environment. Configure editor diagnostics
 from `build/dev/compile_commands.json` instead of maintaining a second set of flags.
 
-The initial target uses the dynamic MSVC CRT, exceptions, and warnings as errors for owned
+The initial targets use the dynamic MSVC CRT, exceptions, and warnings as errors for owned
 code. Record the actual compiler and SDK versions after building. C++23 may map to
 `/std:c++latest` in a particular CMake/MSVC pairing; inspect the actual compiler command.
 Choose and test runtime/deployment settings when the application gains consumers.
 
-Add reusable logic as library targets and add meaningful tests when behavior exists.
-`./scripts/Build.ps1 -Test` runs CTest and fails while no tests are defined.
-`-Fresh` reconfigures after a toolchain change. Use separate build directories/presets for
-different architectures or generators. Formatting/analysis files are included only when
-existing configurations were supplied to the generator.
+Keep reusable logic in `libs/core`; extract a second library target once a second consumer
+actually appears. The sample `core::greeting()` function and its Catch2 case exist only to
+prove the scaffold builds and tests end to end — replace them with real logic.
+`./scripts/Build.ps1 -Test` runs CTest. `-Fresh` reconfigures after a toolchain change. Use
+separate build directories/presets for different architectures or generators. Formatting/
+analysis files are included only when existing configurations were supplied to the generator.

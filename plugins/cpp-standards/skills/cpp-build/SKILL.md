@@ -1,6 +1,6 @@
 ---
 name: cpp-build
-description: Generic CMake target, preset, dependency, compiler-option, and build-layout conventions for C++ projects.
+description: Generic CMake target, preset, and dependency conventions for C++ projects.
 kind: contract
 domain: cpp
 ---
@@ -9,7 +9,9 @@ domain: cpp
 
 Use CMake as the project model and presets as the human-facing build interface.
 These rules are platform-neutral; `gpp` owns GCC/G++ details, `msvc` owns MSVC and
-clang-cl details, and `win32` owns user-mode Windows API guidance.
+clang-cl details, and `win32` owns user-mode Windows API guidance. See
+`cpp-standards:cpp-structure` for the project's folder/file layout; this file covers how
+targets, presets, and dependencies are modeled inside that layout.
 
 ## Model the build with targets
 
