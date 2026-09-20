@@ -1,0 +1,20 @@
+# __PROJECT__
+
+C++__CPP_STANDARD__ project using G++, CMake 3.28+ and Ninja, with a
+`libs/core` library target, a thin `app` executable, and Catch2 tests.
+
+```bash
+cmake --preset dev
+cmake --build --preset dev
+./build/dev/bin/__PROJECT__
+ctest --preset dev --output-on-failure
+```
+
+`build/dev` carries sanitizers (`-fsanitize=address,undefined`) and debug
+symbols; `build/release` is the optimized configuration with its own preset.
+Configure editor diagnostics from `build/dev/compile_commands.json`.
+
+Keep reusable logic in `libs/core`; extract a second library target once a
+second consumer actually appears. The sample `core::greeting()` function and
+its Catch2 case exist only to prove the scaffold builds and tests end to end —
+replace them with real logic.
