@@ -8,7 +8,7 @@ domain: cpp
 # g++ / Linux conventions — C++ (Tommy)
 
 How I write portable / Linux-native C++. These rules sit **on top of** the
-`cpp` plugin, whose naming, initialization, learning, and std-first
+`base` plugin, whose naming, initialization, learning, and std-first
 dependency rules still hold. This file adds only the GCC / GNU / Linux toolchain
 layer. API selection, including `win32`, remains independent.
 
@@ -34,7 +34,6 @@ are independent, neither is "the default".
 
 ## See also
 
-- `cpp` — the platform-neutral C++ base, which still applies here.
-- `msvc` — the alternative MSVC/clang-cl toolchain when a project selects it.
-- `win32` — an optional user-mode Windows API layer that does not choose a compiler.
+- `base` — the platform-neutral compatibility base, which still applies here.
+- The legacy `windows` package is the combined MSVC/Win32 compatibility layer; migrate to the explicit split before selecting a different compiler/API combination.
 - `base:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.

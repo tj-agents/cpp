@@ -29,15 +29,15 @@ are the tools I'm learning with, not final opinions:
 | # | Area | My pick | Status |
 |---|------|---------|--------|
 | 1 | Build system / generator | **CMake** (+ presets) | learning now |
-| 2 | Debugger | **Selected by platform layer** | see the selected gpp/msvc toolchain and optional win32 API layer |
+| 2 | Debugger | **Selected by toolchain** | see the selected `gpp` or `msvc` toolchain |
 | 3 | IDE / terminal | **VS Code** + **Neovim**; getting comfy in the terminal | learning now |
 | 4 | Testing framework | **Catch2** | seen it (keystore tests) |
-| 5 | Compiler | **Selected by platform layer** | see the selected gpp/msvc toolchain and optional win32 API layer |
+| 5 | Compiler | **Selected by toolchain** | see the selected `gpp` or `msvc` toolchain |
 | 6 | Linting / formatting | **clang-tidy** + **clang-format** | configured, not deeply understood |
-| 7 | Profiler | **Selected by platform layer** | see the selected gpp/msvc toolchain and optional win32 API layer |
+| 7 | Profiler | **Selected by toolchain** | see the selected `gpp` or `msvc` toolchain |
 | 8 | Version control | **git** | basics |
 
-When I level up an area, note it here.
+When I level up an area, note it here. Win32 is an independent API choice; it never selects the compiler, debugger, or profiler.
 
 ## How I want to get there (the rule)
 
@@ -50,7 +50,7 @@ So, when working with me:
 - **Don't just write the code for me.** Explain the idea, show me the shape, and
   let me write as much as I can myself. If you do write code, walk through *why*
   it's written that way so I could reproduce it.
-- **Teach the tooling, not just the language.** When CMake, a platform-selected
+- **Teach the tooling, not just the language.** When CMake, a toolchain-selected
   compiler/debugger/profiler, clang-tidy, or git comes up, treat it as something
   to *learn*, not boilerplate to skip past —
   they're explicitly on the skill tree above.
