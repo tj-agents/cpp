@@ -170,6 +170,15 @@
       ],
       "source": ".agents/msvc/utility/scripts",
       "destination": "resources/msvc/utility/scripts"
+    },
+    {
+      "plugins": [
+        "gpp",
+        "gcc",
+        "gpp-standards"
+      ],
+      "source": ".agents/gpp/utility/scripts",
+      "destination": "resources/gpp/utility/scripts"
     }
   ],
   "hook_packages": [
