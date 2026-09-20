@@ -61,7 +61,7 @@ def routes(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ())
     toolchain, apis = normalize(toolchain, apis)
     result = [
         {"path": CPP_PATH, "skills": ["cpp:cpp-style"], "note": "C++ source floor."},
-        {"path": BUILD_PATH, "skills": ["cpp:cpp-build", "cpp:cpp-libraries"]},
+        {"path": BUILD_PATH, "skills": ["cpp:cpp-build", "cpp:cpp-structure", "cpp:cpp-libraries"]},
         {"path": TEST_PATH, "skills": ["cpp:cpp-testing"]},
     ]
     if toolchain == "gpp":
@@ -137,10 +137,10 @@ def self_test() -> int:
         (("msvc", ()), "app/app.rc"): set(),
         ((None, ("win32",)), "src/main.cpp"): {"cpp:cpp-style", "win32:windows-overview", "win32:win32-style"},
         ((None, ("win32",)), "app/app.vcxproj"): {"win32:windows-overview", "win32:win32-style"},
-        ((None, ("win32",)), "CMakeLists.txt"): {"cpp:cpp-build", "cpp:cpp-libraries", "win32:windows-overview", "win32:win32-style"},
+        ((None, ("win32",)), "CMakeLists.txt"): {"cpp:cpp-build", "cpp:cpp-structure", "cpp:cpp-libraries", "win32:windows-overview", "win32:win32-style"},
         (("gpp", ("win32",)), "src/main.cpp"): {"cpp:cpp-style", "gpp:gpp-toolchain", "win32:windows-overview", "win32:win32-style"},
         ((None, ()), "tests/core_test.cpp"): {"cpp:cpp-style", "cpp:cpp-testing"},
-        ((None, ()), "CMakeLists.txt"): {"cpp:cpp-build", "cpp:cpp-libraries"},
+        ((None, ()), "CMakeLists.txt"): {"cpp:cpp-build", "cpp:cpp-structure", "cpp:cpp-libraries"},
         (("msvc", ()), "lib/lib.vcxproj"): {"msvc:msvc-toolchain"},
         (("msvc", ("win32",)), "app/app.vcxproj"): {"msvc:msvc-toolchain", "win32:windows-overview", "win32:win32-style"},
     }
