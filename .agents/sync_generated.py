@@ -14,9 +14,10 @@ FRONTMATTER = re.compile(r"\A---\n(?P<header>.*?)\n---\n(?P<body>.*)\Z", re.DOTA
 NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 RETIRED_DOC_REFERENCE = re.compile(r"(?<![A-Za-z0-9_.-])(?:BUILD|DIRECTION|KNOWLEDGE|LEARNING|LIBRARIES|MSVC|OVERVIEW|SCAFFOLD|STYLE|TESTING|TOOLCHAIN|WIN32)\.md(?![A-Za-z0-9_/\\-]|\.(?!$|[\s)\]}>,\"`*]))")
 EXPECTED_SCOPE_ROOTS = (".agents/base", ".agents/gpp", ".agents/msvc", ".agents/win32")
-EXPECTED_HOST_ADAPTER_ROOTS = {"agents": ".agents/skills", "codex": ".codex/skills", "claude": ".claude/skills"}
+EXPECTED_HOST_ADAPTER_ROOTS = {"codex": ".codex/skills", "claude": ".claude/skills"}
 EXPECTED_PACKAGE_ROOT = "plugins"
 EXPECTED_MARKETPLACE_OUTPUTS = {"codex": ".agents/plugins/marketplace.json", "claude": ".claude-plugin/marketplace.json"}
+RETIRED_GENERATED_ROOTS = (".agents/skills",)
 
 
 def read(path: Path) -> str:
@@ -128,6 +129,12 @@ def validated_generated_roots(root: Path, config: dict) -> list[Path]:
         if relative.is_absolute() or ".." in relative.parts:
             raise ValueError(f"Invalid generated root: {value}")
         lexical = resolved_root.joinpath(*relative.parts)
+        ancestor = resolved_root
+        for part in relative.parts:
+            ancestor = ancestor / part
+            is_junction = getattr(ancestor, "is_junction", lambda: False)()
+            if ancestor.is_symlink() or is_junction:
+                raise ValueError(f"Generated root ancestor must not be a link or junction: {ancestor}")
         path = lexical.resolve()
         if path == resolved_root or not path.is_relative_to(resolved_root):
             raise ValueError(f"Generated root escapes or equals repository root: {value}")
@@ -137,6 +144,25 @@ def validated_generated_roots(root: Path, config: dict) -> list[Path]:
         if overlaps and path not in allowed_indexes:
             names = ", ".join(source.relative_to(resolved_root).as_posix() for source in overlaps)
             raise ValueError(f"Generated root overlaps authored source ({names}): {value}")
+        result.append(path)
+    return result
+
+
+def validated_retired_generated_roots(root: Path) -> list[Path]:
+    resolved_root = root.resolve()
+    result: list[Path] = []
+    for value in RETIRED_GENERATED_ROOTS:
+        relative = PurePosixPath(value)
+        lexical = resolved_root.joinpath(*relative.parts)
+        ancestor = resolved_root
+        for part in relative.parts:
+            ancestor = ancestor / part
+            is_junction = getattr(ancestor, "is_junction", lambda: False)()
+            if ancestor.is_symlink() or is_junction:
+                raise ValueError(f"Retired generated root ancestor must not be a link or junction: {ancestor}")
+        path = lexical.resolve()
+        if path == resolved_root or not path.is_relative_to(resolved_root):
+            raise ValueError(f"Retired generated root escapes or equals repository root: {value}")
         result.append(path)
     return result
 
@@ -202,6 +228,12 @@ def package_body(skill: dict, package: str, cfg: dict) -> tuple[str, str]:
         body = body.replace("../scripts/", "../../resources/msvc/utility/scripts/")
         body = body.replace("<skill-directory>/../scripts/", "<skill-directory>/../../resources/msvc/utility/scripts/")
     return output_name, body
+
+
+def resource_bytes(path: Path, text: bool) -> bytes:
+    if text:
+        return read(path).encode("utf-8")
+    return path.read_bytes()
 
 
 def build(root: Path) -> tuple[dict[str, bytes], dict]:
@@ -273,7 +305,10 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             for path in sorted(source.rglob("*")):
                 if path.is_file():
                     suffix = path.relative_to(source).as_posix()
-                    emit(f"{package_root}/{package}/{resource['destination']}/{suffix}", path.read_bytes())
+                    emit(
+                        f"{package_root}/{package}/{resource['destination']}/{suffix}",
+                        resource_bytes(path, resource.get("text", False)),
+                    )
 
     codex_plugins = []
     claude_plugins = []
@@ -307,19 +342,21 @@ def synchronize(root: Path, check: bool) -> int:
     output, config = build(root)
     expected = set(output)
     actual = existing_files(root, config["generated_roots"])
+    retired_roots = validated_retired_generated_roots(root)
+    retired = sorted(path.relative_to(root).as_posix() for path in retired_roots if path.exists())
     stale = sorted(path for path in expected & actual if (root / path).read_bytes() != output[path])
     missing = sorted(expected - actual)
     extra = sorted(actual - expected)
     if check:
-        for label, paths in (("MISSING", missing), ("STALE", stale), ("EXTRA", extra)):
+        for label, paths in (("MISSING", missing), ("STALE", stale), ("EXTRA", extra), ("RETIRED", retired)):
             for path in paths:
                 print(f"{label}: {path}")
-        if missing or stale or extra:
+        if missing or stale or extra or retired:
             return 1
         print(f"generated outputs current: {len(expected)} files, {len(discover(root, config))} definitions")
         return 0
 
-    for path in validated_generated_roots(root, config):
+    for path in [*validated_generated_roots(root, config), *retired_roots]:
         if path.is_dir():
             shutil.rmtree(path)
         elif path.exists():
