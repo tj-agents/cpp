@@ -20,8 +20,9 @@ Canonical definitions live at:
 - `.agents/msvc/<kind>/<name>/SKILL.md`
 - `.agents/win32/<kind>/<name>/SKILL.md`
 
-`.agents/plugins/sources.json` maps those sources into generated `.agents/skills/`,
-`.codex/skills/`, `.claude/skills/`, and self-contained `plugins/*` packages. The MSVC
+`.agents/plugins/sources.json` maps those sources into generated `.codex/skills/`,
+`.claude/skills/`, and self-contained `plugins/*` packages. `.agents/skills/` does not exist;
+`.agents/` remains the sole canonical shared tree. The MSVC
 scaffold script and templates are owned by `.agents/msvc/utility/scripts/` and ship inside
 the `msvc` and legacy combined `windows` packages.
 
