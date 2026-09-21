@@ -44,6 +44,18 @@ WIL's.
 - `UNICODE` / `_UNICODE` are defined project-wide in CMake, not per-file (API and CRT
   respectively — define both).
 
+## Legacy integer names — [platform]
+
+Win32's historical names have exact, non-intuitive meanings: `BYTE` is 8 bits, `WORD` is
+16 bits, and `DWORD` is 32 bits even on 64-bit Windows. Use those SDK types where a Win32
+API contract requires them. For owned binary formats and internal data, follow
+`cpp:cpp-style` and state the width with `std::uint8_t`, `std::uint16_t`, or
+`std::uint32_t` instead.
+
+Reserve `BYTE`, `WORD`, `DWORD`, and related historical names for the SDK contracts that
+define them. Name owned domain types for the concept they enforce and owned storage types
+for their exact width.
+
 ## Unicode & strings — [platform]
 
 Windows is UTF-16 internally. Don't fight it; convert at the edges.
