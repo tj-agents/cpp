@@ -1,8 +1,10 @@
+from contextlib import redirect_stdout
 import importlib.util
+import io
 import json
+from pathlib import Path
 import tempfile
 import unittest
-from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,6 +45,46 @@ class GeneratedRootSafetyTests(unittest.TestCase):
             with mock.patch.object(Path, "is_symlink", autospec=True, side_effect=lambda path: path.name == ".codex" or original(path)):
                 with self.assertRaisesRegex(ValueError, "ancestor"):
                     sync_generated.validated_generated_roots(root, self.config())
+
+    def test_retired_generated_root_link_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            original = Path.is_symlink
+            with mock.patch.object(
+                Path,
+                "is_symlink",
+                autospec=True,
+                side_effect=lambda path: path.as_posix().endswith("/.agents/skills") or original(path),
+            ):
+                with self.assertRaisesRegex(ValueError, "Retired generated root ancestor"):
+                    sync_generated.validated_retired_generated_roots(root)
+
+    def test_text_resources_are_normalized_to_lf(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            resource = Path(temporary) / "script.sh"
+            resource.write_bytes(b"#!/usr/bin/env bash\r\nset -euo pipefail\r\n")
+            self.assertEqual(
+                b"#!/usr/bin/env bash\nset -euo pipefail\n",
+                sync_generated.resource_bytes(resource, text=True),
+            )
+
+    def test_retired_generated_root_is_reported_and_removed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            retired_file = root / ".agents/skills/example/SKILL.md"
+            retired_file.parent.mkdir(parents=True)
+            retired_file.write_text("stale", encoding="utf-8")
+            config = self.config()
+            with mock.patch.object(sync_generated, "build", return_value=({}, config)), mock.patch.object(
+                sync_generated, "discover", return_value={}
+            ):
+                output = io.StringIO()
+                with redirect_stdout(output):
+                    self.assertEqual(1, sync_generated.synchronize(root, check=True))
+                self.assertIn("RETIRED: .agents/skills", output.getvalue())
+                self.assertTrue(retired_file.exists())
+                self.assertEqual(0, sync_generated.synchronize(root, check=False))
+            self.assertFalse((root / ".agents/skills").exists())
 
     def test_repository_root_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
