@@ -31,7 +31,6 @@
     }
   ],
   "host_adapter_roots": {
-    "agents": ".agents/skills",
     "codex": ".codex/skills",
     "claude": ".claude/skills"
   },
@@ -40,7 +39,6 @@
     "claude": ".agents/plugins/manifests/claude"
   },
   "generated_roots": [
-    ".agents/skills",
     ".codex/skills",
     ".claude/skills",
     "plugins",

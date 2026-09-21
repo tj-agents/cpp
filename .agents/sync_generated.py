@@ -14,7 +14,7 @@ FRONTMATTER = re.compile(r"\A---\n(?P<header>.*?)\n---\n(?P<body>.*)\Z", re.DOTA
 NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 RETIRED_DOC_REFERENCE = re.compile(r"(?<![A-Za-z0-9_.-])(?:BUILD|DIRECTION|KNOWLEDGE|LEARNING|LIBRARIES|MSVC|OVERVIEW|SCAFFOLD|STYLE|TESTING|TOOLCHAIN|WIN32)\.md(?![A-Za-z0-9_/\\-]|\.(?!$|[\s)\]}>,\"`*]))")
 EXPECTED_SCOPE_ROOTS = (".agents/base", ".agents/gpp", ".agents/msvc", ".agents/win32")
-EXPECTED_HOST_ADAPTER_ROOTS = {"agents": ".agents/skills", "codex": ".codex/skills", "claude": ".claude/skills"}
+EXPECTED_HOST_ADAPTER_ROOTS = {"codex": ".codex/skills", "claude": ".claude/skills"}
 EXPECTED_PACKAGE_ROOT = "plugins"
 EXPECTED_MARKETPLACE_OUTPUTS = {"codex": ".agents/plugins/marketplace.json", "claude": ".claude-plugin/marketplace.json"}
 
@@ -128,6 +128,12 @@ def validated_generated_roots(root: Path, config: dict) -> list[Path]:
         if relative.is_absolute() or ".." in relative.parts:
             raise ValueError(f"Invalid generated root: {value}")
         lexical = resolved_root.joinpath(*relative.parts)
+        ancestor = resolved_root
+        for part in relative.parts:
+            ancestor = ancestor / part
+            is_junction = getattr(ancestor, "is_junction", lambda: False)()
+            if ancestor.exists() and (ancestor.is_symlink() or is_junction):
+                raise ValueError(f"Generated root ancestor must not be a link or junction: {ancestor}")
         path = lexical.resolve()
         if path == resolved_root or not path.is_relative_to(resolved_root):
             raise ValueError(f"Generated root escapes or equals repository root: {value}")

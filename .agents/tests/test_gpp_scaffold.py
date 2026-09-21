@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -11,9 +12,28 @@ SCRIPT = ROOT / "plugins" / "gpp" / "resources" / "gpp" / "utility" / "scripts" 
 
 
 class GppScaffoldTests(unittest.TestCase):
+    @staticmethod
+    def bash_path(path: Path) -> str:
+        resolved = path.resolve().as_posix()
+        if os.name != "nt":
+            return resolved
+        if len(resolved) < 3 or resolved[1:3] != ":/":
+            raise RuntimeError(f"Unsupported Windows path for Bash: {resolved}")
+        if subprocess.run(["bash", "-lc", "test -d /mnt/c"], check=False).returncode == 0:
+            prefix = "/mnt/"
+        elif subprocess.run(["bash", "-lc", "test -d /c"], check=False).returncode == 0:
+            prefix = "/"
+        else:
+            raise RuntimeError("Bash exposes neither WSL nor Git Bash drive mounts")
+        return f"{prefix}{resolved[0].lower()}{resolved[2:]}"
+
     def run_scaffold(self, *arguments: str, script: Path = SCRIPT) -> subprocess.CompletedProcess[str]:
+        converted = list(arguments)
+        if "--destination" in converted:
+            index = converted.index("--destination") + 1
+            converted[index] = self.bash_path(Path(converted[index]))
         return subprocess.run(
-            ["bash", str(script), *arguments],
+            ["bash", self.bash_path(script), *converted],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -35,7 +55,7 @@ class GppScaffoldTests(unittest.TestCase):
 
             for project in (parent / "cpp20_app", parent / "cpp23_app"):
                 json.loads((project / "CMakePresets.json").read_text(encoding="utf-8"))
-                parsed = subprocess.run(["bash", "-n", str(SCRIPT)])
+                parsed = subprocess.run(["bash", "-n", self.bash_path(SCRIPT)])
                 self.assertEqual(0, parsed.returncode, "new-gpp-project.sh")
 
     def test_generated_sources_actually_compile_under_each_standard(self) -> None:

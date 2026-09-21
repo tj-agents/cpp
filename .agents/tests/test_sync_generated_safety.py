@@ -1,7 +1,9 @@
 import importlib.util
+import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 MODULE_PATH = ROOT / ".agents/sync_generated.py"
@@ -14,18 +16,33 @@ class GeneratedRootSafetyTests(unittest.TestCase):
     def config(self) -> dict:
         return {
             "scopes": [{"root": ".agents/base"}, {"root": ".agents/gpp"}, {"root": ".agents/msvc"}, {"root": ".agents/win32"}],
-            "host_adapter_roots": {"agents": ".agents/skills", "codex": ".codex/skills", "claude": ".claude/skills"},
+            "host_adapter_roots": {"codex": ".codex/skills", "claude": ".claude/skills"},
             "package_root": "plugins",
             "marketplace_outputs": {"codex": ".agents/plugins/marketplace.json", "claude": ".claude-plugin/marketplace.json"},
             "host_manifest_roots": {"codex": ".agents/plugins/manifests/codex", "claude": ".agents/plugins/manifests/claude"},
             "resources": [{"source": ".agents/msvc/utility/scripts"}],
-            "generated_roots": [".agents/skills", ".codex/skills", ".claude/skills", "plugins", ".agents/plugins/marketplace.json", ".claude-plugin/marketplace.json", ".agents/base/INDEX.md", ".agents/gpp/INDEX.md", ".agents/msvc/INDEX.md", ".agents/win32/INDEX.md"],
+            "generated_roots": [".codex/skills", ".claude/skills", "plugins", ".agents/plugins/marketplace.json", ".claude-plugin/marketplace.json", ".agents/base/INDEX.md", ".agents/gpp/INDEX.md", ".agents/msvc/INDEX.md", ".agents/win32/INDEX.md"],
         }
 
     def test_declared_adapter_and_exact_scope_index_are_allowed(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             paths = sync_generated.validated_generated_roots(Path(temporary), self.config())
-        self.assertEqual(10, len(paths))
+        self.assertEqual(9, len(paths))
+
+    def test_source_map_has_only_host_specific_adapter_roots(self) -> None:
+        config = json.loads((ROOT / ".agents/plugins/sources.json").read_text(encoding="utf-8"))
+        self.assertEqual({"codex": ".codex/skills", "claude": ".claude/skills"}, config["host_adapter_roots"])
+        self.assertNotIn(".agents/skills", config["generated_roots"])
+        self.assertFalse((ROOT / ".agents/skills").exists())
+
+    def test_generated_root_link_ancestor_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / ".codex").mkdir()
+            original = Path.is_symlink
+            with mock.patch.object(Path, "is_symlink", autospec=True, side_effect=lambda path: path.name == ".codex" or original(path)):
+                with self.assertRaisesRegex(ValueError, "ancestor"):
+                    sync_generated.validated_generated_roots(root, self.config())
 
     def test_repository_root_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -57,8 +74,8 @@ class GeneratedRootSafetyTests(unittest.TestCase):
                     old = config["package_root"]
                     config["package_root"] = value
                 elif kind == "adapter":
-                    old = config["host_adapter_roots"]["agents"]
-                    config["host_adapter_roots"]["agents"] = value
+                    old = config["host_adapter_roots"]["codex"]
+                    config["host_adapter_roots"]["codex"] = value
                 elif kind == "marketplace":
                     old = config["marketplace_outputs"]["codex"]
                     config["marketplace_outputs"]["codex"] = value

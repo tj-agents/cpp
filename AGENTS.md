@@ -9,8 +9,9 @@ Do not restore a separate `standards/` source tree or author shared definitions 
 `.claude/`, `.agents/skills/`, or `plugins/`.
 
 `.agents/plugins/sources.json` owns the source/package map and generated-root declaration.
-`.agents/skills/`, `.codex/skills/`, `.claude/skills/`, `.agents/*/INDEX.md`, marketplace
-files, and `plugins/*` are generated. Authored host manifests live under
+`.codex/skills/`, `.claude/skills/`, `.agents/*/INDEX.md`, marketplace files, and `plugins/*`
+are generated. `.agents/skills/` must not exist: `.agents/` is the sole canonical shared tree.
+Authored host manifests live under
 `.agents/plugins/manifests/`. Run `pwsh .agents/sync-generated.ps1` after authored changes
 and require `pwsh .agents/sync-generated.ps1 -Check` before delivery.
 
