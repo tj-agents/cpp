@@ -1,12 +1,12 @@
 {
   "name": "windows",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Deprecated combined MSVC and Win32 compatibility package; split explicitly before 2027-03-31.",
   "author": {
     "name": "Tommy Seery",
     "url": "https://github.com/tomjseery"
   },
-  "repository": "https://github.com/tomjseery/cpp-agents",
+  "repository": "https://github.com/tj-agents/cpp",
   "skills": "./skills/",
   "keywords": [
     "msvc",
