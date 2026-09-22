@@ -13,12 +13,11 @@ skill names, and applying the resulting design to the current lab. Driver instal
 loading, signing-policy changes, VM operations, and unrelated WinWrap implementation remain
 outside this work.
 
-Latest steering: Tommy asked whether the existing Sandbox HWID should use the new design,
-provided the reusable guidance has merged, then explicitly requested a Claude handoff.
-The merge is a prerequisite to check, not an observed fact. Carry the existing authorized
-work into Claude, establish the reusable delivery state, and reconcile the lab against the
-guidance. Do not interpret the question as a request to manufacture new domain entities or
-expand the driver/runtime scope.
+Latest steering (2026-09-23): Tommy authorized updating existing cpp-agents PR #13 and the
+Sandbox HWID application to use type-owned static request validation and the identity
+feature namespace. Retain and explain the ABI assertions. This turn updates the review
+candidate and sandbox; it does not claim or require a merge, publish a release, or expand
+driver/runtime scope. The earlier Claude handoff produced the commits recorded below.
 
 ## Settled decisions
 
@@ -32,8 +31,10 @@ expand the driver/runtime scope.
 - Use a `struct` for passive data whose members may vary independently. Use a `class` when a
   real invariant requires controlled construction or representation.
 - A fallible factory such as `create` establishes a valid value. Member functions represent
-  genuine operations on one encapsulated value. Stateless operations that do not need private
-  representation are free functions in the associated namespace.
+  operations on an encapsulated value. Prefer a static member such as `IdentityRequest::validate`
+  for a stateless check owned by that one type when grouping makes the API clearer. Associated
+  free functions remain appropriate for independent algorithms and boundary adapters. This
+  grouping preference is a house decision, not a requirement of C.4/C.5 or DDD.
 - Immutable transformations use a domain-specific verb. `with_x` is available when it truly
   means "copy this value with one replacement" but is not a mandated C++ naming pattern.
 - C++ value semantics do not require an immutable API. Prefer immutable domain values when
@@ -42,9 +43,10 @@ expand the driver/runtime scope.
   input, not a mandatory substitute for every constructor.
 - Keep mutable state and external I/O in coarse boundary components; keep core transformations
   explicit and independently testable.
-- Sandbox HWID currently has passive protocol records, not a behaviour-bearing domain model.
-  Its protocol types remain `struct`s under `sandbox_hwid::protocol`; no synthetic `domain`
-  layer or immutable-update methods will be introduced.
+- Sandbox HWID currently has passive wire records, not a behaviour-bearing domain model.
+  Its types remain `struct`s under the feature namespace `sandbox_hwid::identity`; no synthetic
+  `domain` layer or immutable-update methods will be introduced. Ordinary static functions
+  do not alter object layout; keep size/offset assertions and host type-trait checks.
 
 ## Work
 
@@ -71,12 +73,22 @@ expand the driver/runtime scope.
 - [x] Update the lab to the canonical installed skill identifiers after the reusable package is
       available.
 - [x] Apply role-based protocol naming: `IdentityRequest`, `IdentityRequestError`,
-      `validate_request`, `IdentityError`, and `query_identity`.
-- [x] Keep `protocol::Identity` as a passive ABI record and record why a separate domain model is
+      `IdentityError`, and `query_identity` (the original free validator is superseded below).
+- [x] Keep `Identity` as a passive ABI record and record why a separate domain model is
       not currently justified.
 - [x] Preserve the client/kernel ABI and all explicit host-versus-VM safety boundaries.
 - [x] Run the authorized host build, tests, formatting, static analysis, and real WDK build as
       applicable; do not install or load the driver.
+
+### 3. Function ownership and feature namespace correction (2026-09-23)
+
+- [x] Correct canonical domain-design/style guidance, regenerate packages, and validate.
+- [x] Move sandbox request validation to `IdentityRequest::validate` and use
+      `sandbox_hwid::identity` consistently in namespaces, headers, consumers and current docs.
+- [x] Preserve ABI assertions and validate standard-layout, aggregate and trivial-copy traits;
+      rerun the real client/tests and C++17 WDK build/analysis.
+- [ ] Commit the bounded corrections, update existing cpp-agents PR #13, and publish a
+      reviewable sandbox companion candidate without staging unrelated work.
 
 ## Acceptance criteria
 
@@ -90,6 +102,40 @@ expand the driver/runtime scope.
 
 ## Progress
 
+- 2026-09-23 correction validation: all required source checks pass. Generator is current at
+  220 files / 16 definitions; six route profiles pass; 11 hook tests and 51 source tests
+  pass with one existing optional live-source skip (61 executed passes total). This includes
+  marketplace, attester, generator safety and both scaffold suites. Claude strictly validates
+  the marketplace and nine packages; Codex installs all nine into an isolated profile.
+  Host evidence: `C:\Users\tommy\AppData\Local\Temp\cpp-identity-host-validation-dlisbfjd`.
+  The new C++17 example compiles with G++ `-Wall -Wextra -Werror -pedantic`; constexpr
+  validation and standard-layout/trivial-copy/aggregate assertions pass.
+- 2026-09-23 sandbox correction: client build and all 8 CTests pass; WDK C++17 `/kernel`
+  build and `/analyze` rebuild each have zero warnings/errors. All seven C++ files pass
+  clang-format and both client translation units pass clang-tidy with no owned diagnostics.
+  All original data fields, field order, GUID and IOCTL compare unchanged; sizes, every
+  metadata offset and the original text offsets are asserted. Host trait checks cover both
+  records. Client help succeeds; driver is `NotSigned`. Current logs and hashes are recorded
+  in the sandbox verification document. No driver/runtime actions occurred.
+- 2026-09-23 local capability refresh: reinstalled only the already-selected `cpp` 0.2.0
+  through Codex's supported installer in the sandbox directory; installed style/design
+  bytes match generated source and the global marketplace registration is unchanged.
+- 2026-09-23 provenance diagnosis: the earlier migration changed two blobs pinned by the
+  trusted attester on `main` (marketplace tests and CI). Missing attestation is therefore
+  not resolved by simply rerunning the old script. The separate reviewed trust-pin update
+  and objective completion condition are owned by
+  [the provenance debt entry](../../TECH_DEBT.md#review-provenance-pins-for-the-canonical-capability-migration).
+  Preserve this gate when updating PR #13; do not weaken it or post an unverified success.
+- 2026-09-23 correction resumed by the current Codex session at Tommy's request. The source
+  checkout is clean at `f2f4ecd1082a2e7d7f71ac1e9abed062942ebb15`; PR #13 is open at that
+  exact head: https://github.com/tomjseery/cpp-agents/pull/13. Its generated/attester tests
+  passed, but the repository-binding provenance check failed; inspect and resolve or report
+  the actual remaining gate when updating the candidate. No merge has occurred.
+- 2026-09-23 sandbox HEAD is `881769bc37f03af32cd18d4a74bcc644c17abee5` on
+  `Refactor/Canonical-Structure`, with no open PR. Preserve unrelated dirty
+  `docs/next-session.md`, `docs/winwrap-integration.md`, `.codex/`, both handoff prompt files,
+  and `nvim.log`. This correction owns only the relevant source/header moves, consumers,
+  ABI checks, build header paths and current design/verification documentation.
 - 2026-09-22 handoff checkpoint: Source checkout remains
   `C:\Users\tommy\AppData\Local\Temp\cpp-agents-explicit-wire-types`, branch
   `fix/explicit-wire-integer-types`, HEAD `e0304dfcba2db5263eb9822e2b06e6706f311165`.
@@ -105,16 +151,17 @@ expand the driver/runtime scope.
   examples are not a proposal to add appointments, entities, factories, or a domain layer
   to the HWID protocol.
 
-## Claude transfer ownership
+## Earlier Claude transfer
 
 - Transfer requested by Tommy; target harness is Claude Code with its configured default
   model. The earlier `gpt-6-astra` selection concerned the independent Codex research pass;
   it does not override this newer explicit Claude request.
 - Launch directory is the source checkout above. Prompt file is
   `C:\Users\tommy\AppData\Local\Temp\cpp-design-claude-handoff.txt`.
-- The parent will submit exactly one packaged `machine:handoff-claude` launch and release
-  writing ownership on its success message. Launcher success proves submission, not that
-  Claude has read this file. Claude should acknowledge ownership here before edits.
+- The parent submitted one packaged `machine:handoff-claude` launch and released writing
+  ownership on its success message. The resulting commits and PR are observed above.
+  The current user request returns ownership of the bounded correction to this Codex session;
+  do not launch another owner for it.
 - Preserve pre-existing lab changes in `docs/next-session.md`, `docs/winwrap-integration.md`,
   `.codex/agents/`, both `BASE_AGENTS_*PROMPT.md` files, and `nvim.log`. Do not stage them
   accidentally with this work. The unrelated temporary patch seen earlier is absent from
@@ -199,28 +246,13 @@ expand the driver/runtime scope.
 
 ## Next Steps
 
-Continue the same goal in Claude: establish whether the reusable guidance is actually merged,
-prepare its remaining delivery work, and reconcile the already-updated lab with the available
-release. The research and local implementation are finished; do not restart them.
-
-1. Read the source checkout's README and AGENTS, then the canonical
-   `.agents/base/contract/domain-design/SKILL.md` and this checkpoint. Confirm both Git
-   identities and preserve all described dirty work. Acknowledge transfer ownership here.
-2. Inspect current remote/default-branch and PR state. The latest check found no PR on
-   `fix/explicit-wire-integer-types`, and these edits are still uncommitted. Prepare the
-   reusable changes for review and normal authorized repository delivery; follow applicable
-   delivery rules and retain real approval gates. Local installation is not merge evidence.
-   Preserve the 2027-03-31 compatibility window and historical signed provenance.
-3. Review the existing lab application against the new guidance. Its current correct shape
-   is passive protocol structs plus free validation and boundary I/O, with the five recorded
-   role-based names. Add encapsulated values/entities only if actual new domain invariants
-   justify them; Tommy's request does not supply any such new requirements.
-4. Once the validated release is actually available from the Git marketplace, refresh the
-   canonical packages for the consuming host, remove only the lab-local marketplace source
-   override, and verify that all nine routed skill identifiers resolve from that published
-   release. Keep the source checkout while the local override is needed. Record concrete
-   merge/release/install evidence and update the lab's current provenance paragraph.
-5. Preserve the completed host checks as evidence. Rerun required source checks for the final
-   delivery candidate and rerun affected lab build/test/format/analysis checks if changes
-   warrant it. Keep the same plan current through delivery. Driver installation/loading,
-   signing-policy changes, VM work, and unrelated WinWrap changes remain unauthorized.
+1. Complete section 3 in this same session. Correct the too-strict free-function and generic
+   protocol-namespace prescriptions, while preserving the distinction between validation,
+   invariant enforcement and layout guarantees.
+2. Run required source validation and affected lab checks. Review and commit each repository's
+   owned changes; update PR #13 and the sandbox review candidate. Record their exact heads
+   and checks here. Investigate the existing provenance failure without changing signed history.
+3. After a separately authorized merge makes the release available, refresh installed packages,
+   remove only the lab-local marketplace source override, and reverify all nine routed skill
+   identifiers from the published source. Retain the source checkout while that override is
+   needed. This remains a release follow-up, not evidence that PR #13 is already merged.

@@ -1,5 +1,22 @@
 # Technical debt
 
+## Review provenance pins for the canonical capability migration
+
+The canonical capability migration changes `.agents/tests/test_marketplace_contract.py`
+and `.github/workflows/ci.yml`, both protected by the trusted attester on `main`.
+Their candidate blobs (`146855dd6374481f8892bc10a5db950f8d3ed8a5` and
+`df7e24389ccad14c333e93de7fc6eb1abc7dc9c4`) differ from the separately reviewed pins
+(`004c73dc421ed64a71563140b62b4f624f5bec7e` and
+`0e15c93383f209a28dde4b034b5a7754ac74c560`). The existing repository-binding failure
+reports the absent exact-head attestation; the current trusted script would also reject
+these changed objects. Ordinary test success does not satisfy this review requirement.
+
+Resolve through a separately reviewed update of the trusted pins on canonical `main`,
+then run that trusted attester against the full candidate SHA and rerun repository-binding.
+Delete this entry when the reviewed objects match and the exact candidate's provenance
+gate passes. Keep historical signed evidence unchanged and do not manufacture a success
+status or weaken the gate to deliver a design-guidance change.
+
 ## Enforce the provenance gate through branch protection
 
 `External contract provenance / repository-binding` is an automated, trusted exact-head check, but GitHub
