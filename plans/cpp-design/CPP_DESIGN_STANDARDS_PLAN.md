@@ -87,7 +87,7 @@ driver/runtime scope. The earlier Claude handoff produced the commits recorded b
       `sandbox_hwid::identity` consistently in namespaces, headers, consumers and current docs.
 - [x] Preserve ABI assertions and validate standard-layout, aggregate and trivial-copy traits;
       rerun the real client/tests and C++17 WDK build/analysis.
-- [ ] Commit the bounded corrections, update existing cpp-agents PR #13, and publish a
+- [x] Commit the bounded corrections, update existing cpp-agents PR #13, and publish a
       reviewable sandbox companion candidate without staging unrelated work.
 
 ## Acceptance criteria
@@ -102,6 +102,16 @@ driver/runtime scope. The earlier Claude handoff produced the commits recorded b
 
 ## Progress
 
+- 2026-09-23 requested correction delivered for review. Source PR
+  https://github.com/tomjseery/cpp-agents/pull/13 is updated at
+  `45c448cdf3a9f653a9b9348502b0513e06b3f4fe`; the sandbox companion draft is
+  https://github.com/tomjseery/sandbox-hwid/pull/1 at
+  `52e8632fc002111145501859e9d52c4c00cad170`. Both remote branch SHAs were verified after
+  pushing, and the existing source PR description was rewritten for the final change.
+  Generated-package CI and Ubuntu/Windows attester-safety jobs pass on that source head;
+  repository-binding still fails at the documented provenance gate. Neither PR is merged.
+  The source workspace's final plan checkpoint is local bookkeeping after the published
+  candidate; it does not change the validated source or require another CI-triggering push.
 - 2026-09-23 correction validation: all required source checks pass. Generator is current at
   220 files / 16 definitions; six route profiles pass; 11 hook tests and 51 source tests
   pass with one existing optional live-source skip (61 executed passes total). This includes
@@ -246,12 +256,14 @@ driver/runtime scope. The earlier Claude handoff produced the commits recorded b
 
 ## Next Steps
 
-1. Complete section 3 in this same session. Correct the too-strict free-function and generic
-   protocol-namespace prescriptions, while preserving the distinction between validation,
-   invariant enforcement and layout guarantees.
-2. Run required source validation and affected lab checks. Review and commit each repository's
-   owned changes; update PR #13 and the sandbox review candidate. Record their exact heads
-   and checks here. Investigate the existing provenance failure without changing signed history.
+The requested correction and publication for review are complete. Continue from the two
+recorded PR heads; do not reimplement the design or reopen duplicate PRs.
+
+1. Before merging source PR #13, resolve the separately reviewed provenance-pin update and
+   trusted exact-head attestation described in the linked debt owner. Preserve the signed
+   archive and the gate. This correction did not authorize bypassing that review requirement.
+2. Review sandbox draft PR #1 against the completed host evidence; retain the unrelated local
+   teaching notes and agent configuration outside it. Driver/VM work remains out of scope.
 3. After a separately authorized merge makes the release available, refresh installed packages,
    remove only the lab-local marketplace source override, and reverify all nine routed skill
    identifiers from the published source. Retain the source checkout while that override is
