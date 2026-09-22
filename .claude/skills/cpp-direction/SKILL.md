@@ -7,5 +7,5 @@ domain: cpp
 
 # North Star — where I'm headed with C++ (Tommy)
 
-Read and follow the [canonical shared definition](../../../.agents/base/knowledge/cpp-direction/SKILL.md) in full.
+Read and follow the [canonical shared definition](../../../.agents/base/knowledge/direction/SKILL.md) in full.
 This discovery entry is generated; edit the referenced `.agents/` definition.

@@ -5,6 +5,7 @@
   ],
   "prerequisites": [],
   "skills": [
+    "build",
     "cpp-build",
     "cpp-direction",
     "cpp-knowledge",
@@ -12,6 +13,48 @@
     "cpp-libraries",
     "cpp-structure",
     "cpp-style",
-    "cpp-testing"
-  ]
+    "cpp-testing",
+    "direction",
+    "domain-design",
+    "knowledge",
+    "learning",
+    "libraries",
+    "structure",
+    "style",
+    "testing"
+  ],
+  "compatibilitySkillAliases": {
+    "cpp-build": {
+      "replacedBy": "cpp:build",
+      "removeAfter": "2027-03-31"
+    },
+    "cpp-style": {
+      "replacedBy": "cpp:style",
+      "removeAfter": "2027-03-31"
+    },
+    "cpp-structure": {
+      "replacedBy": "cpp:structure",
+      "removeAfter": "2027-03-31"
+    },
+    "cpp-testing": {
+      "replacedBy": "cpp:testing",
+      "removeAfter": "2027-03-31"
+    },
+    "cpp-libraries": {
+      "replacedBy": "cpp:libraries",
+      "removeAfter": "2027-03-31"
+    },
+    "cpp-direction": {
+      "replacedBy": "cpp:direction",
+      "removeAfter": "2027-03-31"
+    },
+    "cpp-knowledge": {
+      "replacedBy": "cpp:knowledge",
+      "removeAfter": "2027-03-31"
+    },
+    "cpp-learning": {
+      "replacedBy": "cpp:learning",
+      "removeAfter": "2027-03-31"
+    }
+  }
 }

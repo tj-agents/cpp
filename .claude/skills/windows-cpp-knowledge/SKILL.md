@@ -7,5 +7,5 @@ domain: cpp
 
 # What I know — Windows / Win32 (Tommy)
 
-Read and follow the [canonical shared definition](../../../.agents/win32/knowledge/windows-cpp-knowledge/SKILL.md) in full.
+Read and follow the [canonical shared definition](../../../.agents/win32/knowledge/knowledge/SKILL.md) in full.
 This discovery entry is generated; edit the referenced `.agents/` definition.

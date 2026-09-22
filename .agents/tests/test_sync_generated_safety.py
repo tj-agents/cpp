@@ -1,4 +1,5 @@
 from contextlib import redirect_stdout
+import copy
 import importlib.util
 import io
 import json
@@ -154,6 +155,80 @@ class GeneratedRootSafetyTests(unittest.TestCase):
         self.assertEqual(["STYLE.md", "WIN32.md"], sync_generated.retired_doc_references("See STYLE.md#rules and WIN32.md?plain=1."))
         self.assertEqual(["STYLE.md"], sync_generated.retired_doc_references("Use 'STYLE.md', **STYLE.md**, or STYLE.md!"))
         self.assertEqual(["STYLE.md"], sync_generated.retired_doc_references("A sentence names STYLE.md. Then it ends with STYLE.md."))
+
+
+class SkillMappingTests(unittest.TestCase):
+    def test_discovery_namespaces_repeated_short_names_by_plugin(self) -> None:
+        config = {"scopes": [
+            {"name": scope, "root": f".agents/{scope}", "layout": "kind", "plugin": plugin, "domain": "cpp"}
+            for scope, plugin in (("base", "cpp"), ("gpp", "gpp"), ("msvc", "msvc"), ("win32", "win32"))
+        ]}
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for scope in config["scopes"]:
+                path = root / scope["root"] / "contract" / "style" / "SKILL.md"
+                path.parent.mkdir(parents=True)
+                path.write_text("---\nname: style\ndescription: Example.\nkind: contract\ndomain: cpp\n---\n\n# Style\n", encoding="utf-8")
+            skills = sync_generated.discover(root, config)
+            self.assertEqual({"cpp:style", "gpp:style", "msvc:style", "win32:style"}, set(skills))
+            duplicate = root / ".agents/base/knowledge/style/SKILL.md"
+            duplicate.parent.mkdir(parents=True)
+            duplicate.write_text("---\nname: style\ndescription: Example.\nkind: knowledge\ndomain: cpp\n---\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Duplicate public skill identifier: cpp:style"):
+                sync_generated.discover(root, config)
+
+    def test_identifier_rewrites_are_exact_and_do_not_cascade(self) -> None:
+        body = "cpp:style cpp:style-guide cpp:style_extra prefix-cpp:style docs/cpp:style cpp:build std::string"
+        rewrites = {"cpp:style": "cpp:build", "cpp:build": "base:cpp-build"}
+        self.assertEqual(
+            "cpp:build cpp:style-guide cpp:style_extra prefix-cpp:style docs/cpp:style base:cpp-build std::string",
+            sync_generated.rewrite_identifiers(body, rewrites),
+        )
+
+    def test_packaged_scaffold_resource_paths_follow_the_source_map(self) -> None:
+        config = sync_generated.load(ROOT / ".agents/plugins/sources.json")
+        for plugin, script in (("gpp", "new-gpp-project.sh"), ("msvc", "New-MsvcProject.ps1")):
+            skill = {
+                "identifier": f"{plugin}:scaffold",
+                "name": "scaffold",
+                "relative": f".agents/{plugin}/utility/scaffold/SKILL.md",
+                "body": f"---\nname: scaffold\n---\n[script](../scripts/{script})\n<skill-directory>/../scripts/{script}",
+            }
+            name, body = sync_generated.package_body(skill, plugin, config["packages"][plugin], config["resources"])
+            self.assertEqual("scaffold", name)
+            self.assertIn(f"[script](../../resources/{plugin}/utility/scripts/{script})", body)
+            self.assertIn(f"<skill-directory>/../../resources/{plugin}/utility/scripts/{script}", body)
+            self.assertNotIn("../scripts/", body)
+
+    def test_flat_adapters_keep_unique_names_and_resolve_canonical_sources(self) -> None:
+        skill = {
+            "name": "toolchain",
+            "relative": ".agents/gpp/contract/toolchain/SKILL.md",
+            "body": "---\nname: toolchain\ndescription: Example.\nkind: contract\ndomain: cpp\n---\n\n# Toolchain\n",
+        }
+        body = sync_generated.adapter_body(skill, ".codex/skills", "gpp-toolchain")
+        self.assertIn("name: gpp-toolchain\n", body)
+        self.assertIn("../../../.agents/gpp/contract/toolchain/SKILL.md", body)
+
+    def test_mapping_validation_rejects_ambiguous_or_cross_scope_names(self) -> None:
+        source = sync_generated.load(ROOT / ".agents/plugins/sources.json")
+        payloads = sync_generated.load(ROOT / ".agents/plugins/payloads.json")
+        scopes = {scope["plugin"]: scope["name"] for scope in source["scopes"]}
+        skills = {
+            identifier: {"name": identifier.split(":", 1)[1], "scope": scopes[identifier.split(":", 1)[0]]}
+            for identifier in source["hostAdapterNames"]
+        }
+        mutations = (
+            (lambda config: config["hostAdapterNames"].update({"gpp:toolchain": "msvc-toolchain"}), "unique valid flat"),
+            (lambda config: config["packages"]["windows"]["skillNames"].update({"msvc:toolchain": "win32-style"}), "duplicate emitted skill name"),
+            (lambda config: config["packages"]["cpp"]["compatibilitySkillAliases"]["cpp-style"].update({"source": "win32:style"}), "invalid compatibility skill alias"),
+            (lambda config: config["packages"]["cpp"]["compatibilitySkillAliases"]["cpp-style"].update({"removeAfter": "2026-01-01"}), "must retain 2027-03-31"),
+        )
+        for mutate, message in mutations:
+            config = copy.deepcopy(source)
+            mutate(config)
+            with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                sync_generated.validate(ROOT, config, payloads, skills)
 
 
 if __name__ == "__main__":

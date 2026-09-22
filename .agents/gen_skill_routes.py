@@ -60,16 +60,16 @@ def compatibility_kind(toolchain: str | None, apis: tuple[str, ...]) -> str:
 def routes(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> dict:
     toolchain, apis = normalize(toolchain, apis)
     result = [
-        {"path": CPP_PATH, "skills": ["cpp:cpp-style"], "note": "C++ source floor."},
-        {"path": BUILD_PATH, "skills": ["cpp:cpp-build", "cpp:cpp-structure", "cpp:cpp-libraries"]},
-        {"path": TEST_PATH, "skills": ["cpp:cpp-testing"]},
+        {"path": CPP_PATH, "skills": ["cpp:style", "cpp:domain-design"], "note": "C++ style and data, invariant, and operation design."},
+        {"path": BUILD_PATH, "skills": ["cpp:build", "cpp:structure", "cpp:libraries"]},
+        {"path": TEST_PATH, "skills": ["cpp:testing"]},
     ]
     if toolchain == "gpp":
-        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}", "skills": ["gpp:gpp-toolchain"], "note": "Explicit G++ toolchain selection."})
+        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}", "skills": ["gpp:toolchain"], "note": "Explicit G++ toolchain selection."})
     if toolchain == "msvc":
-        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{MSVC_BUILD_PATH}", "skills": ["msvc:msvc-toolchain"], "note": "Explicit MSVC/clang-cl toolchain selection."})
+        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{MSVC_BUILD_PATH}", "skills": ["msvc:toolchain"], "note": "Explicit MSVC/clang-cl toolchain selection."})
     if "win32" in apis:
-        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{MSVC_BUILD_PATH}|{WINDOWS_RESOURCE_PATH}", "skills": ["win32:windows-overview", "win32:win32-style"], "note": "Explicit user-mode Win32 API selection; compiler remains independent."})
+        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{MSVC_BUILD_PATH}|{WINDOWS_RESOURCE_PATH}", "skills": ["win32:overview", "win32:style"], "note": "Explicit user-mode Win32 API selection; compiler remains independent."})
     layers = ["cpp", *([toolchain] if toolchain else []), *apis]
     return {
         "_comment": [
@@ -132,17 +132,17 @@ def self_test() -> int:
         print("legacy profile normalization failed")
         return 1
     cases = {
-        ((None, ()), "src/main.cpp"): {"cpp:cpp-style"},
-        (("msvc", ()), "src/main.cpp"): {"cpp:cpp-style", "msvc:msvc-toolchain"},
+        ((None, ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design"},
+        (("msvc", ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "msvc:toolchain"},
         (("msvc", ()), "app/app.rc"): set(),
-        ((None, ("win32",)), "src/main.cpp"): {"cpp:cpp-style", "win32:windows-overview", "win32:win32-style"},
-        ((None, ("win32",)), "app/app.vcxproj"): {"win32:windows-overview", "win32:win32-style"},
-        ((None, ("win32",)), "CMakeLists.txt"): {"cpp:cpp-build", "cpp:cpp-structure", "cpp:cpp-libraries", "win32:windows-overview", "win32:win32-style"},
-        (("gpp", ("win32",)), "src/main.cpp"): {"cpp:cpp-style", "gpp:gpp-toolchain", "win32:windows-overview", "win32:win32-style"},
-        ((None, ()), "tests/core_test.cpp"): {"cpp:cpp-style", "cpp:cpp-testing"},
-        ((None, ()), "CMakeLists.txt"): {"cpp:cpp-build", "cpp:cpp-structure", "cpp:cpp-libraries"},
-        (("msvc", ()), "lib/lib.vcxproj"): {"msvc:msvc-toolchain"},
-        (("msvc", ("win32",)), "app/app.vcxproj"): {"msvc:msvc-toolchain", "win32:windows-overview", "win32:win32-style"},
+        ((None, ("win32",)), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "win32:overview", "win32:style"},
+        ((None, ("win32",)), "app/app.vcxproj"): {"win32:overview", "win32:style"},
+        ((None, ("win32",)), "CMakeLists.txt"): {"cpp:build", "cpp:structure", "cpp:libraries", "win32:overview", "win32:style"},
+        (("gpp", ("win32",)), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "gpp:toolchain", "win32:overview", "win32:style"},
+        ((None, ()), "tests/core_test.cpp"): {"cpp:style", "cpp:domain-design", "cpp:testing"},
+        ((None, ()), "CMakeLists.txt"): {"cpp:build", "cpp:structure", "cpp:libraries"},
+        (("msvc", ()), "lib/lib.vcxproj"): {"msvc:toolchain"},
+        (("msvc", ("win32",)), "app/app.vcxproj"): {"msvc:toolchain", "win32:overview", "win32:style"},
     }
     for ((toolchain, apis), path), expected in cases.items():
         actual = skills_for(toolchain, apis, path)

@@ -8,6 +8,18 @@
   ],
   "skills": [
     "gpp-scaffold",
-    "gpp-toolchain"
-  ]
+    "gpp-toolchain",
+    "scaffold",
+    "toolchain"
+  ],
+  "compatibilitySkillAliases": {
+    "gpp-toolchain": {
+      "replacedBy": "gpp:toolchain",
+      "removeAfter": "2027-03-31"
+    },
+    "gpp-scaffold": {
+      "replacedBy": "gpp:scaffold",
+      "removeAfter": "2027-03-31"
+    }
+  }
 }

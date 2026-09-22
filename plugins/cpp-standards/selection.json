@@ -12,6 +12,7 @@
     "cpp-libraries",
     "cpp-structure",
     "cpp-style",
-    "cpp-testing"
+    "cpp-testing",
+    "domain-design"
   ]
 }

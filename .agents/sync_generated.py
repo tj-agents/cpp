@@ -12,6 +12,8 @@ import sys
 
 FRONTMATTER = re.compile(r"\A---\n(?P<header>.*?)\n---\n(?P<body>.*)\Z", re.DOTALL)
 NAME = re.compile(r"^[a-z][a-z0-9-]*$")
+IDENTIFIER = re.compile(r"(?<![-/\w])([a-z][a-z0-9-]*:[a-z][a-z0-9-]*)(?![-\w])")
+COMPATIBILITY_DEADLINE = "2027-03-31"
 RETIRED_DOC_REFERENCE = re.compile(r"(?<![A-Za-z0-9_.-])(?:BUILD|DIRECTION|KNOWLEDGE|LEARNING|LIBRARIES|MSVC|OVERVIEW|SCAFFOLD|STYLE|TESTING|TOOLCHAIN|WIN32)\.md(?![A-Za-z0-9_/\\-]|\.(?!$|[\s)\]}>,\"`*]))")
 EXPECTED_SCOPE_ROOTS = (".agents/base", ".agents/gpp", ".agents/msvc", ".agents/win32")
 EXPECTED_HOST_ADAPTER_ROOTS = {"codex": ".codex/skills", "claude": ".claude/skills"}
@@ -64,12 +66,14 @@ def discover(root: Path, config: dict) -> dict[str, dict]:
                 raise ValueError(f"{path}: kind metadata and folder differ")
             if values["domain"] != scope["domain"]:
                 raise ValueError(f"{path}: domain does not match scope declaration")
-            if name in found:
-                raise ValueError(f"Duplicate public skill name: {name}")
+            identifier = f"{scope['plugin']}:{name}"
+            if identifier in found:
+                raise ValueError(f"Duplicate public skill identifier: {identifier}")
             retired = retired_doc_references(body)
             if retired:
                 raise ValueError(f"{path}: retired internal document reference(s): {', '.join(retired)}")
-            found[name] = {
+            found[identifier] = {
+                "identifier": identifier,
                 "name": name,
                 "body": body,
                 "metadata": values,
@@ -176,14 +180,32 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
     if set(packages) != set(payloads["payloads"]):
         raise ValueError("sources.json packages and payloads.json payloads differ")
     scopes = {scope["name"] for scope in config["scopes"]}
+    adapter_names = config["hostAdapterNames"]
+    if set(adapter_names) != set(skills):
+        raise ValueError("Host adapter names must map every canonical skill exactly once")
+    if len(set(adapter_names.values())) != len(adapter_names) or any(not NAME.fullmatch(name) for name in adapter_names.values()):
+        raise ValueError("Host adapter names must be unique valid flat skill names")
     for package, cfg in packages.items():
         if set(cfg["scopes"]) - scopes:
             raise ValueError(f"{package}: unknown scope")
         if payloads["payloads"][package] != cfg["scopes"]:
             raise ValueError(f"{package}: source and payload scope lists differ")
-        for alias_from, alias_to in cfg.get("skillAliases", {}).items():
-            if alias_from not in skills or not NAME.fullmatch(alias_to):
-                raise ValueError(f"{package}: invalid skill alias {alias_from}->{alias_to}")
+        owned = {identifier: skill for identifier, skill in skills.items() if skill["scope"] in cfg["scopes"]}
+        names = cfg.get("skillNames", {})
+        if set(names) - set(owned) or any(not NAME.fullmatch(name) for name in names.values()):
+            raise ValueError(f"{package}: invalid source-to-package skill names")
+        output_names = [names.get(identifier, skill["name"]) for identifier, skill in owned.items()]
+        if len(output_names) != len(set(output_names)):
+            raise ValueError(f"{package}: duplicate emitted skill name")
+        for alias_name, alias in cfg.get("compatibilitySkillAliases", {}).items():
+            if not NAME.fullmatch(alias_name) or alias_name in output_names or alias["source"] not in owned:
+                raise ValueError(f"{package}: invalid compatibility skill alias {alias_name}")
+            if alias.get("removeAfter") != COMPATIBILITY_DEADLINE:
+                raise ValueError(f"{package}: compatibility skill alias must retain {COMPATIBILITY_DEADLINE}")
+        for rewrites in (cfg.get("identifierRewrites", {}), cfg.get("hookIdentifierRewrites", {})):
+            for source, target in rewrites.items():
+                if source not in skills or not IDENTIFIER.fullmatch(target):
+                    raise ValueError(f"{package}: invalid identifier rewrite {source}->{target}")
         for host, manifest_root in config["host_manifest_roots"].items():
             manifest_path = root / manifest_root / f"{package}.json"
             manifest = load(manifest_path)
@@ -195,16 +217,21 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
     aliases = payloads["compatibilityAliases"]
     if set(aliases) != {"base", "gcc", "windows", "cpp-standards", "gpp-standards"}:
         raise ValueError("Compatibility package roster changed")
+    if any(alias["removeAfter"] != COMPATIBILITY_DEADLINE for alias in aliases.values()):
+        raise ValueError(f"Compatibility packages must retain {COMPATIBILITY_DEADLINE}")
+    if packages["windows"]["scopes"] != ["msvc", "win32"]:
+        raise ValueError("The compatibility windows package must retain both MSVC and Win32")
     if set(config["hook_packages"]) != set(payloads["hooks"]):
         raise ValueError("Hook package declarations differ")
     return [*public, *(name for name in packages if name not in public)]
 
 
-def adapter_body(skill: dict, root_name: str) -> str:
+def adapter_body(skill: dict, root_name: str, adapter_name: str) -> str:
     source = PurePosixPath(skill["relative"])
-    adapter = PurePosixPath(root_name) / skill["name"] / "SKILL.md"
+    adapter = PurePosixPath(root_name) / adapter_name / "SKILL.md"
     relative = PurePosixPath(os.path.relpath(source.as_posix(), adapter.parent.as_posix()).replace("\\", "/"))
     header = FRONTMATTER.match(skill["body"]).group("header")
+    header = re.sub(r"(?m)^name:.*$", f"name: {adapter_name}", header, count=1)
     title = next((line for line in skill["body"].splitlines() if line.startswith("# ")), f"# {skill['name']}")
     return (
         f"---\n{header}\n---\n\n{title}\n\n"
@@ -213,21 +240,38 @@ def adapter_body(skill: dict, root_name: str) -> str:
     )
 
 
-def package_body(skill: dict, package: str, cfg: dict) -> tuple[str, str]:
+def rewrite_identifiers(body: str, rewrites: dict[str, str]) -> str:
+    # One pass avoids cascading replacements when a legacy name is also a source.
+    return IDENTIFIER.sub(lambda match: rewrites.get(match.group(0), match.group(0)), body)
+
+
+def package_body(skill: dict, package: str, cfg: dict, resources: list[dict]) -> tuple[str, str]:
     body = skill["body"]
-    output_name = cfg.get("skillAliases", {}).get(skill["name"], skill["name"])
+    output_name = cfg.get("skillNames", {}).get(skill["identifier"], skill["name"])
     if output_name != skill["name"]:
         body = re.sub(rf"(?m)^name:\s*{re.escape(skill['name'])}\s*$", f"name: {output_name}", body, count=1)
-    for old, new in cfg.get("contentRewrites", {}).get(skill["name"], {}).items():
+    for old, new in cfg.get("contentRewrites", {}).get(skill["identifier"], {}).items():
         if old not in body:
             raise ValueError(f"{package}/{skill['name']}: compatibility content rewrite matched nothing")
         body = body.replace(old, new)
-    for old, new in cfg.get("rewrites", {}).items():
-        body = body.replace(old, new)
-    if skill["name"] == "msvc-scaffold":
-        body = body.replace("../scripts/", "../../resources/msvc/utility/scripts/")
-        body = body.replace("<skill-directory>/../scripts/", "<skill-directory>/../../resources/msvc/utility/scripts/")
+    body = rewrite_identifiers(body, cfg.get("identifierRewrites", {}))
+    for resource in resources:
+        if package not in resource["plugins"]:
+            continue
+        source_parent = PurePosixPath(skill["relative"]).parent
+        relative = os.path.relpath(resource["source"], source_parent.as_posix()).replace("\\", "/")
+        body = body.replace(f"{relative}/", f"../../{resource['destination']}/")
     return output_name, body
+
+
+def compatibility_alias_body(skill: dict, alias_name: str, target_name: str, remove_after: str) -> str:
+    return (
+        f"---\nname: {alias_name}\ndescription: Compatibility alias for {skill['identifier']}; remove after {remove_after}.\n"
+        f"kind: {skill['metadata']['kind']}\ndomain: {skill['metadata']['domain']}\n---\n\n"
+        f"# Compatibility alias\n\nThis identifier is deprecated through {remove_after}.\n"
+        f"Read and follow [{skill['identifier']}](../{target_name}/SKILL.md) in full.\n"
+        "This redirect is generated; edit the canonical definition instead.\n"
+    )
 
 
 def resource_bytes(path: Path, text: bool) -> bytes:
@@ -252,13 +296,14 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
 
     for adapter_root in config["host_adapter_roots"].values():
         for skill in skills.values():
-            emit(f"{adapter_root}/{skill['name']}/SKILL.md", adapter_body(skill, adapter_root))
+            adapter_name = config["hostAdapterNames"][skill["identifier"]]
+            emit(f"{adapter_root}/{adapter_name}/SKILL.md", adapter_body(skill, adapter_root, adapter_name))
 
     for scope in config["scopes"]:
         owned = sorted((item for item in skills.values() if item["scope"] == scope["name"]), key=lambda item: (item["metadata"]["kind"], item["name"]))
         lines = [f"# {scope['name']} capabilities", "", "Generated from canonical `.agents/` definitions.", ""]
         for item in owned:
-            lines.append(f"- `{item['name']}` — {item['metadata']['kind']} — `{item['relative']}`")
+            lines.append(f"- `{item['identifier']}` — {item['metadata']['kind']} — `{item['relative']}`")
         lines.append("")
         emit(f"{scope['root']}/INDEX.md", "\n".join(lines))
 
@@ -267,18 +312,26 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
         owned = [item for item in skills.values() if item["scope"] in cfg["scopes"]]
         emitted_names: set[str] = set()
         for skill in sorted(owned, key=lambda item: item["name"]):
-            output_name, body = package_body(skill, package, cfg)
+            output_name, body = package_body(skill, package, cfg, config.get("resources", []))
             if output_name in emitted_names:
                 raise ValueError(f"{package}: duplicate emitted skill {output_name}")
             emitted_names.add(output_name)
             emit(f"{package_root}/{package}/skills/{output_name}/SKILL.md", body)
+
+        compatibility_aliases = {}
+        for alias_name, alias in cfg.get("compatibilitySkillAliases", {}).items():
+            skill = skills[alias["source"]]
+            target_name = cfg.get("skillNames", {}).get(skill["identifier"], skill["name"])
+            compatibility_aliases[alias_name] = {"replacedBy": f"{package}:{target_name}", "removeAfter": alias["removeAfter"]}
+            emitted_names.add(alias_name)
+            emit(f"{package_root}/{package}/skills/{alias_name}/SKILL.md", compatibility_alias_body(skill, alias_name, target_name, alias["removeAfter"]))
 
         for host, manifest_root in config["host_manifest_roots"].items():
             emit(f"{package_root}/{package}/.{host}-plugin/plugin.json", read(root / manifest_root / f"{package}.json"))
 
         index = [f"# {package} capabilities", "", "Generated from canonical `.agents/` definitions.", ""]
         for skill in sorted(owned, key=lambda item: item["name"]):
-            output_name = cfg.get("skillAliases", {}).get(skill["name"], skill["name"])
+            output_name = cfg.get("skillNames", {}).get(skill["identifier"], skill["name"])
             index.append(f"- `{output_name}` — {skill['metadata']['kind']} — `{skill['relative']}`")
         index.append("")
         emit(f"{package_root}/{package}/INDEX.md", "\n".join(index))
@@ -288,11 +341,14 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             "prerequisites": payloads.get("dependencies", {}).get(package, []),
             "skills": sorted(emitted_names),
         }
+        if compatibility_aliases:
+            selection["compatibilitySkillAliases"] = compatibility_aliases
         emit(f"{package_root}/{package}/selection.json", json.dumps(selection, indent=2) + "\n")
 
         if package in config["hook_packages"]:
             hook = read(root / ".agents/hooks/session_context.py")
-            for old, new in cfg.get("hookRewrites", cfg.get("rewrites", {})).items():
+            hook = rewrite_identifiers(hook, cfg.get("hookIdentifierRewrites", cfg.get("identifierRewrites", {})))
+            for old, new in cfg.get("hookRewrites", {}).items():
                 hook = hook.replace(old, new)
             emit(f"{package_root}/{package}/hooks/session_context.py", hook)
             emit(f"{package_root}/{package}/hooks/hooks.json", read(root / ".agents/hooks/hooks.json"))

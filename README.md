@@ -13,6 +13,11 @@ Compiler and API choices are separate. A console library can select `cpp + msvc`
 Win32 guidance. A Win32 project can select `cpp + win32 + gpp` or `cpp + win32 + msvc`.
 The host operating system never silently chooses a compiler.
 
+Use plugin-qualified capability names: `cpp:style`, `cpp:build`, `cpp:domain-design`,
+`gpp:toolchain`, `msvc:scaffold`, and `win32:style`. The plugin supplies the scope, so the
+capability does not repeat it. `cpp:domain-design` covers records, invariants, values,
+operations, typed errors, and external state without requiring a domain layer.
+
 Canonical definitions live at:
 
 - `.agents/base/<kind>/<name>/SKILL.md`
@@ -49,3 +54,5 @@ route. Process workflows may be installed separately from their shared engineeri
 Compatibility packages `base`, `gcc`, `windows`, `cpp-standards`, and `gpp-standards` remain
 through 2027-03-31. The old `windows` package is a generated combined MSVC plus Win32 bundle;
 consumers must choose the explicit split when migrating.
+Old capability identifiers also remain as generated compatibility entries through that date.
+See [MIGRATION.md](MIGRATION.md) for the complete name mapping and flat host-adapter distinction.

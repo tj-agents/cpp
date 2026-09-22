@@ -9,6 +9,9 @@ domain: cpp
 
 Idiomatic modern C++, not Google style.
 
+Use `cpp-standards:domain-design` when choosing records, invariants, factories, operations, or
+stateful boundaries. This skill owns their spelling and formatting.
+
 ## Naming
 
 - **Private member variables:** trailing underscore — `name_`, not `m_name`

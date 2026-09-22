@@ -7,5 +7,5 @@ domain: cpp
 
 # Library conventions — C++ (Tommy)
 
-Read and follow the [canonical shared definition](../../../.agents/base/contract/cpp-libraries/SKILL.md) in full.
+Read and follow the [canonical shared definition](../../../.agents/base/contract/libraries/SKILL.md) in full.
 This discovery entry is generated; edit the referenced `.agents/` definition.
