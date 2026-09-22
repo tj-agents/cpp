@@ -1,12 +1,12 @@
 {
   "name": "gcc",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Deprecated compatibility package for gpp@cpp-agents; remove after 2027-03-31.",
   "author": {
     "name": "Tommy Seery",
     "url": "https://github.com/tomjseery"
   },
-  "repository": "https://github.com/tomjseery/cpp-agents",
+  "repository": "https://github.com/tj-agents/cpp",
   "skills": "./skills/",
   "keywords": [
     "gpp",
