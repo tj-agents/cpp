@@ -14,9 +14,11 @@ was loaded. `cpp:style` owns spelling and formatting; `cpp:structure` owns proje
 
 ## Choose the representation from its contract
 
-The C++ Core Guidelines C.2, C.4, and C.5 support this baseline: independently editable
+The C++ Core Guidelines C.2, C.4, and C.5 guide this baseline: independently editable
 data belongs in a `struct`; an invariant requiring controlled access belongs in a
-`class`; helpers that use public interfaces belong in the associated namespace.
+`class`; non-member helpers belong in the associated namespace. C.4 favors a small
+member interface when privileged access is unnecessary. The type-owned static helpers
+below are a deliberate house preference for grouping and discovery, not a C.4 mandate.
 Resource-owning classes also enforce lifetime contracts. Neither keyword implies inheritance.
 
 A passive input record can contain invalid input. Validation decides whether to accept it;
@@ -26,7 +28,7 @@ validator followed by unrestricted field writes does not provide that guarantee.
 
 | Role | Shape | Reason to introduce it |
 |---|---|---|
-| Passive record | Public fields, with free validation/encoding functions as needed | Transfer or collect data |
+| Passive record | Public fields, with type-owned static validation or associated helpers as appropriate | Transfer or collect data |
 | Invariant-bearing value | Small class, controlled construction, appropriate value operations | Make an actual invalid state unrepresentable through the public API |
 | Entity | Stable domain identity plus explicit permitted transitions | Track the same thing while its attributes change |
 | Stateful adapter | RAII ownership and a small operational interface | Own a file, connection, device, transaction, or other external resource |
@@ -47,6 +49,60 @@ equality across all its fields without deciding which question it answers.
 Use an aggregate only when several pieces of state must obey a shared rule at one update
 boundary. Do not manufacture repositories or aggregate roots around a read-only message.
 The C++ mapping here is a house design decision; DDD does not prescribe these C++ spellings.
+
+## Place operations with their actual owner
+
+Prefer `Request::validate(request)` for a stateless contract check that belongs to one
+record type and benefits from discovery on that type. A static member has no implicit
+`this` object; the checked record remains an explicit input. An ordinary `const` member
+can also express a check of the receiver. Public fields do not forbid either spelling.
+
+Use an associated free function for an independent algorithm, an operation spanning
+several types, or an adapter whose dependencies do not belong in the type's contract.
+C.5 guides where such free helpers live; it does not require every record operation to
+be free. A protocol validator is not automatically a DDD Domain Service, and putting it
+on a struct does not make that struct an invariant-enforcing Value Object.
+
+This C++17 example groups a check with a passive record without adding a constructor:
+
+```cpp
+#include <cstddef>
+#include <cstdint>
+
+namespace device::identity {
+
+inline constexpr std::uint32_t protocol_version{1};
+
+enum class RequestError { none, version, reserved };
+
+struct Request {
+    std::uint32_t version;
+    std::uint32_t reserved;
+
+    /// Check a complete object copied from the wire before accepting its contents.
+    [[nodiscard]] static constexpr RequestError validate(const Request& request) noexcept {
+        if (request.version != protocol_version)
+            return RequestError::version;
+        if (request.reserved != 0)
+            return RequestError::reserved;
+        return RequestError::none;
+    }
+};
+
+static_assert(sizeof(Request) == 8);
+static_assert(offsetof(Request, reserved) == 4);
+
+} // namespace device::identity
+```
+
+Ordinary static or non-virtual member functions add no per-object storage and, by
+themselves, do not change standard-layout, trivial-copyability or aggregate status.
+Keep size and significant-offset assertions for every shared binary contract, plus
+appropriate type-trait checks in targets that support them. DDD and successful runtime
+validation do not check padding, field order or ABI compatibility. Standard-layout
+alone does not fix a cross-platform wire format. Preserve the actual compiler/ABI and
+restricted-runtime requirements; do not introduce library dependencies merely to place
+an operation on a type. The record's public fields remain editable after validation.
 
 ## Records, factories, transformations, and free functions
 
@@ -175,20 +231,26 @@ on a C++17 ABI or restricted environment.
 
 Use clear concept nouns, role suffixes only where they disambiguate, and operation verbs:
 `Identity`, `IdentityRequest`, `IdentityRequestError`, `IdentityError`,
-`validate_request`, and `query_identity`. These spellings are house examples, not a
-claim that all C++ libraries use the same casing or factory name.
+`IdentityRequest::validate`, and `query_identity`. These spellings are house examples,
+not a claim that all C++ libraries use the same casing or factory name. Avoid repeating
+a type's name in an operation when its class or namespace already provides that context.
 
-Feature namespaces such as `calendar`, `calendar::protocol`, and
-`calendar::storage` express ownership. Introduce `domain` only when a distinct model
-actually needs separation from other representations. A passive wire record remains a
-`struct` in `protocol`, even if its input needs checking. Preserve its ABI and use
-explicit mapping if a separate behaviour-bearing model later becomes useful.
+Prefer a project namespace followed by the owning feature, such as
+`sandbox_hwid::identity` or `calendar::booking`. A wire record can live directly in its
+feature namespace. Add a nested `protocol`, `storage` or `domain` only when it separates
+real coexisting responsibilities or representations within that feature. Neither DDD
+nor a shared ABI requires a generic `protocol` namespace. Keep include paths aligned
+with the chosen ownership boundary when changing that boundary is in scope. Preserve
+the wire ABI and use explicit mapping if a separate behaviour-bearing model becomes useful.
 
 ## Evidence and deliberate house choices
 
 - [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines):
   C.2/C.4/C.5 guide representation and function placement; C.40/C.41 address invariants
   and construction; F.8 motivates pure functions; NL.8 treats naming as a consistency choice.
+- [C++ class properties](https://eel.is/c++draft/class.prop) and
+  [aggregate rules](https://eel.is/c++draft/dcl.init.aggr): ordinary static/non-virtual
+  member functions do not add object state or disqualify these record properties.
 - [Eric Evans, DDD Reference](https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf):
   Entities, Value Objects, Services, Aggregates, and Factories supply domain vocabulary.
   Applying that vocabulary without a mandatory `domain` folder is our C++ mapping.
@@ -208,5 +270,6 @@ explicit mapping if a separate behaviour-bearing model later becomes useful.
   Their spelling is evidence of variety, not a dependency recommendation.
 
 The short plugin identifiers, PascalCase types, snake_case functions, `create` default,
-optional `with_x`, and preference for feature namespaces are deliberate house choices.
+optional `with_x`, type-owned static validation and feature-first namespaces are deliberate
+house choices.
 They are not requirements of DDD or the C++ language.

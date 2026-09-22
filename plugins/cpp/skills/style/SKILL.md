@@ -29,10 +29,13 @@ stateful boundaries. This skill owns their spelling and formatting.
 
 - Put reusable and shared code in a stable top-level namespace owned by the project or
   library. Derive its name from that owner and write namespace components in snake_case.
-- Use nested namespaces for real architectural boundaries or independently meaningful
-  subsystems, such as `protocol`, `storage`, or `ui`.
-- Let namespace context keep type names concise: `sandbox_hwid::protocol::Identity` is
-  clearer than repeating project and layer names in the type itself.
+- Prefer the owning feature as the next namespace component, such as
+  `sandbox_hwid::identity` or `calendar::booking`. Add `protocol`, `storage`, or `ui`
+  beneath a feature only when a real boundary needs that distinction. A shared wire
+  record does not automatically belong in a generic `protocol` namespace.
+- Let namespace context keep type names concise; avoid repeating project and layer
+  names in the type itself. Keep include paths consistent with feature ownership when
+  that organization is in scope.
 - Introduce a `domain` namespace when the codebase has an explicit domain layer whose types
   must be distinguished from protocol, persistence, or presentation representations.
 - Qualify names at public and cross-namespace boundaries. In implementation files, use
@@ -52,7 +55,8 @@ stateful boundaries. This skill owns their spelling and formatting.
   clearer. Use a distinct wrapper type when incompatible values require compiler-enforced
   separation; aliases remain interchangeable with their underlying type.
 - For a shared binary ABI, pair exact-width fields with assertions for total sizes and
-  significant offsets so padding and ordering are checked.
+  significant offsets so padding and ordering are checked. Keep these when adding static
+  validation or adopting domain modelling; neither establishes a binary layout contract.
 
 ## Constants — named, at their contextual boundary
 
