@@ -2,5 +2,5 @@
 
 Generated from canonical `.agents/` definitions.
 
-- `gpp-scaffold` — utility — `.agents/gpp/utility/gpp-scaffold/SKILL.md`
-- `gpp-toolchain` — contract — `.agents/gpp/contract/gpp-toolchain/SKILL.md`
+- `scaffold` — utility — `.agents/gpp/utility/scaffold/SKILL.md`
+- `toolchain` — contract — `.agents/gpp/contract/toolchain/SKILL.md`

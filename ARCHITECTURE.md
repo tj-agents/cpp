@@ -15,9 +15,15 @@ This layout supersedes the physical `standards/*` paths recorded in
 `.codex/` and `.claude/` contain generated host discovery entries only. `plugins/*` is generated
 distribution output. `.agents/plugins/manifests/` is the authored host-manifest source.
 
-Each scope has `utility/` and `utility/scripts/`. Empty groups say that no utility exists. The
-MSVC scaffold is the only current utility and owns its scripts/templates under
-`.agents/msvc/utility/scripts/`. Package resource mapping is explicit in `sources.json`.
+Each scope has `utility/` and `utility/scripts/`. Empty groups say that no utility exists.
+The G++ and MSVC scaffolds own scripts/templates under their respective scope's
+`utility/scripts/`. Package resource mapping is explicit in `sources.json`.
+
+Capability identity is the pair of plugin and name, such as `cpp:style` or `win32:style`.
+Authored directories and canonical plugin payloads use the short name. Flat host discovery
+roots need globally distinct directory names, so `sources.json` explicitly maps them to
+names such as `cpp-style` and `win32-style`. Those adapter filenames are not redundant
+plugin-qualified identifiers. Package compatibility names are mapped separately.
 
 ## Selection model
 
@@ -36,5 +42,9 @@ contract without making it a compulsory new-route dependency.
 `gpp-standards` remain aliases through 2027-03-31. Because old `windows` combined compiler and API
 assumptions, its compatibility package contains both `msvc` and `win32` payloads. It must never be
 mapped automatically to only one replacement.
+
+Canonical packages also retain generated redirects for their previously published redundant
+names until 2027-03-31. Compatibility packages keep their original capability names and
+rewritten internal references. All bodies originate in the same short-name authored source.
 
 WDK and kernel capabilities remain outside this user-mode architecture until separately validated.

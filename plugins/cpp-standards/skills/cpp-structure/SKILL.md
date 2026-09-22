@@ -52,6 +52,13 @@ code stays under its product root; code moves to `shared/` only when multiple
 products genuinely consume it. Each product-level `CMakeLists.txt` owns its
 local targets, while a repository-level build may coordinate those products.
 
+## Model boundaries
+
+Organize by the owning feature and actual responsibilities. A `domain` folder or library
+is warranted only when a distinct model needs that boundary; passive protocol records
+do not require one. Use `cpp-standards:domain-design` to choose representations and operations
+without imposing an extra architectural layer.
+
 ## Adding new code
 
 - New reusable logic starts inside the owning product and library that will
@@ -71,6 +78,6 @@ This is the default for new work, not permission to reorganize an existing
 project incidentally. Follow a repository's current directory layout unless
 the task actually requires an architectural change.
 
-`gpp:gpp-scaffold` and `msvc:msvc-scaffold` both bootstrap a new single-product
+`gpp:scaffold` and `msvc:scaffold` both bootstrap a new single-product
 project into this default shape; only their compiler-specific target options
 differ.

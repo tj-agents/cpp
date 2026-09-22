@@ -9,10 +9,10 @@ CPP_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".ixx"
 CPP_FILES = {"CMakeLists.txt", "CMakePresets.json", ".clang-format", ".clang-tidy"}
 ROUTES_FILE = Path(".agents") / "skill-routes.json"
 WINDOWS_MARKERS = ("#include <windows.h>", "#include <wil/", "winmain(", "wwinmain(", "createwindowex", "defwindowproc")
-CPP_CONTEXT = "This is a C++ repository. Apply cpp@cpp-agents. Load cpp:cpp-style and cpp:cpp-libraries before code changes, and cpp:cpp-learning plus cpp:cpp-knowledge before teaching or implementing unfamiliar logic."
-GPP_CONTEXT = "The repository explicitly selects G++. Apply gpp@cpp-agents and gpp:gpp-toolchain on top of cpp."
-MSVC_CONTEXT = "The repository explicitly selects MSVC/clang-cl. Apply msvc@cpp-agents and msvc:msvc-toolchain on top of cpp. This does not select Win32 APIs."
-WIN32_CONTEXT = "The repository explicitly selects user-mode Win32 APIs. Apply win32@cpp-agents, win32:windows-overview, win32:win32-style, and win32:windows-cpp-knowledge. The compiler is selected separately."
+CPP_CONTEXT = "This is a C++ repository. Apply cpp@cpp-agents. Load cpp:style and cpp:libraries before code changes, cpp:domain-design when designing records, invariants, operations, or component boundaries, and cpp:learning plus cpp:knowledge before teaching or implementing unfamiliar logic."
+GPP_CONTEXT = "The repository explicitly selects G++. Apply gpp@cpp-agents and gpp:toolchain on top of cpp."
+MSVC_CONTEXT = "The repository explicitly selects MSVC/clang-cl. Apply msvc@cpp-agents and msvc:toolchain on top of cpp. This does not select Win32 APIs."
+WIN32_CONTEXT = "The repository explicitly selects user-mode Win32 APIs. Apply win32@cpp-agents, win32:overview, win32:style, and win32:knowledge. The compiler is selected separately."
 WIN32_SUGGESTION = "Win32 source markers were detected, but no API profile is declared. Consider selecting win32 explicitly; detection does not apply it or choose MSVC."
 
 

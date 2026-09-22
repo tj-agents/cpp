@@ -7,5 +7,5 @@ domain: cpp
 
 # g++ / Linux conventions — C++ (Tommy)
 
-Read and follow the [canonical shared definition](../../../.agents/gpp/contract/gpp-toolchain/SKILL.md) in full.
+Read and follow the [canonical shared definition](../../../.agents/gpp/contract/toolchain/SKILL.md) in full.
 This discovery entry is generated; edit the referenced `.agents/` definition.
