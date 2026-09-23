@@ -137,6 +137,16 @@ are needed for this correction.
 - [x] Complete host validation, update current documentation and refresh the lab's guidance.
 - [x] Commit and update source PR #13 and sandbox draft PR #1, preserving unrelated work.
 
+### 6. Member decoder and device component (2026-09-23)
+
+- [x] Complete and validate the final design with the user.
+- [x] Implement `Identity::decode`, private text checking and the device component.
+- [x] Update actual CMake consumption requirements, public API tests and current docs.
+- [x] Update authored domain-design/structure guidance and regenerate compatibility packages.
+- [x] Pass the actual client/tests, WDK Debug/Release analysis, formatting and clang-tidy checks.
+- [x] Pass the source/host checks, refresh installed cpp guidance and preserve unrelated work.
+- [x] Commit and update both existing PRs; verify remote heads and source CI/provenance.
+
 ## Acceptance criteria
 
 - Canonical examples read as ordinary modern C++, not translated C# or a prescribed OO style.
@@ -535,6 +545,15 @@ Primary references supporting the design:
 
 ## Progress
 
+- 2026-09-23 implementation delivered to the existing review candidates. Source PR #13
+  is at `1229f9d6c355bbf1d11cc2898188429731ffca90`; sandbox draft PR #1 is at
+  `d37d333358d6bd0b3cdd67d2bc0db45ac52c7a4e`. Both remote heads were verified.
+  Source CI, Ubuntu/Windows attester safety and repository-binding are green on that
+  exact source head (runs 35868810729, 35868810733 and 35868808748). Both PR descriptions
+  now describe the member decoder/device structure. Local installed cpp guidance matches
+  generated source byte-for-byte. Unrelated sandbox edits, including its pre-existing
+  header whitespace, remain unstaged. Neither PR is merged. This final plan checkpoint
+  is local bookkeeping and does not change the published, validated code candidate.
 - 2026-09-23 member-decoder/device implementation completed locally. Identity owns decode
   and a private fixed-extent span text helper; the free decoder/header are removed, device
   operations have their own target, and public headers advertise C++23 to user mode while
@@ -729,10 +748,11 @@ Primary references supporting the design:
 
 ## Next Steps
 
-The agreed implementation and local checks are complete. Finish the owned commits and
-update source PR #13 and sandbox draft PR #1, preserving unrelated sandbox edits. Inspect
-the exact new source-head CI/provenance results before reporting delivery. The previous
-migration-specific trust-pin gate is resolved; do not repeat it as an active blocker.
+The agreed implementation, standards update, local installation refresh, validation and
+existing-PR updates are complete. Review candidates are [source PR #13](https://github.com/tj-agents/cpp/pull/13)
+and [sandbox draft PR #1](https://github.com/tomjseery/sandbox-hwid/pull/1), with exact heads
+and successful checks recorded above. No refactor work remains for this request.
+
 Neither PR is selected for merging by this implementation request. A later authorized
 release can replace the lab's existing local marketplace override with the Git source.
 Driver signing, loading, installation, VM checks and unrelated WinWrap work remain outside
