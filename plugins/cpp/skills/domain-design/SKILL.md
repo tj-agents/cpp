@@ -105,6 +105,29 @@ alone does not fix a cross-platform wire format. Preserve the actual compiler/AB
 restricted-runtime requirements; do not introduce library dependencies merely to place
 an operation on a type. The record's public fields remain editable after validation.
 
+## Keep type rules separate from representation decoding
+
+Use one owner for a type's validation rules and error vocabulary. For passive records,
+`Identity::validate(record, requested_profile)` can own metadata and field-content checks
+just as `IdentityRequest::validate(request)` owns request checks. For invariant-bearing
+values, construction and permitted operations enforce the rules instead.
+
+- The type or core API owns its rules and declares its typed errors. Keep that vocabulary
+  in its API header or a dedicated header owned by the same component; a generic validation
+  utility or application-wide errors file should not become the owner of unrelated rules.
+- A representation adapter checks framing and buffer lengths, safely copies or converts the
+  representation, then calls the type's validator or factory. It propagates typed failures
+  without duplicating the rules. A shared protocol error vocabulary may include malformed
+  input errors produced by the decoder as well as record errors produced by validation.
+- Application and I/O adapters acquire external data and coordinate those operations.
+
+Respect the dependency direction and language baseline. A C++23 decoder may expose
+`std::span` and `std::expected` while the type and its error enum remain usable in a
+C++17 component without those dependencies. Do not add client-only libraries to a shared
+header merely to spell the operation as a member. A type-owned `parse` or `decode` factory
+is still appropriate when that representation belongs to the type's own contract and
+its dependencies fit the owning component.
+
 ## Records, factories, transformations, and free functions
 
 This complete C++23 example separates untrusted input from a valid daily time window.
@@ -232,7 +255,7 @@ on a C++17 ABI or restricted environment.
 
 Use clear concept nouns, role suffixes only where they disambiguate, and operation verbs:
 `Identity`, `IdentityRequest`, `IdentityRequestError`, `IdentityError`,
-`IdentityRequest::validate`, and `query_identity`. These spellings are house examples,
+`IdentityRequest::validate`, `Identity::validate`, and `query_identity`. These spellings are house examples,
 not a claim that all C++ libraries use the same casing or factory name. Avoid repeating
 a type's name in an operation when its class or namespace already provides that context.
 
