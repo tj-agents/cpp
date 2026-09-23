@@ -27,6 +27,25 @@ GCC/g++ and MSVC/clang-cl, so it has no reason to keep two different trees.
   there, never built standalone. See `cpp:build` for how those targets and
   presets are actually modeled.
 
+## Public header paths and dependencies
+
+Keep an owner prefix below a public include root even when it is the root's only child:
+`include/<library>/...` gives consumers distinctive paths such as `<device/protocol/identity.hpp>`.
+Compilers search several include roots; storing a dependency elsewhere does not isolate
+its header names. Private headers beside implementation files do not need this prefix.
+
+Use an additional folder such as `protocol/` when it names a real contract or subsystem.
+Wire records and interface/operation identifiers can form that boundary. DDD does not
+prescribe the folder, and a directory does not automatically require a C++ namespace.
+Name source/header files for the concept they own, such as `identity.hpp` and
+`identity.cpp`; keep a type's declarations and out-of-line member definitions together
+conceptually rather than creating a generic validation/errors module.
+
+Third-party libraries keep their own source/include trees in a package cache, an out-of-source
+FetchContent build directory, or `third_party/` when deliberately vendored. Do not copy them
+under the product's public include root. Link dependency targets so they provide their own
+include paths and transitive requirements; never put cache or build paths in `#include`.
+
 ## Preserve meaningful product boundaries
 
 The single-product layout is a rule of thumb, not a reason to flatten a
