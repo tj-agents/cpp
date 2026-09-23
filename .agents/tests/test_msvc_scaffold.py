@@ -22,12 +22,18 @@ def build_with_msvc(project: Path) -> subprocess.CompletedProcess[str]:
         "cmake --preset dev -DBUILD_TESTING=OFF; if ($LASTEXITCODE) { exit $LASTEXITCODE }; "
         "cmake --build --preset dev; exit $LASTEXITCODE"
     )
+    # An MSYS2/MinGW CMake ahead on PATH must not be used for MSVC resource compilation.
+    environment = dict(os.environ)
+    msys = Path("C:/msys64/mingw64/bin")
+    if (msys / "cmake.exe").is_file():
+        environment["PATH"] = f"{msys}{os.pathsep}{environment['PATH']}"
     return subprocess.run(
         ["pwsh", "-NoProfile", "-NonInteractive", "-Command", command],
         capture_output=True,
         text=True,
         encoding="utf-8",
         errors="replace",
+        env=environment,
     )
 
 

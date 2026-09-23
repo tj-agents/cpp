@@ -476,6 +476,22 @@
         "win32"
       ],
       "destination": "resources/win32/utility/scripts/routes/msvc.json"
+    },
+    {
+      "plugins": [
+        "win32"
+      ],
+      "toolchain": "gpp",
+      "apis": [],
+      "destination": "resources/win32/utility/scripts/routes/console/gpp.json"
+    },
+    {
+      "plugins": [
+        "win32"
+      ],
+      "toolchain": "msvc",
+      "apis": [],
+      "destination": "resources/win32/utility/scripts/routes/console/msvc.json"
     }
   ]
 }

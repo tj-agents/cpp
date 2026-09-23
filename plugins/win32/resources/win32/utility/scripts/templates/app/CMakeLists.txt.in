@@ -18,7 +18,7 @@ target_compile_definitions(__PROJECT__ PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_M
 # app.rc embeds app.manifest, so MSVC-style linkers must not generate a second one;
 # GNU-style drivers need -municode to accept wWinMain.
 target_link_options(__PROJECT__ PRIVATE
-    $<$<CXX_COMPILER_FRONTEND_VARIANT:MSVC>:/MANIFEST:NO>
-    $<$<CXX_COMPILER_FRONTEND_VARIANT:GNU>:-municode>)
+    $<$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>:/MANIFEST:NO>
+    $<$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>:-municode>)
 
 install(TARGETS __PROJECT__ RUNTIME DESTINATION .)

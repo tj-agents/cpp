@@ -116,12 +116,14 @@ if (Test-Path -LiteralPath $readmePath) {
     ) -join "`n") + "`n"
 }
 
-# Replace the route profile with the matching toolchain + Win32 profile when one is packaged.
+# Replace an unmodified console route profile with the same toolchain's Win32 profile.
 $routesPath = Join-Path $root '.agents/skill-routes.json'
 if (Test-Path -LiteralPath $routesPath) {
-    $toolchain = (Get-Content -LiteralPath $routesPath -Raw | ConvertFrom-Json).profile.toolchain
+    $routes = Read-Normalized $routesPath
+    $toolchain = ($routes | ConvertFrom-Json).profile.toolchain
+    $consolePath = if ($toolchain) { Join-Path $PSScriptRoot "routes/console/$toolchain.json" } else { $null }
     $profilePath = if ($toolchain) { Join-Path $PSScriptRoot "routes/$toolchain.json" } else { $null }
-    if ($profilePath -and (Test-Path -LiteralPath $profilePath -PathType Leaf)) {
+    if ($consolePath -and (Test-Path -LiteralPath $consolePath -PathType Leaf) -and (Test-Path -LiteralPath $profilePath -PathType Leaf) -and $routes -eq (Read-Normalized $consolePath)) {
         $writes['.agents/skill-routes.json'] = Read-Normalized $profilePath
     } else {
         $manual.Add('.agents/skill-routes.json: regenerate the route profile with the Win32 API selected.')

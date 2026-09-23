@@ -37,8 +37,10 @@ and `app/src/main.cpp` are still the unmodified scaffold output and no `app.mani
   instance message hooks, unnamed callback parameters), and `.clang-format` — `<windows.h>`
   pinned to the first include block. A configuration that differs from the canonical one is
   left untouched and reported as a manual step;
-- `AGENTS.md`, `README.md` and `.agents/skill-routes.json` — the project facts and the
-  route profile for the same toolchain with the Win32 API selected.
+- `AGENTS.md` and `README.md` — the project facts; and `.agents/skill-routes.json`, when the
+  package ships route profiles and the file is still the unmodified console profile, becomes
+  the same toolchain's profile with the Win32 API selected. A customized route profile is
+  left untouched and reported as a manual step.
 
 Build exactly as before — `./scripts/Build.ps1 -Test` for MSVC, `cmake --preset …` for
 G++. A MinGW toolchain has no sanitizer runtimes, so use its `gdb` preset.
