@@ -36,11 +36,13 @@ Pass `--simple` for a single-file `CMakeLists.txt` + `main.cpp` project instead
 (quick/throwaway or LeetCode-style work) — no library, no tests, no presets
 beyond a single implicit build directory.
 
-Unlike `msvc:scaffold`, this generator does not accept an external
-`.clang-format`/`.clang-tidy` to copy byte-for-byte — there is no separate
-canonical config to preserve here, so the bundled templates *are* the
-canonical defaults (they match `cpp:style` exactly). Edit the generated
-project's copies afterward if a specific project needs to diverge.
+The project receives the canonical `cpp` formatter, analysis and editor configuration
+(`.clang-format`, `.clang-tidy`, `.editorconfig`, `.vscode/settings.json` for clangd), the
+shared `libs/core` + `app` + `tests` sources, and G++-specific files: presets, a `.clangd`
+that reads the `dev` compile database, a GDB `.vscode/launch.json`, `AGENTS.md`/
+`CLAUDE.md` project facts and the `cpp` + `gpp` route profile in `.agents/skill-routes.json`.
+Edit the generated copies afterward if a specific project needs to diverge. Add the
+user-mode Win32 application layer separately with `win32:scaffold`.
 
 ## Build and adapt
 
@@ -52,20 +54,29 @@ ctest --preset dev --output-on-failure
 ```
 
 No Developer-shell initialization step is needed — unlike MSVC, the G++/Ninja
-toolchain is already on `PATH` once installed. `build/dev` carries sanitizers
-(`-fsanitize=address,undefined`) and debug symbols; `build/release` is the
-optimized configuration. Keep reusable logic in `libs/core` and thin executable
-code in `app`; extract a second library target once a second consumer appears,
-following `cpp:style`'s reactive-extraction rule.
+toolchain is already on `PATH` once installed.
+
+| Preset | Purpose |
+|---|---|
+| `dev` | Debug with AddressSanitizer and UBSan |
+| `release` | Optimized |
+| `gdb` | Debug without sanitizers, for clean stepping in GDB |
+
+Warnings and sanitizers are target-scoped through the `<project>_warnings` and
+`<project>_sanitize` interface libraries, following `cpp:build`; `dev` turns the sanitizer
+option on. MinGW does not ship the sanitizer runtimes, so use `gdb` there. `cmake --install`
+places the executable in a directory already on `PATH` (`~/.local/bin`, or
+`%LOCALAPPDATA%\Microsoft\WindowsApps` on Windows) unless a prefix is given. Keep reusable
+logic in `libs/core` and thin executable code in `app`; add library targets as
+`cpp:structure` describes.
 
 The sample `core::greeting()` function and its Catch2 case exist only to prove
 the scaffold builds and tests end to end — replace them with real logic before
 treating the project as more than a skeleton.
 
 For an existing repository, inspect its build entry points and preserve them;
-do not run the generator over an existing tree. The workspace `newcpp` command
-wraps this script with Tommy's personal defaults (destination, `git init`,
-editor launch) — those conveniences are not part of the shared repo tool.
+do not run the generator over an existing tree. A personal wrapper may add conveniences
+such as a default destination or `git init`; those stay in the consuming workspace.
 
 ## Validation and publication
 
@@ -73,6 +84,7 @@ Generate into a fresh scratch directory, parse the generated `CMakePresets.json`
 and the script itself (`bash -n`), build and run with real G++, and exercise
 rejection of existing destinations. Check C++20 and C++23 separately.
 
-The skill, script and templates are authored once under `.agents/gpp/utility/`
-and copied to plugin payloads by `sync-generated.ps1`; never edit the generated
-copies.
+The skill, script and G++ templates are authored once under `.agents/gpp/utility/`; the
+shared templates belong to `.agents/base/utility/scripts/` and the route profile is rendered
+by the route generator. `sync-generated.ps1` copies all of them into the plugin payloads;
+never edit the generated copies.

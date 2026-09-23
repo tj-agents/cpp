@@ -24,7 +24,7 @@ class CanonicalNameTests(unittest.TestCase):
             "cpp": {"build", "style", "structure", "testing", "libraries", "direction", "knowledge", "learning", "domain-design"},
             "gpp": {"toolchain", "scaffold"},
             "msvc": {"toolchain", "scaffold"},
-            "win32": {"style", "knowledge", "overview"},
+            "win32": {"style", "knowledge", "overview", "scaffold"},
         }
         legacy = {
             "cpp": {"cpp-build", "cpp-style", "cpp-structure", "cpp-testing", "cpp-libraries", "cpp-direction", "cpp-knowledge", "cpp-learning"},
@@ -43,7 +43,7 @@ class CanonicalNameTests(unittest.TestCase):
             "cpp-standards": legacy["cpp"] | {"domain-design"},
             "gcc": {"gcc-toolchain", "gpp-scaffold"},
             "gpp-standards": legacy["gpp"],
-            "windows": legacy["msvc"] | legacy["win32"],
+            "windows": legacy["msvc"] | legacy["win32"] | {"win32-scaffold"},
         }
         for plugin, expected in expected_legacy_packages.items():
             inventory = {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")}
@@ -89,14 +89,16 @@ class CanonicalNameTests(unittest.TestCase):
                 self.assertEqual(name, target.parent.name)
 
     def test_scaffold_links_resolve_inside_every_standalone_package(self) -> None:
-        cases = {
-            "gpp": ("scaffold", "gpp", "new-gpp-project.sh"),
-            "gcc": ("gpp-scaffold", "gpp", "new-gpp-project.sh"),
-            "gpp-standards": ("gpp-scaffold", "gpp", "new-gpp-project.sh"),
-            "msvc": ("scaffold", "msvc", "New-MsvcProject.ps1"),
-            "windows": ("msvc-scaffold", "msvc", "New-MsvcProject.ps1"),
-        }
-        for plugin, (name, scope, script) in cases.items():
+        cases = [
+            ("gpp", "scaffold", "gpp", "new-gpp-project.sh"),
+            ("gcc", "gpp-scaffold", "gpp", "new-gpp-project.sh"),
+            ("gpp-standards", "gpp-scaffold", "gpp", "new-gpp-project.sh"),
+            ("msvc", "scaffold", "msvc", "New-MsvcProject.ps1"),
+            ("windows", "msvc-scaffold", "msvc", "New-MsvcProject.ps1"),
+            ("win32", "scaffold", "win32", "Add-Win32App.ps1"),
+            ("windows", "win32-scaffold", "win32", "Add-Win32App.ps1"),
+        ]
+        for plugin, name, scope, script in cases:
             package = ROOT / "plugins" / plugin
             skill = package / "skills" / name / "SKILL.md"
             body = skill.read_text(encoding="utf-8")
@@ -120,7 +122,7 @@ class CanonicalNameTests(unittest.TestCase):
         self.assertEqual({"base", "gcc", "windows", "cpp-standards", "gpp-standards"}, compatibility)
         for plugin in sorted(compatibility):
             for path in sorted((ROOT / "plugins" / plugin).rglob("*")):
-                if not path.is_file() or path.suffix not in {".md", ".json", ".py"}:
+                if not path.is_file() or path.suffix not in {".md", ".json", ".py", ".sh", ".ps1", ".in"}:
                     continue
                 leaked = canonical.findall(path.read_text(encoding="utf-8"))
                 self.assertEqual([], leaked, path.relative_to(ROOT).as_posix())

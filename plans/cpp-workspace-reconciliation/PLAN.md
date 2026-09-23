@@ -34,7 +34,13 @@ Requested before the wider reconciliation.
   scripts README, restored the canonical packages' `repository` URL (`tj-agents/cpp`,
   regressed by #13), added regression tests for both, bumped `base`/`cpp-standards` 0.5.0,
   `gcc`/`gpp-standards` 0.4.2, `windows` 0.7.0, and promoted the changelog to v0.2.0.
-- [ ] Release PR merged on green exact-head CI; immutable release `v0.2.0` published.
+- [x] Release PR [#16](https://github.com/tj-agents/cpp/pull/16) opened; exact-head CI,
+  attester safety and repository-binding green on `225a2ad`; independent review found no
+  defects (notes: `windows` minor bump is deliberate for new Win32 guidance; widen the leak
+  test to scripts — done in Stage 2).
+- [ ] **Blocked on user approval:** merging #16 was denied by the session's permission
+  classifier ("Merge Without Review"). Resume when the user merges #16 or allows the merge;
+  then publish immutable release `v0.2.0` from the merge commit.
 - [ ] `sandbox-hwid` adoption: refresh the Claude `cpp-agents` marketplace, install
   `cpp`/`msvc`/`win32@cpp-agents`, disable `base`/`gcc`/`windows@cpp-agents`, remove the
   local marketplace override from `.codex/config.toml`, regenerate
@@ -51,6 +57,7 @@ Requested before the wider reconciliation.
 | `newcpp` sanitizer option carrier (`<project>_sanitize`, `-D<PROJECT>_SANITIZE`) | `gpp:scaffold`, `msvc:scaffold` | G++ preset sets sanitizers through global `CMAKE_CXX_FLAGS`, contradicting `cpp:build`; MSVC has none | Target-scoped carrier in both; G++ `dev` enables it, MSVC keeps it opt-in. |
 | `newcpp` `gdb` preset (Debug, no sanitizers) | `gpp:scaffold` | Absent | Add. |
 | `.clang-tidy` `-portability-avoid-pragma-once`, `AllowPointerConditions` | `cpp` (shared config) | Absent from G++ template; MSVC ships none | One canonical formatter/analysis config owned by `cpp`, shipped with both toolchain packages; MSVC keeps its explicit override. |
+| `.clangd` removal of GCC module flags | toolchain root CMake | Workaround only fixed clangd; clang-tidy still failed on the flags | Superseded: `CMAKE_CXX_SCAN_FOR_MODULES OFF` until a project adopts modules fixes clangd and clang-tidy. |
 | `.editorconfig`, `.vscode/settings.json` (clangd) | `cpp` (shared config) | Absent | Shared template. |
 | `.clangd` removing GCC module flags | `gpp:scaffold` | Absent | Add. |
 | `.vscode/launch.json` gdb / cppvsdbg | `gpp:scaffold` / `msvc:scaffold` | Absent | Add per toolchain. |
@@ -69,13 +76,24 @@ Compatibility aliases therefore stay through 2027-03-31.
 
 ## Stage 2 — implementation (branch `Refactor/ReconcileCppWorkspace`)
 
-- [ ] Shared `cpp` project configuration resources and resource mapping.
-- [ ] G++ scaffold parity; MSVC scaffold parity; `win32:scaffold` overlay.
-- [ ] `msvc:toolchain` skill-tree picks; scaffold/structure/README/ARCHITECTURE docs.
-- [ ] Package-version guard (see `TECH_DEBT.md`).
-- [ ] Generator check, route self-test, hook/source tests, both host validators, real
-  builds: `cpp+gpp`, `cpp+msvc` (no Win32), `cpp+msvc+win32`, `cpp+gpp+win32` when a
-  MinGW toolchain is present.
+- [x] Shared `cpp` templates under `.agents/base/utility/scripts/templates/`, shipped to
+  `gpp`, `msvc`, `win32` and the compatibility packages that run them; duplicated G++/MSVC
+  sources removed.
+- [x] G++ parity (sanitizer carrier, `gdb` preset, configs, launch, install, project notes);
+  MSVC parity (opt-in ASan carrier and `asan` preset selecting the ASan component, configs,
+  `cppvsdbg`, install, project notes); `win32:scaffold` overlay (`Add-Win32App.ps1`).
+- [x] Route profiles rendered by the generator into canonical packages only.
+- [x] `msvc:toolchain` skill-tree picks; learning/structure/scaffold/README/ARCHITECTURE/AGENTS.
+- [x] Package-version guard: `package-versions.json` + `test_package_versions.py`; debt
+  entry deleted. Versions: `cpp`/`gpp`/`msvc`/`win32` 0.3.0, `base`/`cpp-standards` 0.6.0,
+  `gcc`/`gpp-standards` 0.5.0, `windows` 0.8.0.
+- [x] Generator current (289 files / 17 definitions), route self-test, 11 hook tests,
+  63 source tests (1 optional skip), Claude validation of marketplace + nine packages,
+  isolated Codex install of all nine, scaffolds run from installed copies. Real builds:
+  `cpp+gpp` MinGW (`gdb`, Catch2 tests pass), `cpp+msvc` (`dev` and `asan`, Catch2 tests
+  pass), `cpp+msvc+win32` and `cpp+gpp+win32` GUI builds (PE subsystem GUI, manifest
+  embedded), clang-tidy clean on console and Win32 sources. The G++ sanitizer `dev` preset
+  needs Linux; CI's Ubuntu run covers it.
 - [ ] Independent review, fixes, incremental review; PR, green exact-head CI, merge,
   release.
 

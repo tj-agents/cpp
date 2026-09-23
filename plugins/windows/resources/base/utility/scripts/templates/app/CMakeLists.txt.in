@@ -1,0 +1,10 @@
+add_executable(__PROJECT__
+    src/main.cpp)
+
+target_link_libraries(__PROJECT__
+    PRIVATE
+        __NAMESPACE__::core
+        __NAMESPACE___warnings
+        __NAMESPACE___sanitize)
+
+install(TARGETS __PROJECT__ RUNTIME DESTINATION .)
