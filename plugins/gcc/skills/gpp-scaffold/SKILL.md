@@ -9,7 +9,7 @@ domain: cpp
 
 Use `gcc:gcc-toolchain` for toolchain decisions. This skill supplies an initial
 **library + console application** with CMake/Ninja presets and Catch2 tests, in
-the project layout `base:cpp-structure` defines — the same shape `msvc:scaffold`
+the project layout `base:cpp-structure` defines — the same shape `windows:msvc-scaffold`
 produces for MSVC. Only the compiler-specific target options (warnings flags,
 runtime linkage) differ between the two; the directory structure does not.
 
@@ -36,7 +36,7 @@ Pass `--simple` for a single-file `CMakeLists.txt` + `main.cpp` project instead
 (quick/throwaway or LeetCode-style work) — no library, no tests, no presets
 beyond a single implicit build directory.
 
-Unlike `msvc:scaffold`, this generator does not accept an external
+Unlike `windows:msvc-scaffold`, this generator does not accept an external
 `.clang-format`/`.clang-tidy` to copy byte-for-byte — there is no separate
 canonical config to preserve here, so the bundled templates *are* the
 canonical defaults (they match `base:cpp-style` exactly). Edit the generated

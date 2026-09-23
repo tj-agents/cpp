@@ -10,7 +10,7 @@ domain: cpp
 Use `windows:msvc-toolchain` for toolchain decisions. This skill supplies an initial
 **library + console application** with CMake/Ninja presets, Catch2 tests, and small
 PowerShell entry points, in the project layout `base:cpp-structure` defines — the same
-shape `gpp:scaffold` produces for G++. Only the compiler-specific target options
+shape `gcc:gpp-scaffold` produces for G++. Only the compiler-specific target options
 (warnings flags, runtime linkage) differ between the two; the directory structure
 does not. It is editor-independent and has no Win32, WIL, WinWrap or third-party
 dependency beyond Catch2 by default. It does not scaffold a driver, GUI framework or
