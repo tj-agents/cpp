@@ -31,7 +31,8 @@ Requested before the wider reconciliation.
   content without bumping versions, and compatibility packages leaked canonical identifiers
   for scopes outside their own (for example `msvc:scaffold` in `gcc`). Completed each
   compatibility package's identifier map, removed the qualified name from the copied G++
-  scripts README, added a regression test, bumped `base`/`cpp-standards` 0.5.0,
+  scripts README, restored the canonical packages' `repository` URL (`tj-agents/cpp`,
+  regressed by #13), added regression tests for both, bumped `base`/`cpp-standards` 0.5.0,
   `gcc`/`gpp-standards` 0.4.2, `windows` 0.7.0, and promoted the changelog to v0.2.0.
 - [ ] Release PR merged on green exact-head CI; immutable release `v0.2.0` published.
 - [ ] `sandbox-hwid` adoption: refresh the Claude `cpp-agents` marketplace, install
