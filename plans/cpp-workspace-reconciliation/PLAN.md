@@ -59,7 +59,6 @@ Requested before the wider reconciliation.
 | `.clang-tidy` `-portability-avoid-pragma-once`, `AllowPointerConditions` | `cpp` (shared config) | Absent from G++ template; MSVC ships none | One canonical formatter/analysis config owned by `cpp`, shipped with both toolchain packages; MSVC keeps its explicit override. |
 | `.clangd` removal of GCC module flags | toolchain root CMake | Workaround only fixed clangd; clang-tidy still failed on the flags | Superseded: `CMAKE_CXX_SCAN_FOR_MODULES OFF` until a project adopts modules fixes clangd and clang-tidy. |
 | `.editorconfig`, `.vscode/settings.json` (clangd) | `cpp` (shared config) | Absent | Shared template. |
-| `.clangd` removing GCC module flags | `gpp:scaffold` | Absent | Add. |
 | `.vscode/launch.json` gdb / cppvsdbg | `gpp:scaffold` / `msvc:scaffold` | Absent | Add per toolchain. |
 | Install to an on-PATH directory | scaffolds (shared app template) | Absent | Add to both. |
 | Project `AGENTS.md` / `CLAUDE.md` | scaffolds | Absent | Add project-facts stubs. |
@@ -93,14 +92,35 @@ Compatibility aliases therefore stay through 2027-03-31.
   `cpp+gpp` MinGW (`gdb`, Catch2 tests pass), `cpp+msvc` (`dev` and `asan`, Catch2 tests
   pass), `cpp+msvc+win32` and `cpp+gpp+win32` GUI builds (PE subsystem GUI, manifest
   embedded), clang-tidy clean on console and Win32 sources. The G++ sanitizer `dev` preset
-  needs Linux; CI's Ubuntu run covers it.
+  is not yet built anywhere: CI has no Ninja and `ci.yml` is trust-pinned; Docker and WSL
+  compilers are unavailable here. Recorded in `TECH_DEBT.md`.
+- [x] CI run 1 on #17 failed: the repository `.gitignore` ignored every `.vscode/`, so the
+  scaffold `.vscode` templates were never committed. Anchored the ignores to the root and
+  added a test that no authored or generated file is git-ignored.
 - [ ] Independent review, fixes, incremental review; PR, green exact-head CI, merge,
   release.
 
 ## Stage 3 — consumer migration
 
-- [ ] Old workspace through its own worktree: pointers, wrapper, routes, global notes.
-- [ ] Other active consumers: record or migrate their route profiles to the release.
+- [x] Old workspace prepared in its own worktree
+  (`C:\Users\tommy\source\repos\cpp\.worktrees\AdoptCanonicalCppAgents`, branch
+  `Refactor/AdoptCanonicalCppAgents`, local commit `1c4e00a`, not pushed): `newcpp` is a
+  wrapper over the installed `gpp`/`msvc`/`win32` scaffolds (requires 0.3.0+; `-Windows`
+  keeps the MSVC + Win32 GUI shorthand), pointers name `tj-agents/cpp` and canonical
+  identifiers, stale `dotfiles/skill-routes/` snapshots deleted, `claude-global.md` names
+  `cpp` plus explicit toolchains, root route profile regenerated (`cpp`). Verified against
+  this branch's packages through a temporary plugin registry: `cpp+gpp`, `cpp+msvc`,
+  `cpp+msvc+win32`, each `git init` on `main`. The normal checkout's dirty `NORTH_STAR.md`
+  edit is untouched.
+- [ ] Push the workspace branch and open its PR once v0.3.0 is released and installed.
+- [ ] Follow-up for the user: workspace `NORTH_STAR.md` duplicates `cpp:direction` (which
+  now defers compiler/debugger/profiler to the toolchain skills). It was not converted to a
+  pointer because the normal checkout holds an uncommitted user edit to it.
+- [x] Other active consumers: `cpp/gpp/note-cli`, `cpp/windows/icon-dropper`,
+  `cpp/windows/wifi-toggle`, `cpp/windows/winwrap` use legacy identifiers served by the
+  compatibility packages until 2027-03-31; nothing here breaks them, so they are recorded
+  rather than rewritten. Migrate each with `gen_skill_routes.py --toolchain … --api …`
+  before the window closes. `sandbox-hwid` is handled by Stage 0.
 
 ## Progress
 
