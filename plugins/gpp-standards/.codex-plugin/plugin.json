@@ -1,6 +1,6 @@
 {
   "name": "gpp-standards",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Deprecated compatibility package for gpp@cpp-agents; remove after 2027-03-31.",
   "author": {
     "name": "Tommy Seery",

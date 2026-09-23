@@ -99,6 +99,6 @@ This is the default for new work, not permission to reorganize an existing
 project incidentally. Follow a repository's current directory layout unless
 the task actually requires an architectural change.
 
-`gpp:scaffold` and `msvc:scaffold` both bootstrap a new single-product
+`gpp-standards:gpp-scaffold` and `windows:msvc-scaffold` both bootstrap a new single-product
 project into this default shape; only their compiler-specific target options
 differ.
