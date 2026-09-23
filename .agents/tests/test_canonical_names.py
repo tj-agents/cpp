@@ -1,5 +1,7 @@
 import json
 import re
+import shutil
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -115,6 +117,22 @@ class CanonicalNameTests(unittest.TestCase):
         self.assertEqual(2 * len(self.payloads["payloads"]), len(manifests))
         for manifest in manifests:
             self.assertEqual("https://github.com/tj-agents/cpp", read_json(manifest)["repository"], manifest.name)
+
+    def test_no_generated_or_authored_file_is_git_ignored(self) -> None:
+        # An ignored template is present locally but missing from every clone and package.
+        if shutil.which("git") is None or not (ROOT / ".git").exists():
+            self.skipTest("not a git checkout")
+        files = [
+            path.relative_to(ROOT).as_posix()
+            for top in (".agents", ".claude", ".codex", "plugins")
+            for path in (ROOT / top).rglob("*")
+            if path.is_file() and "__pycache__" not in path.parts
+        ]
+        ignored = subprocess.run(
+            ["git", "check-ignore", "--no-index", "--stdin"],
+            cwd=ROOT, input="\n".join(files), capture_output=True, text=True,
+        )
+        self.assertEqual("", ignored.stdout)
 
     def test_compatibility_packages_never_name_canonical_identifiers(self) -> None:
         canonical = re.compile(r"(?<![\w@-])(?:cpp|gpp|msvc|win32):[a-z][a-z0-9-]*")
