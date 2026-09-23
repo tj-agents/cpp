@@ -80,7 +80,8 @@ platform specifics go in those plugins, not here.
   *what*). No tutorial commentary. If you're unsure, write fewer comments.
 - **When scaffolding, produce a clean working skeleton and stop.** Don't
   pre-write the logic or stub out the API "for me to fill in" — that's the part
-  I want to write. Use the configured `newcpp` scaffold when it is available, then hand it over.
+  I want to write. Use the selected toolchain's scaffold (`gpp-standards:gpp-scaffold` or
+  `windows:msvc-scaffold`, plus `windows:win32-scaffold` for a Win32 GUI app), then hand it over.
 - Treat the tooling (CMake, the selected platform debugger, clang-tidy, git) as
   things to learn, not skip past — but explain them in chat, not as
   comment-essays in config files.

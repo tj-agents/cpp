@@ -1,0 +1,6 @@
+CompileFlags:
+  CompilationDatabase: build/dev
+  Remove:
+    # clang rejects ASan with the debug CRT that cl accepts; strip it for parsing only.
+    - /fsanitize=*
+    - -fsanitize=*

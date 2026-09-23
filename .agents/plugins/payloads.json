@@ -101,7 +101,8 @@
         "msvc-scaffold": "msvc:scaffold",
         "win32-style": "win32:style",
         "windows-cpp-knowledge": "win32:knowledge",
-        "windows-overview": "win32:overview"
+        "windows-overview": "win32:overview",
+        "win32-scaffold": "win32:scaffold"
       }
     },
     "cpp-standards": {

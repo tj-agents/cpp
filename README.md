@@ -28,9 +28,20 @@ Canonical definitions live at:
 
 `.agents/plugins/sources.json` maps those sources into generated `.codex/skills/`,
 `.claude/skills/`, and self-contained `plugins/*` packages. `.agents/skills/` does not exist;
-`.agents/` remains the sole canonical shared tree. The MSVC
-scaffold script and templates are owned by `.agents/msvc/utility/scripts/` and ship inside
-the `msvc` and legacy combined `windows` packages.
+`.agents/` remains the sole canonical shared tree.
+
+Scaffolds compose the same way as the plugins:
+
+| Utility | Produces |
+|---|---|
+| `gpp:scaffold` | `cpp + gpp` library + console project with G++ presets (`dev` with sanitizers, `release`, `gdb`) |
+| `msvc:scaffold` | `cpp + msvc` library + console project with MSVC presets (`dev`, `release`, `asan`) and PowerShell helpers |
+| `win32:scaffold` | converts either result's `app` target into a Win32 GUI application (`cpp + toolchain + win32`) |
+
+The platform-neutral templates they share (formatter, analysis and editor configuration and the
+`libs/core`, `app` and `tests` sources) are owned by `.agents/base/utility/scripts/templates/` and
+copied into every package that uses them. Each generated project carries the route profile for its
+exact composition, rendered by the route generator at sync time.
 
 Generate and verify outputs with:
 
@@ -38,6 +49,7 @@ Generate and verify outputs with:
 pwsh .agents/sync-generated.ps1
 pwsh .agents/sync-generated.ps1 -Check
 python -B .agents/gen_skill_routes.py --self-test
+python -B .agents/sync_generated.py --record-package-versions   # after a version bump
 ```
 
 Generate a consuming repository profile explicitly:

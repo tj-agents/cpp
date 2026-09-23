@@ -9,7 +9,7 @@
       "binaryDir": "${sourceDir}/build/dev",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer -g"
+        "__NAMESPACE_UPPER___SANITIZE": "ON"
       }
     },
     {
@@ -18,13 +18,22 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    },
+    {
+      "name": "gdb",
+      "displayName": "Debug (no sanitizers, clean stepping)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/gdb",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
     }
   ],
   "buildPresets": [
     { "name": "dev", "configurePreset": "dev" },
-    { "name": "release", "configurePreset": "release" }
+    { "name": "release", "configurePreset": "release" },
+    { "name": "gdb", "configurePreset": "gdb" }
   ],
   "testPresets": [
-    { "name": "dev", "configurePreset": "dev", "output": { "outputOnFailure": true } }
+    { "name": "dev", "configurePreset": "dev", "output": { "outputOnFailure": true } },
+    { "name": "gdb", "configurePreset": "gdb", "output": { "outputOnFailure": true } }
   ]
 }

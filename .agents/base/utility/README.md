@@ -1,3 +1,5 @@
 # Base utilities
 
-No base utilities are currently defined. The `scripts/` directory is reserved for future utilities with an explicit owner and contract.
+No base utility skill is defined. `scripts/templates/` owns the platform-neutral project
+templates that every toolchain scaffold layers under its own: the canonical formatter,
+analysis and editor configuration and the shared `libs/core`, `app` and `tests` sources.

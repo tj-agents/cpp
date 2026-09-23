@@ -101,3 +101,17 @@ machine-specific compiler paths, automatic tool upgrades or restarts in a build 
   packaging and deployment evidence.
 - Report a missing compiler, SDK, library or specialized tool as a concrete prerequisite.
   Do not substitute another ABI, fake platform headers, or claim an unrun build.
+
+## Skill-tree picks and calibration
+
+This toolchain fills the compiler, debugger and profiler rows of `cpp:direction` when a
+project selects MSVC:
+
+- **Compiler** — MSVC `cl` (clang-cl where a project chooses it).
+- **Debugger** — the Visual Studio debugger engine; `msvc:scaffold` configures it for
+  VS Code as `cppvsdbg`.
+- **Profiler** — not chosen yet.
+
+None of these is recorded as known. Explain the Developer PowerShell environment, CRT
+selection, PDBs and the debugger before relying on them, and update `cpp:knowledge` only
+after Tommy demonstrates the concept.

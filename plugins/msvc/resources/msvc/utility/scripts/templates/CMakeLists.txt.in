@@ -11,6 +11,11 @@ if(PROJECT_IS_TOP_LEVEL)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     include(CTest)
+
+    # `cmake --install` places the executable in a directory already on PATH.
+    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        set(CMAKE_INSTALL_PREFIX "$ENV{LOCALAPPDATA}/Microsoft/WindowsApps" CACHE PATH "" FORCE)
+    endif()
 endif()
 
 add_library(__NAMESPACE___warnings INTERFACE)
@@ -21,6 +26,20 @@ option(__NAMESPACE_UPPER___WARNINGS_AS_ERRORS "Treat compiler warnings as errors
 if(__NAMESPACE_UPPER___WARNINGS_AS_ERRORS)
     set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 endif()
+
+add_library(__NAMESPACE___sanitize INTERFACE)
+option(__NAMESPACE_UPPER___SANITIZE "Build owned targets with AddressSanitizer" OFF)
+if(__NAMESPACE_UPPER___SANITIZE)
+    target_compile_options(__NAMESPACE___sanitize INTERFACE /fsanitize=address)
+    # Catch2 is built without ASan; disabling the container annotations keeps the
+    # instrumented and uninstrumented objects link-compatible (LNK2038).
+    target_compile_definitions(__NAMESPACE___sanitize INTERFACE
+        _DISABLE_STRING_ANNOTATION=1 _DISABLE_VECTOR_ANNOTATION=1)
+endif()
+
+# No C++20 modules yet. Module scanning adds compiler flags that clangd and
+# clang-tidy cannot parse; enable it when the project adopts modules.
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 add_subdirectory(libs/core)
 add_subdirectory(app)

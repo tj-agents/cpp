@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -274,6 +276,14 @@ def compatibility_alias_body(skill: dict, alias_name: str, target_name: str, rem
     )
 
 
+def route_generator(root: Path):
+    # Scaffold route profiles are rendered by the same generator consumers run.
+    spec = importlib.util.spec_from_file_location("gen_skill_routes", root / ".agents/gen_skill_routes.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def resource_bytes(path: Path, text: bool) -> bytes:
     if text:
         return read(path).encode("utf-8")
@@ -366,6 +376,16 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
                         resource_bytes(path, resource.get("text", False)),
                     )
 
+    route_profiles = config.get("routeProfiles", [])
+    if route_profiles:
+        routes = route_generator(root)
+        for profile in route_profiles:
+            rendered = routes.rendered(profile["toolchain"], profile.get("apis", []))
+            for package in profile["plugins"]:
+                if package not in payloads["publicPlugins"]:
+                    raise ValueError(f"Route profiles name canonical skills; {package} is not a canonical package")
+                emit(f"{package_root}/{package}/{profile['destination']}", rendered)
+
     codex_plugins = []
     claude_plugins = []
     for package in package_order:
@@ -425,11 +445,54 @@ def synchronize(root: Path, check: bool) -> int:
     return 0
 
 
+PACKAGE_VERSIONS = ".agents/plugins/package-versions.json"
+
+
+def package_state(root: Path, package: str) -> tuple[str, str]:
+    """Return a package's manifest version and a digest of everything else it ships."""
+    package_root = root / EXPECTED_PACKAGE_ROOT / package
+    versions: set[str] = set()
+    digest = hashlib.sha256()
+    for path in sorted(package_root.rglob("*")):
+        if not path.is_file() or "__pycache__" in path.parts:
+            continue
+        relative = path.relative_to(package_root).as_posix()
+        data = path.read_bytes()
+        if relative in (".claude-plugin/plugin.json", ".codex-plugin/plugin.json"):
+            manifest = json.loads(data)
+            versions.add(manifest.pop("version"))
+            data = json.dumps(manifest, sort_keys=True).encode("utf-8")
+        digest.update(relative.encode("utf-8") + b"\0" + hashlib.sha256(data).digest())
+    if len(versions) != 1:
+        raise ValueError(f"{package}: host manifests disagree on the version: {sorted(versions)}")
+    return versions.pop(), digest.hexdigest()
+
+
+def record_package_versions(root: Path) -> int:
+    # Append-only: a published version's content can never be re-recorded.
+    path = root / PACKAGE_VERSIONS
+    recorded = load(path) if path.is_file() else {}
+    payloads = load(root / ".agents/plugins/payloads.json")
+    for package in sorted(payloads["payloads"]):
+        version, digest = package_state(root, package)
+        history = recorded.setdefault(package, {})
+        if history.get(version, digest) != digest:
+            print(f"{package}: content changed without a version bump from {version}")
+            return 1
+        history[version] = digest
+    path.write_text(json.dumps(recorded, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    print(f"recorded package versions: {path.relative_to(root).as_posix()}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--record-package-versions", action="store_true")
     args = parser.parse_args()
+    if args.record_package_versions:
+        return record_package_versions(args.root.resolve())
     return synchronize(args.root.resolve(), args.check)
 
 
