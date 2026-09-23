@@ -4,7 +4,9 @@
 
 Publish one reusable, idiomatic C++ design standard derived from established DDD vocabulary,
 the C++ Core Guidelines, and explicit state/logic separation, then apply its decisions to the
-Sandbox HWID lab without forcing a domain layer that the lab does not need.
+Sandbox HWID lab as a foundation for a growing, multi-feature system. Current code size is
+not a reason to flatten ownership or postpone useful module boundaries. Separate scalable
+architecture from inventing domain invariants that the present wire records do not have.
 
 ## Authorization
 
@@ -13,11 +15,18 @@ skill names, and applying the resulting design to the current lab. Driver instal
 loading, signing-policy changes, VM operations, and unrelated WinWrap implementation remain
 outside this work.
 
-Latest steering (2026-09-23): Tommy authorized updating existing cpp-agents PR #13 and the
+Completed steering (2026-09-23): Tommy authorized updating existing cpp-agents PR #13 and the
 Sandbox HWID application to use type-owned static request validation and the identity
 feature namespace. Retain and explain the ABI assertions. This turn updates the review
 candidate and sandbox; it does not claim or require a merge, publish a release, or expand
 driver/runtime scope. The earlier Claude handoff produced the commits recorded below.
+
+Latest steering (2026-09-23): apply a project/library namespace by default and add nested
+namespaces for meaningful subsystem or contract boundaries. Keep `Identity` and
+`IdentityRequest`; use `sandbox_hwid::protocol` for the shared client/driver wire contract.
+Keep namespace depth independent of folders and architectural scale. A useful library
+boundary does not require a second consumer. Update the existing guidance and sandbox PRs;
+no wider product-tree reorganization was selected. Keep process notes brief.
 
 ## Settled decisions
 
@@ -44,9 +53,10 @@ driver/runtime scope. The earlier Claude handoff produced the commits recorded b
 - Keep mutable state and external I/O in coarse boundary components; keep core transformations
   explicit and independently testable.
 - Sandbox HWID currently has passive wire records, not a behaviour-bearing domain model.
-  Its types remain `struct`s under the feature namespace `sandbox_hwid::identity`; no synthetic
-  `domain` layer or immutable-update methods will be introduced. Ordinary static functions
-  do not alter object layout; keep size/offset assertions and host type-trait checks.
+  Their struct representation, validation semantics and ABI checks remain appropriate within
+  a scalable architecture. Preserve the names `Identity` and `IdentityRequest`. The published
+  contract namespace is `sandbox_hwid::protocol`; it names the shared wire boundary
+  without imposing a namespace on every feature or folder. Ordinary static functions do not alter object layout.
 
 ## Work
 
@@ -62,7 +72,7 @@ driver/runtime scope. The earlier Claude handoff produced the commits recorded b
       existing 2027-03-31 window.
 - [x] Add `cpp:domain-design` with generic examples covering passive records, invariant-bearing
       values, fallible factories, immutable transformations, associated free functions,
-      stateful adapters, entities/value objects, typed errors, and feature-oriented namespaces.
+      stateful adapters, entities/value objects, typed errors, and namespace ownership.
 - [x] Update routes, manifests, source/package mappings, documentation, hooks, tests, and
       generated outputs from their canonical owners.
 - [x] Validate generator freshness, route self-tests, hooks, package contracts, host validators,
@@ -90,6 +100,20 @@ driver/runtime scope. The earlier Claude handoff produced the commits recorded b
 - [x] Commit the bounded corrections, update existing cpp-agents PR #13, and publish a
       reviewable sandbox companion candidate without staging unrelated work.
 
+### 4. Namespace and scalable module correction (2026-09-23)
+
+- [x] Preserve `Identity` and `IdentityRequest`; remove the automatic feature-namespace rule.
+- [x] Use `sandbox_hwid::protocol` for the shared wire contract and its decoder; update
+      public include paths, consumers, WDK project references and current conventions.
+- [x] Clarify that namespace hierarchy need not mirror folders, and that one consumer is
+      sufficient for a useful library API, dependency boundary or independent testing.
+- [x] Regenerate packages, validate the required source/host checks and rebuild the sandbox.
+
+The existing client, driver and shared roots retain their ownership. The shared ABI remains
+C++17 without user-mode dependencies; the client decoder remains C++23. Type-owned static
+validation and all size/offset checks stay in place. No new domain model or operation names
+are needed for this correction.
+
 ## Acceptance criteria
 
 - Canonical examples read as ordinary modern C++, not translated C# or a prescribed OO style.
@@ -102,6 +126,12 @@ driver/runtime scope. The earlier Claude handoff produced the commits recorded b
 
 ## Progress
 
+- 2026-09-23 namespace correction implemented and validated for the existing PRs. The shared
+  contract uses `protocol`; the type names and ABI remain unchanged. Source generator/routes,
+  11 hook tests and 51 source tests pass (one existing optional skip); both hosts accept all
+  nine packages. The C++17 guide example compiles. Sandbox client/8 tests, real WDK build and
+  analysis, formatting of owned changes, and client clang-tidy pass. Local cpp/msvc guidance
+  was refreshed and byte-verified. The prior candidate SHAs below remain historical evidence.
 - 2026-09-23 requested correction delivered for review. Source PR
   https://github.com/tomjseery/cpp-agents/pull/13 is updated at
   `45c448cdf3a9f653a9b9348502b0513e06b3f4fe`; the sandbox companion draft is
@@ -256,8 +286,9 @@ driver/runtime scope. The earlier Claude handoff produced the commits recorded b
 
 ## Next Steps
 
-The requested correction and publication for review are complete. Continue from the two
-recorded PR heads; do not reimplement the design or reopen duplicate PRs.
+The namespace and module-guidance correction is implemented and host-validated. Existing
+cpp-agents PR #13 and sandbox draft PR #1 remain the review owners. The selected namespace
+correction is complete; the remaining release prerequisites are:
 
 1. Before merging source PR #13, resolve the separately reviewed provenance-pin update and
    trusted exact-head attestation described in the linked debt owner. Preserve the signed

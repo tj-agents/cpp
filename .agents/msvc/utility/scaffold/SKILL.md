@@ -54,8 +54,9 @@ change; a different architecture/generator should use its own build directory an
 
 The sample `core::greeting()` function and its Catch2 case exist only to prove the scaffold
 builds and tests end to end — replace them with real logic. `Build.ps1 -Test` runs the
-selected CTest preset. Keep reusable logic in `libs/core`; extract a second library target
-under `libs/<new-name>/` only once a second real consumer needs it, per `cpp:structure`.
+selected CTest preset. Replace `libs/core` with modules that own the application's real
+responsibilities. Add a library target for a cohesive API, dependency control, independent
+testing, or reuse, per `cpp:structure`; it does not require a second consumer.
 
 For an existing repository, inspect its build entry points and preserve them. Reuse an
 individual helper only where it fits; do not run the new-project generator over the tree.
