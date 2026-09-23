@@ -129,7 +129,7 @@ are needed for this correction.
 - [x] Move response field checks and `IdentityError` into the shared identity header; make
       the C++23 decoder check length, copy, delegate and propagate the same error categories.
 - [x] Complete host validation, update current documentation and refresh the lab's guidance.
-- [ ] Commit and update source PR #13 and sandbox draft PR #1, preserving unrelated work.
+- [x] Commit and update source PR #13 and sandbox draft PR #1, preserving unrelated work.
 
 ## Acceptance criteria
 
@@ -143,6 +143,12 @@ are needed for this correction.
 
 ## Progress
 
+- 2026-09-23 response ownership delivered to [source PR #13](https://github.com/tj-agents/cpp/pull/13)
+  and [sandbox draft PR #1](https://github.com/tomjseery/sandbox-hwid/pull/1). Published code
+  commits are `73c039cd86299a825ab9f68f56eb11af7234ec05` and
+  `977798dd4a45e39b250be0ec53ceb21b90e0a7bd`; remote heads were verified. This plan checkpoint
+  follows the source code commit. Unrelated sandbox edits remain local. Neither PR is merged;
+  the existing trusted-provenance prerequisite remains with the debt owner below.
 - 2026-09-23 response ownership implemented and validated. Required generator/routes, 11 hook
   tests and 51 source tests pass (one existing optional skip). Both hosts accept all nine
   packages; evidence is in `C:\Users\tommy\AppData\Local\Temp\cpp-rules-hosts-fc59do6c`.
@@ -311,8 +317,8 @@ are needed for this correction.
 
 ## Next Steps
 
-Complete the response-validation checks and documentation, refresh the selected local guidance,
-then update existing cpp-agents PR #13 and sandbox draft PR #1. The release prerequisites remain:
+The response-validation implementation, reusable guidance, host checks and existing PR updates
+are complete. Local cpp guidance is refreshed. The release prerequisites remain:
 
 1. Before merging source PR #13, resolve the separately reviewed provenance-pin update and
    trusted exact-head attestation described in the linked debt owner. Preserve the signed
