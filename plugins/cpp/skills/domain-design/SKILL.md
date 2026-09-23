@@ -54,7 +54,8 @@ The C++ mapping here is a house design decision; DDD does not prescribe these C+
 
 Prefer `IdentityRequest::validate(request)` for a stateless contract check that belongs to one
 record type and benefits from discovery on that type. A static member has no implicit
-`this` object; the checked record remains an explicit input. An ordinary `const` member
+`this` object; the checked record remains an explicit input. Static is not a
+purity guarantee: side effects still depend on the implementation. An ordinary `const` member
 can also express a check of the receiver. Public fields do not forbid either spelling.
 
 Use an associated free function for an independent algorithm, an operation spanning
@@ -105,28 +106,118 @@ alone does not fix a cross-platform wire format. Preserve the actual compiler/AB
 restricted-runtime requirements; do not introduce library dependencies merely to place
 an operation on a type. The record's public fields remain editable after validation.
 
-## Keep type rules separate from representation decoding
+## Keep validation and decoding with their owner
 
-Use one owner for a type's validation rules and error vocabulary. For passive records,
-`Identity::validate(record, requested_profile)` can own metadata and field-content checks
-just as `IdentityRequest::validate(request)` owns request checks. For invariant-bearing
-values, construction and permitted operations enforce the rules instead.
+Give a type one owner for its rules and error vocabulary. When a representation is part
+of that type's own contract, prefer a static `Identity::decode(bytes, requested_profile)`
+or `parse(text)` entry point. A definition in `identity.cpp` remains a member of Identity;
+it does not need to be inline or require a separate decoder service class.
 
-- The type or core API owns its rules and declares its typed errors. Keep that vocabulary
-  in its API header or a dedicated header owned by the same component; a generic validation
-  utility or application-wide errors file should not become the owner of unrelated rules.
-- A representation adapter checks framing and buffer lengths, safely copies or converts the
-  representation, then calls the type's validator or factory. It propagates typed failures
-  without duplicating the rules. A shared protocol error vocabulary may include malformed
-  input errors produced by the decoder as well as record errors produced by validation.
-- Application and I/O adapters acquire external data and coordinate those operations.
+- The type's API header declares its errors beside the type. A dedicated error header is
+  appropriate when that same component has enough shared vocabulary to justify one;
+  a generic `validation.hpp` or application-wide `errors.hpp` should not own unrelated rules.
+- Validate untrusted input at the entry boundary: check framing/length before copying or
+  converting, then check content before returning success. The returned value owns its data
+  unless the API explicitly promises a view and documents the required source lifetime.
+- Keep checks used only by that operation private. A local helper is fine; a named
+  type-specific helper can be a private static member with its definition in the owning
+  `.cpp`. Public data plus private functions is valid for a passive struct.
+- Expose a separate `validate(record)` only when callers actually need to check existing
+  records. Do not add a second public operation merely to split the steps inside a decoder.
+- An adapter for an external representation or an operation spanning several types belongs
+  in its own component. It delegates to the owning rules/factory instead of duplicating them.
+  Device discovery, resource acquisition and I/O stay with the device boundary.
 
-Respect the dependency direction and language baseline. A C++23 decoder may expose
-`std::span` and `std::expected` while the type and its error enum remain usable in a
-C++17 component without those dependencies. Do not add client-only libraries to a shared
-header merely to spell the operation as a member. A type-owned `parse` or `decode` factory
-is still appropriate when that representation belongs to the type's own contract and
-its dependencies fit the owning component.
+This complete C++23 example describes an agreed native binary ABI. Producers and consumers
+must agree on layout and byte order; an independent cross-platform format needs explicit
+field encoding/decoding. The declarations belong in `identity.hpp` and the non-inline
+method definitions in `identity.cpp`:
+
+```cpp
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <expected>
+#include <span>
+#include <type_traits>
+
+namespace device::protocol {
+
+inline constexpr std::uint32_t baseline_profile{0};
+inline constexpr std::uint32_t alternate_profile{1};
+inline constexpr std::size_t text_capacity{16};
+
+enum class IdentityError { length, profile, text };
+
+struct Identity {
+    std::uint32_t profile;
+    char serial[text_capacity];
+
+    /// Decode one record using the producer and consumer's agreed native ABI.
+    [[nodiscard]] static std::expected<Identity, IdentityError>
+    decode(std::span<const std::byte> bytes, std::uint32_t requested_profile) noexcept;
+
+private:
+    static bool valid_text(std::span<const char, text_capacity> text) noexcept;
+};
+
+std::expected<Identity, IdentityError>
+Identity::decode(std::span<const std::byte> bytes,
+                 std::uint32_t requested_profile) noexcept {
+    if (bytes.size() != sizeof(Identity))
+        return std::unexpected{IdentityError::length};
+
+    Identity record{};
+    std::memcpy(&record, bytes.data(), sizeof(record));
+    if (record.profile != requested_profile ||
+        (record.profile != baseline_profile && record.profile != alternate_profile))
+        return std::unexpected{IdentityError::profile};
+    if (!valid_text(record.serial))
+        return std::unexpected{IdentityError::text};
+    return record;
+}
+
+bool Identity::valid_text(std::span<const char, text_capacity> text) noexcept {
+    constexpr unsigned char first_printable{0x20};
+    constexpr unsigned char last_printable{0x7e};
+    if (text.front() == '\0')
+        return false;
+
+    bool terminated{false};
+    for (const char value : text) {
+        if (value == '\0') {
+            terminated = true;
+        } else {
+            const auto character{static_cast<unsigned char>(value)};
+            if (terminated || character < first_printable || character > last_printable)
+                return false;
+        }
+    }
+    return terminated;
+}
+
+static_assert(sizeof(Identity) == 20);
+static_assert(offsetof(Identity, serial) == 4);
+static_assert(std::is_standard_layout_v<Identity>);
+static_assert(std::is_trivially_copyable_v<Identity>);
+static_assert(std::is_aggregate_v<Identity>);
+
+} // namespace device::protocol
+```
+
+Success is carried by `std::expected`, so this error enum has no `none` member.
+The private boolean helper supplies one text rule; the public decoder preserves typed
+failures. Keep `return terminated`: reaching the end without a terminator is invalid.
+Runtime byte decoding does not need constexpr helpers. Preserve compile-time validation
+where a real consumer uses it; test private rules through the public operation.
+
+Respect each consumer's actual language and library baseline. A public header exposing
+`std::expected` requires C++23, and its build target must propagate that requirement.
+Do not let grouping force unsupported dependencies onto another runtime. A project may
+explicitly define different APIs for separate target programs while sharing a data layout;
+such adaptations belong in that project's guidance, with identical definitions across
+translation units within each program and verified ABI assertions. Conditional data fields
+or ad hoc per-file feature switches are not an ownership mechanism.
 
 ## Records, factories, transformations, and free functions
 
@@ -255,7 +346,7 @@ on a C++17 ABI or restricted environment.
 
 Use clear concept nouns, role suffixes only where they disambiguate, and operation verbs:
 `Identity`, `IdentityRequest`, `IdentityRequestError`, `IdentityError`,
-`IdentityRequest::validate`, `Identity::validate`, and `query_identity`. These spellings are house examples,
+`IdentityRequest::validate`, `Identity::decode`, and `query_identity`. These spellings are house examples,
 not a claim that all C++ libraries use the same casing or factory name. Avoid repeating
 a type's name in an operation when its class or namespace already provides that context.
 

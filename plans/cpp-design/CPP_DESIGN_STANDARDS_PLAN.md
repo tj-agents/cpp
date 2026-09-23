@@ -28,9 +28,15 @@ Keep namespace depth independent of folders and architectural scale. A useful li
 boundary does not require a second consumer. Update the existing guidance and sandbox PRs;
 no wider product-tree reorganization was selected. Keep process notes brief.
 
-Latest steering (2026-09-23): put response rules and their typed errors with `Identity`,
+Completed response-validation steering (2026-09-23): put response rules and their typed errors with `Identity`,
 leaving byte-length checking, copying and delegation in the client decoder. Apply this
 ownership rule to the reusable standards as well as the sandbox and update the existing PRs.
+
+Latest steering (2026-09-23): Tommy accepted the completed design and said "lets go".
+Implement the member decoder, device component and corresponding reusable standards,
+validate the actual projects, and update the existing review candidates. The prior
+discussion-only pause is lifted. Preserve unrelated work and the separate restrictions
+on merging, driver execution, signing, installation and VM operations.
 
 ## Settled decisions
 
@@ -49,9 +55,9 @@ ownership rule to the reusable standards as well as the sandbox and update the e
   free functions remain appropriate for independent algorithms and boundary adapters. This
   grouping preference is a house decision, not a requirement of C.4/C.5 or DDD.
 - Types own their validation rules and typed errors. Representation adapters check framing,
-  copy or convert input, then delegate without duplicating those rules. Keep client-only
-  dependencies outside the shared C++17 contract; an intrinsic representation may still
-  justify a type-owned parsing factory when its dependencies fit that component.
+  copy or convert input, then delegate without duplicating those rules. An intrinsic
+  representation can be decoded by its own type. Keep user-mode C++23 includes/methods
+  outside the kernel view; expose the actual language requirement to each consumer.
 - Immutable transformations use a domain-specific verb. `with_x` is available when it truly
   means "copy this value with one replacement" but is not a mandated C++ naming pattern.
 - C++ value semantics do not require an immutable API. Prefer immutable domain values when
@@ -141,8 +147,414 @@ are needed for this correction.
 - The lab builds and its host tests pass with unchanged wire layout and no driver execution.
 - The final explanation includes generic examples plus the concrete Sandbox HWID mapping.
 
+## Final design: explicit state and type-owned operations
+
+Design completed on 2026-09-23 at Tommy's request. Keep the selected public include prefix
+`sandbox_hwid/` and the `protocol/` contract boundary. This section supersedes the earlier
+free-decoder and temporary `IdentityResult` proposals. Tommy subsequently authorized
+implementation; the header/decoder/device code, build boundaries and reusable guidance
+below are now applied and locally validated. Delivery status is recorded in Progress.
+
+### Ownership and API
+
+| Owner | Public API | Internal work |
+|---|---|---|
+| `protocol::IdentityRequest` | Static `validate(request)` returning `IdentityRequestError` | Kernel-compatible field checks on an already copied request |
+| `protocol::Identity` | Static user-mode `decode(bytes, requested_profile)` returning `std::expected<Identity, IdentityError>` | Length check, local copy, metadata checks, private static `valid_text` |
+| `sandbox_hwid::device` | `find()`, `open(path)`, `query_identity(connection, profile)` | Discovery, handle acquisition and synchronous device I/O |
+| Executable | CLI arguments, output and probe/stress command scenarios | Calls the device component; formats diagnostics at the outer boundary |
+
+`Identity::decode` is the only public response-validation entry point. Its body owns the
+metadata rules directly and calls its private text helper. Remove the separate public
+`Identity::validate`; a second metadata-validation method is unnecessary when there is
+only one caller. The helper is a named private static member, defined in `identity.cpp`.
+It does not need `constexpr`: this decoder handles received bytes at runtime. Keep
+`IdentityRequest::validate` constexpr and available to the driver.
+
+All seven Identity data members and all four request data members remain public in their
+original order and representation. A private function does not make the data private, add
+state, or remove aggregate/standard-layout/trivially-copyable properties. Keep every ABI
+size/offset assertion and trait checks. These are editable wire records, not encapsulated
+DDD Value Objects; successful decoding validates this copy at this boundary.
+
+Keep `IdentityRequestError` and `IdentityError` beside their types in `identity.hpp`.
+`IdentityError` contains failures only: `std::expected` carries success, so remove the
+now-unused `IdentityError::none`. Preserve the numeric values of the six existing failure
+categories (length through text, 0 through 5). Request validation still uses its existing
+`IdentityRequestError::none` success value in the kernel-compatible API.
+
+Keep the existing version, profile, flag and text-capacity constants public in `protocol`:
+producers, consumers and contract tests use them. Keep the printable-ASCII bounds private
+to `valid_text`. Do not create an anonymous namespace in the public header.
+
+### Implemented identity header
+
+`shared/include/sandbox_hwid/protocol/identity.hpp`:
+
+```cpp
+#pragma once
+
+#include <basetsd.h>
+#include <stddef.h>
+
+#if !defined(_KERNEL_MODE)
+#include <cstddef>
+#include <expected>
+#include <span>
+#endif
+
+namespace sandbox_hwid::protocol {
+
+inline constexpr UINT32 protocol_version{1};
+inline constexpr UINT32 baseline_profile{0};
+inline constexpr UINT32 alternate_profile{1};
+inline constexpr UINT32 synthetic_flag{1};
+inline constexpr size_t text_capacity{48};
+
+/// Request failures independent of NTSTATUS and the user-mode runtime.
+enum class IdentityRequestError { none, size, version, profile, reserved };
+
+/// Version 1 request. Reserved must be zero; profile selects a caller-local view.
+struct IdentityRequest {
+    UINT32 size;
+    UINT32 version;
+    UINT32 profile;
+    UINT32 reserved;
+
+    /// Requires an already copied, complete IdentityRequest object.
+    [[nodiscard]] static constexpr IdentityRequestError validate(
+        const IdentityRequest& request) noexcept {
+        if (request.size != sizeof(IdentityRequest))
+            return IdentityRequestError::size;
+        if (request.version != protocol_version)
+            return IdentityRequestError::version;
+        if (request.profile != baseline_profile && request.profile != alternate_profile)
+            return IdentityRequestError::profile;
+        if (request.reserved != 0)
+            return IdentityRequestError::reserved;
+        return IdentityRequestError::none;
+    }
+};
+
+/// Decode failures; category values are retained for client diagnostics.
+enum class IdentityError { length, size, version, profile, flags, text };
+
+/// Fixed Windows ABI. Text is nonempty printable ASCII, NUL-terminated and zero-padded.
+struct Identity {
+    UINT32 size;
+    UINT32 version;
+    UINT32 profile;
+    UINT32 flags;
+    char serial[text_capacity];
+    char model[text_capacity];
+    char source[text_capacity];
+
+#if !defined(_KERNEL_MODE)
+    /// Copies and validates a complete version 1 wire response.
+    [[nodiscard]] static std::expected<Identity, IdentityError> decode(
+        std::span<const std::byte> bytes, UINT32 requested_profile) noexcept;
+
+private:
+    static bool valid_text(std::span<const char, text_capacity> text) noexcept;
+#endif
+};
+
+static_assert(sizeof(IdentityRequest) == 16);
+static_assert(offsetof(IdentityRequest, size) == 0);
+static_assert(offsetof(IdentityRequest, version) == 4);
+static_assert(offsetof(IdentityRequest, profile) == 8);
+static_assert(offsetof(IdentityRequest, reserved) == 12);
+static_assert(sizeof(Identity) == 160);
+static_assert(offsetof(Identity, size) == 0);
+static_assert(offsetof(Identity, version) == 4);
+static_assert(offsetof(Identity, profile) == 8);
+static_assert(offsetof(Identity, flags) == 12);
+static_assert(offsetof(Identity, serial) == 16);
+static_assert(offsetof(Identity, model) == 64);
+static_assert(offsetof(Identity, source) == 112);
+
+}  // namespace sandbox_hwid::protocol
+```
+
+The `_KERNEL_MODE` guard surrounds both the C++23 includes and the user-mode methods.
+Only the user-mode API varies; no data field or layout assertion is conditional.
+The client and driver are separate programs. Every translation unit linked into one
+program must use the same target configuration and therefore the same class definition.
+Do not select this API using include order or per-file feature macros. User-mode consumers
+of this header require C++23; the existing WDK C++17 target remains independently configured.
+This is the sandbox's explicit platform adaptation, not a generic recommendation to
+conditionalize domain APIs or to add user-mode dependencies to kernel builds.
+
+### Implemented identity implementation
+
+`client/src/identity.cpp`:
+
+```cpp
+#include "sandbox_hwid/protocol/identity.hpp"
+
+#include <cstring>
+
+namespace sandbox_hwid::protocol {
+
+std::expected<Identity, IdentityError> Identity::decode(std::span<const std::byte> bytes,
+                                                        UINT32 requested_profile) noexcept {
+    if (bytes.size() != sizeof(Identity))
+        return std::unexpected{IdentityError::length};
+
+    Identity record{};
+    std::memcpy(&record, bytes.data(), sizeof(record));
+
+    if (record.size != sizeof(Identity))
+        return std::unexpected{IdentityError::size};
+    if (record.version != protocol_version)
+        return std::unexpected{IdentityError::version};
+    if (record.profile != requested_profile ||
+        (record.profile != baseline_profile && record.profile != alternate_profile))
+        return std::unexpected{IdentityError::profile};
+    if (record.flags != synthetic_flag)
+        return std::unexpected{IdentityError::flags};
+    if (!valid_text(record.serial) || !valid_text(record.model) || !valid_text(record.source))
+        return std::unexpected{IdentityError::text};
+
+    return record;
+}
+
+bool Identity::valid_text(std::span<const char, text_capacity> text) noexcept {
+    constexpr unsigned char first_printable{0x20};
+    constexpr unsigned char last_printable{0x7e};
+    if (text.front() == '\0')
+        return false;
+
+    bool terminated{false};
+    for (const char value : text) {
+        if (value == '\0') {
+            terminated = true;
+        } else {
+            const auto character{static_cast<unsigned char>(value)};
+            if (terminated || character < first_printable || character > last_printable)
+                return false;
+        }
+    }
+    return terminated;
+}
+
+}  // namespace sandbox_hwid::protocol
+```
+
+The decoder checks exact length before copying into an aligned local object; it never
+casts untrusted bytes to an Identity pointer. It checks the declared size, version,
+requested/recognized profile, exact synthetic flag, and all three text fields once.
+`valid_text` accepts nonempty printable ASCII followed by a terminator and zero padding;
+its final `return terminated` is necessary to reject a full field without a terminator.
+`noexcept` is justified here by the bounded checks, trivial value/error copies and absence
+of allocation or external I/O. The returned Identity owns its bytes.
+
+### Device API and error policy
+
+`client/include/sandbox_hwid/device.hpp`:
+
+```cpp
+#pragma once
+
+#include <windows.h>
+
+#include <wil/resource.h>
+
+#include <string>
+
+#include "sandbox_hwid/protocol/identity.hpp"
+
+namespace sandbox_hwid::device {
+
+/// Finds the sole present synthetic device interface; throws on failure.
+[[nodiscard]] std::wstring find();
+
+/// Opens the given interface; the returned handle owns its lifetime.
+[[nodiscard]] wil::unique_hfile open(const std::wstring& path);
+
+/// Borrows the handle for one synchronous request; throws on transport or protocol failure.
+[[nodiscard]] protocol::Identity query_identity(HANDLE connection, UINT32 profile);
+
+}  // namespace sandbox_hwid::device
+```
+
+Move the existing discovery/open/query implementations from `main.cpp` into `device.cpp`.
+Use the namespace boundary for context: `find_device` becomes `device::find`, and
+`open_device` becomes `device::open`. Preserve the meaningful verb `query_identity`.
+The handle returned by `open` owns the resource through WIL; `query_identity` borrows a
+valid handle for its synchronous call and does not close it. The query builds the request,
+performs DeviceIoControl, checks the returned count against its buffer before taking a
+subspan, then calls `protocol::Identity::decode`. Identity itself has no HANDLE/WIL/device
+discovery dependency. These I/O operations span the operating-system boundary and identity
+contract, so they belong to the reusable device component.
+
+Preserve the repository's existing user-mode exception policy for this component:
+OS failures use the existing system/runtime errors, and a rejected identity becomes the
+existing malformed-response exception with its numeric IdentityError category. The decoder
+itself returns typed errors through `std::expected`. Device functions are not `noexcept`.
+`main` continues catching and reporting failures with the existing exit behavior. Do not
+add a new transport-error taxonomy, connection service object or custom expected replacement
+as part of this ownership change.
+
+The CLI-only probe/stress commands remain executable-owned scenarios. Ordinary discovery,
+open and query calls use the device component. The malformed-request probe deliberately
+retains its raw DeviceIoControl calls so it can exercise invalid wire input; its decoder
+call changes to `Identity::decode`. Bounded text formatting stays local to the executable.
+
+### Files and build boundaries
+
+```text
+shared/include/sandbox_hwid/protocol/
+  identity.hpp          wire fields, constants, errors, request validation, ABI assertions
+                        user-mode Identity::decode and private helper declarations
+  device_interface.hpp  GUID, IOCTL and device interface contract
+
+client/include/sandbox_hwid/
+  device.hpp            public device I/O API
+client/src/
+  identity.cpp          Identity::decode and private text helper definitions
+  device.cpp            discovery, open, query, private Windows helpers
+  main.cpp              CLI, formatting and probe/stress scenarios
+
+driver/
+  driver.cpp            KMDF callbacks and request handling
+  SandboxHwid.vcxproj
+  SandboxHwid.inf
+
+tests/
+  identity_test.cpp     public decoder, request contract and ABI/type-trait checks
+```
+
+Remove `client/include/sandbox_hwid/protocol/validation.hpp`; rename the existing
+`client/src/validation.cpp` and `tests/validation_test.cpp` around identity. No standalone
+`validation` module or application-wide `errors.hpp` remains. Preserve the product roots.
+The library prefix makes public include names distinctive; `protocol` identifies the
+shared communication contract. External dependencies remain in their own fetched source
+trees/cache, not inside `shared/include/`.
+
+CMake consumption contract:
+
+- Keep the `sandbox_hwid::contract` header target. Its user-mode include surface now
+  requires `cxx_std_23`; change the old C++17 usage requirement accordingly. The WDK
+  project builds separately and keeps its current language/runtime configuration.
+- Replace `sandbox_hwid::validation` with `sandbox_hwid::identity`, a static target for
+  `client/src/identity.cpp`. Link the header contract PUBLIC and existing build options
+  PRIVATE. It does not publish `client/include` or link WIL/cfgmgr32.
+- Add `sandbox_hwid::device`, a static target for `client/src/device.cpp`, publishing
+  `client/include`. Link identity and WIL PUBLIC, because its header exposes their types;
+  keep cfgmgr32 and build options PRIVATE.
+- Link the executable to device and its existing build options. Link identity tests to
+  identity, Catch2 and existing test options. Preserve MSVC runtime selection on all
+  owned compiled targets, the client manifest, presets and existing dependency pins.
+
+```text
+hwid_client --> device --> identity --> contract
+                   |
+                   +----> WIL (public handle type), cfgmgr32 (implementation)
+identity tests ----------> identity
+WDK driver --------------> kernel view of shared headers
+```
+
+Folder hierarchy and namespace depth remain independent. `protocol` is the shared wire
+boundary and `device` is the user-mode I/O boundary; Identity does not get another
+`identity` namespace. The pure identity target can be tested without opening a device.
+
+### Reusable standards follow-through
+
+The implementation updates these authored owners and regenerates their packages:
+
+- `.agents/base/contract/domain-design/SKILL.md`: show an intrinsic representation's
+  type-owned static decoder and private helpers; make one public boundary-validation path
+  the default for this example. Explain that reusable cross-type algorithms and I/O adapters
+  can remain free functions in their owning component. Keep passive records distinct from
+  invariant-enforcing values; do not claim C.4/C.5 mandate static member placement.
+- `.agents/base/contract/structure/SKILL.md`: clarify that public owner prefixes, meaningful
+  contract folders, dependency checkouts and target boundaries serve different purposes.
+- `.agents/base/contract/style/SKILL.md`: change only if the final examples expose a real
+  inconsistency; existing contextual constants, namespaces and private-member rules fit.
+- Keep the WDK guard and kernel adaptation in sandbox-specific guidance; kernel policy
+  remains outside cpp/gpp/msvc/win32 scope. Update sandbox AGENTS/README/current conventions
+  and verification references to the final files and user-mode language requirement.
+
+Regenerate from `.agents/` with `.agents/sync-generated.ps1`; do not author generated
+host adapters, marketplace outputs or installed cache copies directly. Preserve existing
+canonical skill names, compatibility aliases and the signed provenance history.
+
+### Implementation sequence and acceptance
+
+1. Apply the header/member decoder, remove the free decoder/header and rename the identity
+   source/tests. Update consumers to the public decoder; remove response tests that call
+   private checks. Preserve all existing behavior checks through the public API.
+2. Extract the device component and wire the declared CMake dependencies. Preserve CLI
+   behavior, probe semantics, buffer-length checks, RAII ownership and kernel request checks.
+3. Reconcile the authored standards and current sandbox documentation, regenerate packages,
+   and run the required checks before updating the existing review candidates when authorized.
+
+Implementation acceptance: all nine existing identity cases pass through the public API
+(including length extremes, metadata, profile matching, text boundaries and padding);
+request validation and both records' traits/layouts remain checked; the real C++23 client
+and C++17 WDK Debug/Release targets build; appropriate formatting/static analysis and
+required repository generation/route/package/host/scaffold checks pass. Inspect real
+target dependencies to prevent WIL/STL from reaching the kernel view. CLI help is a host
+smoke check. Device/VM runtime checks retain their existing separate authorization.
+
+### Evidence and limits
+
+The earlier standalone expected probe did not establish WDK library compatibility. Its
+actual WDK experiment failed when expected was exposed to the kernel headers; that result
+is retained at `C:\Users\tommy\AppData\Local\Temp\cpp-expected-wdk-5o4z399w`.
+
+The final guarded member design above was compiled in an isolated copy at
+`C:\Users\tommy\AppData\Local\Temp\cpp-identity-member-design-_wx5oa0k`:
+
+- The adapted nine existing identity test cases passed, with 348 assertions.
+- The public device header compiled with the installed WIL/MSVC environment.
+- The actual copied WDK project rebuilt in Debug and Release, using its unchanged C++17
+  settings and the proposed header. All size/offset assertions and added compiler trait
+  assertions for both records passed.
+- The temporary standalone test link initially lacked its console-subsystem flag; adding
+  that harness setting resolved the link failure. No product workaround or suppressed
+  diagnostic was required.
+
+Evidence logs are `host-build.log`, `host-tests.log`, `device-header.log`,
+`wdk-Debug.log` and `wdk-Release.log` in that isolated directory. The public header and
+identity implementation were prototyped; extraction of device implementations, complete
+CMake integration and full project checks remain implementation work. No original sandbox
+source was changed, and no driver was signed, installed or loaded.
+
+Primary references supporting the design:
+
+- [C++ class properties](https://eel.is/c++draft/class.prop) and
+  [aggregate rules](https://eel.is/c++draft/dcl.init.aggr): private static functions
+  do not change the relevant rules for the public data members.
+- [Microsoft /kernel](https://learn.microsoft.com/en-us/cpp/build/reference/kernel-create-kernel-mode-binary?view=msvc-170):
+  the compiler defines `_KERNEL_MODE`; it supports target-specific conditional compilation.
+- [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines):
+  record/invariant distinction and small interfaces; type-owned static grouping is the
+  selected house preference, not a universal DDD or C++ mandate.
+
 ## Progress
 
+- 2026-09-23 member-decoder/device implementation completed locally. Identity owns decode
+  and a private fixed-extent span text helper; the free decoder/header are removed, device
+  operations have their own target, and public headers advertise C++23 to user mode while
+  preserving the kernel view. All nine real client tests pass, all three client translation
+  units pass clang-tidy, and actual WDK Debug/Release compiler-analysis builds have zero
+  warnings/errors. Formatting and the generic C++23 standards example compile pass.
+  Source generator/routes, 11 hook tests and 51 source tests pass (one existing optional
+  skip); both hosts validate all nine packages. Evidence:
+  C:\Users\tommy\AppData\Local\Temp\cpp-member-delivery-6hauk1xc.
+  The helper uses span.front() after resolving the C-array/bounds analyzer findings.
+  Sandbox unrelated files and the original header whitespace edit remain outside staging.
+- 2026-09-23 the independently committed trust-test correction at d580e8c restores both
+  protected files to origin/main. Its exact-head repository-binding, CI and attester-safety
+  checks are green. The old migration-specific debt entry is resolved and removed; retain
+  the separate branch-protection and checkout-upgrade debt. Recheck the new published head.
+- 2026-09-23 design completed: type-owned user-mode decoder, private text helper,
+  request validator, device API, file layout, target dependencies and standards follow-through
+  are specified above. The isolated proposed header/decoder passes 9 tests (348 assertions)
+  and real WDK Debug/Release builds with ABI/type-trait assertions. Product source and
+  existing PRs remain unchanged by this planning step.
 - 2026-09-23 response ownership delivered to [source PR #13](https://github.com/tj-agents/cpp/pull/13)
   and [sandbox draft PR #1](https://github.com/tomjseery/sandbox-hwid/pull/1). Published code
   commits are `73c039cd86299a825ab9f68f56eb11af7234ec05` and
@@ -317,15 +729,11 @@ are needed for this correction.
 
 ## Next Steps
 
-The response-validation implementation, reusable guidance, host checks and existing PR updates
-are complete. Local cpp guidance is refreshed. The release prerequisites remain:
-
-1. Before merging source PR #13, resolve the separately reviewed provenance-pin update and
-   trusted exact-head attestation described in the linked debt owner. Preserve the signed
-   archive and the gate. This correction did not authorize bypassing that review requirement.
-2. Review sandbox draft PR #1 against the completed host evidence; retain the unrelated local
-   teaching notes and agent configuration outside it. Driver/VM work remains out of scope.
-3. After a separately authorized merge makes the release available, refresh installed packages,
-   remove only the lab-local marketplace source override, and reverify all nine routed skill
-   identifiers from the published source. Retain the source checkout while that override is
-   needed. This remains a release follow-up, not evidence that PR #13 is already merged.
+The agreed implementation and local checks are complete. Finish the owned commits and
+update source PR #13 and sandbox draft PR #1, preserving unrelated sandbox edits. Inspect
+the exact new source-head CI/provenance results before reporting delivery. The previous
+migration-specific trust-pin gate is resolved; do not repeat it as an active blocker.
+Neither PR is selected for merging by this implementation request. A later authorized
+release can replace the lab's existing local marketplace override with the Git source.
+Driver signing, loading, installation, VM checks and unrelated WinWrap work remain outside
+this delivery.
