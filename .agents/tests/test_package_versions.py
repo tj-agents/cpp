@@ -46,7 +46,9 @@ class PackageVersionTests(unittest.TestCase):
         current = json.loads((ROOT / SYNC.PACKAGE_VERSIONS).read_text(encoding="utf-8"))
         for package, history in published.items():
             for version, digest in history.items():
-                self.assertEqual(digest, current.get(package, {}).get(version), f"{package} {version} was rewritten")
+                recorded = current.get(package, {}).get(version)
+                self.assertIsNotNone(recorded, f"{package} {version} is published on main but missing here; rebase onto main")
+                self.assertEqual(digest, recorded, f"{package} {version} was rewritten")
 
     def test_digest_orders_files_by_case_sensitive_posix_path(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
