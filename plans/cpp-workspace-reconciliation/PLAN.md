@@ -38,9 +38,8 @@ Requested before the wider reconciliation.
   attester safety and repository-binding green on `225a2ad`; independent review found no
   defects (notes: `windows` minor bump is deliberate for new Win32 guidance; widen the leak
   test to scripts — done in Stage 2).
-- [ ] **Blocked on user approval:** merging #16 was denied by the session's permission
-  classifier ("Merge Without Review"). Resume when the user merges #16 or allows the merge;
-  then publish immutable release `v0.2.0` from the merge commit.
+- [x] User approved; #16 merged as `fa11c1d1c8cc2aff7e3206c3000456f1ba81e2d1`. Release
+  [v0.2.0](https://github.com/tj-agents/cpp/releases/tag/v0.2.0) published from that commit.
 - [ ] `sandbox-hwid` adoption: refresh the Claude `cpp-agents` marketplace, install
   `cpp`/`msvc`/`win32@cpp-agents`, disable `base`/`gcc`/`windows@cpp-agents`, remove the
   local marketplace override from `.codex/config.toml`, regenerate
@@ -110,7 +109,11 @@ Compatibility aliases therefore stay through 2027-03-31.
   MSVC `/WX` is target-scoped; manifest adds the `true/pm` DPI fallback; version records
   must increase monotonically and may not rewrite `origin/main`'s history; legacy
   `win32-scaffold` doc no longer promises a route profile.
-- [ ] Incremental review of the fixes; green exact-head CI; merge after #16; release v0.3.0.
+- [x] Incremental review of the fixes: all ten resolved, no new defects; its one
+  observation (misleading message for a branch behind main) fixed in `95610ed`.
+- [x] #17 was opened against `main` instead of its parent branch, so it was not a real
+  stacked PR; retargeted to `Release/v0.2.0`, then to `main` after #16 merged.
+- [ ] Merge #17 on green exact-head CI; release v0.3.0.
 
 ## Stage 3 — consumer migration
 
