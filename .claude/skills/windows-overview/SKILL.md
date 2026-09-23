@@ -7,5 +7,5 @@ domain: cpp
 
 # Windows / Win32 API tier
 
-Read and follow the [canonical shared definition](../../../.agents/win32/knowledge/windows-overview/SKILL.md) in full.
+Read and follow the [canonical shared definition](../../../.agents/win32/knowledge/overview/SKILL.md) in full.
 This discovery entry is generated; edit the referenced `.agents/` definition.

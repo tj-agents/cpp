@@ -1,12 +1,12 @@
 {
   "name": "cpp",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Platform-neutral modern C++ contracts and learning guidance.",
   "author": {
     "name": "Tommy Seery",
     "url": "https://github.com/tomjseery"
   },
-  "repository": "https://github.com/tj-agents/cpp",
+  "repository": "https://github.com/tomjseery/cpp-agents",
   "skills": "./skills/",
   "keywords": [
     "cpp",

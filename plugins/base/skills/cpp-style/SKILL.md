@@ -9,16 +9,55 @@ domain: cpp
 
 Idiomatic modern C++, not Google style.
 
+Use `base:domain-design` when choosing records, invariants, factories, operations, or
+stateful boundaries. This skill owns their spelling and formatting.
+
 ## Naming
 
 - **Private member variables:** trailing underscore — `name_`, not `m_name`
 - **Constants:** no prefix — `constexpr auto notes_filename = "notes.txt"`, not `k_notes_filename`
 - **Everything else:** snake_case for variables/functions, PascalCase for types/classes
 
+### Semantic type names
+
+- Name domain and value types with the clearest noun for the concept they represent.
+  Let the enclosing namespace provide project and subsystem context.
+- Add a role suffix when it distinguishes real coexisting representations or
+  responsibilities at a boundary.
+
+## Namespaces
+
+- Put reusable and shared code in a stable top-level namespace owned by the project or
+  library. Derive its name from that owner and write namespace components in snake_case.
+- Use that project/library namespace by default. Add a nested namespace when it names
+  a cohesive subsystem, shared contract, or distinct set of responsibilities. A known
+  boundary can be explicit from the outset; do not wait for a collision or another consumer.
+- Do not automatically mirror folders or put every feature or domain noun in its own
+  namespace. File ownership and build-target boundaries do not require another namespace.
+- Preserve meaningful concept names such as `Identity` and `IdentityRequest`. Namespace
+  context can remove redundant project prefixes, but does not justify replacing a clear
+  domain noun with a generic name merely to shorten its qualification.
+- Introduce a `domain` namespace when the codebase has an explicit domain layer whose types
+  must be distinguished from protocol, persistence, or presentation representations.
+- Qualify names at public and cross-namespace boundaries. In implementation files, use
+  narrow using-declarations or namespace aliases when they improve local readability.
+
 ## Initialization
 
 - Always use `{}` over `()` for construction — avoids most vexing parse and prevents narrowing conversions
 - Exception: `std::vector<int> v(10)` (10 elements) vs `v{10}` (1 element with value 10) — be explicit
+
+## Integer widths and aliases
+
+- Use `std::uint16_t`, `std::uint32_t`, and the other exact-width types from `<cstdint>`
+  when an owned binary format, wire contract, register, or ABI field requires that width.
+  Let the field or variable name express its role.
+- Use a `using` alias when it makes a genuine generic or platform-independent relationship
+  clearer. Use a distinct wrapper type when incompatible values require compiler-enforced
+  separation; aliases remain interchangeable with their underlying type.
+- For a shared binary ABI, pair exact-width fields with assertions for total sizes and
+  significant offsets so padding and ordering are checked. Keep these when adding static
+  validation or adopting domain modelling; neither establishes a binary layout contract.
 
 ## Constants — named, at their contextual boundary
 

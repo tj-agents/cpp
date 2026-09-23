@@ -7,8 +7,25 @@
     "cpp"
   ],
   "skills": [
+    "knowledge",
+    "overview",
+    "style",
     "win32-style",
     "windows-cpp-knowledge",
     "windows-overview"
-  ]
+  ],
+  "compatibilitySkillAliases": {
+    "win32-style": {
+      "replacedBy": "win32:style",
+      "removeAfter": "2027-03-31"
+    },
+    "windows-cpp-knowledge": {
+      "replacedBy": "win32:knowledge",
+      "removeAfter": "2027-03-31"
+    },
+    "windows-overview": {
+      "replacedBy": "win32:overview",
+      "removeAfter": "2027-03-31"
+    }
+  }
 }

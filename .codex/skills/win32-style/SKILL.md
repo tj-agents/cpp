@@ -7,5 +7,5 @@ domain: cpp
 
 # Code conventions — Win32 / Windows C++ (Tommy)
 
-Read and follow the [canonical shared definition](../../../.agents/win32/contract/win32-style/SKILL.md) in full.
+Read and follow the [canonical shared definition](../../../.agents/win32/contract/style/SKILL.md) in full.
 This discovery entry is generated; edit the referenced `.agents/` definition.

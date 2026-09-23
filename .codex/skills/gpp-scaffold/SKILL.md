@@ -7,5 +7,5 @@ domain: cpp
 
 # G++ project scaffold
 
-Read and follow the [canonical shared definition](../../../.agents/gpp/utility/gpp-scaffold/SKILL.md) in full.
+Read and follow the [canonical shared definition](../../../.agents/gpp/utility/scaffold/SKILL.md) in full.
 This discovery entry is generated; edit the referenced `.agents/` definition.

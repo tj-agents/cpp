@@ -7,5 +7,5 @@ domain: cpp
 
 # What I know — C++ (Tommy)
 
-Read and follow the [canonical shared definition](../../../.agents/base/knowledge/cpp-knowledge/SKILL.md) in full.
+Read and follow the [canonical shared definition](../../../.agents/base/knowledge/knowledge/SKILL.md) in full.
 This discovery entry is generated; edit the referenced `.agents/` definition.

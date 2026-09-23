@@ -8,6 +8,18 @@
   ],
   "skills": [
     "msvc-scaffold",
-    "msvc-toolchain"
-  ]
+    "msvc-toolchain",
+    "scaffold",
+    "toolchain"
+  ],
+  "compatibilitySkillAliases": {
+    "msvc-toolchain": {
+      "replacedBy": "msvc:toolchain",
+      "removeAfter": "2027-03-31"
+    },
+    "msvc-scaffold": {
+      "replacedBy": "msvc:scaffold",
+      "removeAfter": "2027-03-31"
+    }
+  }
 }
