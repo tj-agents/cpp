@@ -1,6 +1,7 @@
-# cpp-agents
+# cpp
 
 C++ guidance is authored once under `.agents/` and published as four independent plugins.
+The canonical repository is [`tj-agents/cpp`](https://github.com/tj-agents/cpp); the marketplace ID remains `cpp-agents`.
 
 | Plugin | Owns | Requires |
 |---|---|---|
