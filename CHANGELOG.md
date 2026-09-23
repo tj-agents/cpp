@@ -20,6 +20,7 @@ Packages: `cpp@0.2.0`, `gpp@0.2.0`, `msvc@0.2.0`, `win32@0.2.0`; compatibility
 - Updated technical routes and session guidance to use canonical identifiers.
 - Compatibility packages translate every canonical identifier, including cross-scope
   references, into their legacy namespace, and carry new versions for changed content.
+- Every host manifest names the canonical `tj-agents/cpp` repository.
 
 ## 0.3.0 — layered marketplace migration
 
