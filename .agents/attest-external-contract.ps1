@@ -12,7 +12,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$consumerRepository = "tomjseery/cpp-agents"
+$consumerRepository = "tj-agents/cpp"
 $producerRepository = "Concertable/agent-standards"
 $producerUrl = "https://github.com/$producerRepository"
 $expectedProducerCommit = "93d8bd57fbfbd793acdebe542f7ae270a0c1d2a1"
