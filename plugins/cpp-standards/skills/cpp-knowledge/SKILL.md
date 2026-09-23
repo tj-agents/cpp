@@ -122,5 +122,5 @@ I came to C++ via LeetCode (single-file, compile-and-run), so the portable layer
 - **Name mangling / `extern "C"`** — C++ encodes argument types into symbol
   names; `extern "C"` opts a symbol out so C code can link to it.
 
-The `win32:knowledge` and `gpp:toolchain` skills own the
+The `windows:windows-cpp-knowledge` and `gpp-standards:gpp-toolchain` skills own the
 platform/toolchain-specific calibration that layers on these foundations.

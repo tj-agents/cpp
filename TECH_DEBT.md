@@ -36,3 +36,12 @@ actually require `<skills-root>/<name>/SKILL.md` with no deeper nesting, or whet
 `sources.json`'s adapter-root handling to emit it that way. If a host can't support that, resolve
 this instead by rendering `kind` into the pointer stub's heading (e.g. `# gpp-scaffold (utility)`)
 so the distinction survives a flat listing, then delete this entry.
+
+## Package content changes do not force a version bump
+
+A generated package can change while its manifest version stays the same. PR #13 changed every
+compatibility package without a bump, which would have published new content under versions that
+installed consumers had already cached; the v0.2.0 release preparation corrected it by hand.
+
+Resolve this entry when a committed per-package content digest is checked in CI so that any change
+to a package's generated files fails unless its manifest version also changes, then delete it.

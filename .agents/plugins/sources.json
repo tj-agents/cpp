@@ -168,7 +168,14 @@
         "cpp:direction": "base:cpp-direction",
         "cpp:knowledge": "base:cpp-knowledge",
         "cpp:learning": "base:cpp-learning",
-        "cpp:domain-design": "base:domain-design"
+        "cpp:domain-design": "base:domain-design",
+        "gpp:toolchain": "gcc:gcc-toolchain",
+        "gpp:scaffold": "gcc:gpp-scaffold",
+        "msvc:toolchain": "windows:msvc-toolchain",
+        "msvc:scaffold": "windows:msvc-scaffold",
+        "win32:style": "windows:win32-style",
+        "win32:knowledge": "windows:windows-cpp-knowledge",
+        "win32:overview": "windows:windows-overview"
       },
       "hookIdentifierRewrites": {
         "cpp:build": "base:cpp-build",
@@ -214,7 +221,12 @@
         "cpp:learning": "base:cpp-learning",
         "gpp:toolchain": "gcc:gcc-toolchain",
         "gpp:scaffold": "gcc:gpp-scaffold",
-        "cpp:domain-design": "base:domain-design"
+        "cpp:domain-design": "base:domain-design",
+        "msvc:toolchain": "windows:msvc-toolchain",
+        "msvc:scaffold": "windows:msvc-scaffold",
+        "win32:style": "windows:win32-style",
+        "win32:knowledge": "windows:windows-cpp-knowledge",
+        "win32:overview": "windows:windows-overview"
       }
     },
     "windows": {
@@ -251,7 +263,9 @@
         "win32:style": "windows:win32-style",
         "win32:knowledge": "windows:windows-cpp-knowledge",
         "win32:overview": "windows:windows-overview",
-        "cpp:domain-design": "base:domain-design"
+        "cpp:domain-design": "base:domain-design",
+        "gpp:toolchain": "gcc:gcc-toolchain",
+        "gpp:scaffold": "gcc:gpp-scaffold"
       }
     },
     "cpp-standards": {
@@ -284,7 +298,14 @@
         "cpp:direction": "cpp-standards:cpp-direction",
         "cpp:knowledge": "cpp-standards:cpp-knowledge",
         "cpp:learning": "cpp-standards:cpp-learning",
-        "cpp:domain-design": "cpp-standards:domain-design"
+        "cpp:domain-design": "cpp-standards:domain-design",
+        "gpp:toolchain": "gpp-standards:gpp-toolchain",
+        "gpp:scaffold": "gpp-standards:gpp-scaffold",
+        "msvc:toolchain": "windows:msvc-toolchain",
+        "msvc:scaffold": "windows:msvc-scaffold",
+        "win32:style": "windows:win32-style",
+        "win32:knowledge": "windows:windows-cpp-knowledge",
+        "win32:overview": "windows:windows-overview"
       },
       "hookIdentifierRewrites": {
         "cpp:build": "cpp-standards:cpp-build",
@@ -330,7 +351,12 @@
         "cpp:learning": "cpp-standards:cpp-learning",
         "gpp:toolchain": "gpp-standards:gpp-toolchain",
         "gpp:scaffold": "gpp-standards:gpp-scaffold",
-        "cpp:domain-design": "cpp-standards:domain-design"
+        "cpp:domain-design": "cpp-standards:domain-design",
+        "msvc:toolchain": "windows:msvc-toolchain",
+        "msvc:scaffold": "windows:msvc-scaffold",
+        "win32:style": "windows:win32-style",
+        "win32:knowledge": "windows:windows-cpp-knowledge",
+        "win32:overview": "windows:windows-overview"
       }
     }
   },
