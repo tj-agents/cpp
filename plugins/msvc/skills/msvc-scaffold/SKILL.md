@@ -60,7 +60,7 @@ under `libs/<new-name>/` only once a second real consumer needs it, per `cpp:cpp
 For an existing repository, inspect its build entry points and preserve them. Reuse an
 individual helper only where it fits; do not run the new-project generator over the tree.
 The older workspace `newcpp` script retains its existing generic/GUI behavior. This MSVC
-starter's authored home is cpp-agents; changes do not silently migrate older projects.
+starter's authored home is `tj-agents/cpp`; changes do not silently migrate older projects.
 
 ## Validation and publication
 

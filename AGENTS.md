@@ -1,4 +1,4 @@
-# cpp-agents
+# cpp
 
 Read README.md before changing repository structure.
 
