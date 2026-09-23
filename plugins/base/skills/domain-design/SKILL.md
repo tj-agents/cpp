@@ -52,7 +52,7 @@ The C++ mapping here is a house design decision; DDD does not prescribe these C+
 
 ## Place operations with their actual owner
 
-Prefer `Request::validate(request)` for a stateless contract check that belongs to one
+Prefer `IdentityRequest::validate(request)` for a stateless contract check that belongs to one
 record type and benefits from discovery on that type. A static member has no implicit
 `this` object; the checked record remains an explicit input. An ordinary `const` member
 can also express a check of the receiver. Public fields do not forbid either spelling.
@@ -69,30 +69,31 @@ This C++17 example groups a check with a passive record without adding a constru
 #include <cstddef>
 #include <cstdint>
 
-namespace device::identity {
+namespace device::protocol {
 
 inline constexpr std::uint32_t protocol_version{1};
 
-enum class RequestError { none, version, reserved };
+enum class IdentityRequestError { none, version, reserved };
 
-struct Request {
+struct IdentityRequest {
     std::uint32_t version;
     std::uint32_t reserved;
 
     /// Check a complete object copied from the wire before accepting its contents.
-    [[nodiscard]] static constexpr RequestError validate(const Request& request) noexcept {
+    [[nodiscard]] static constexpr IdentityRequestError
+    validate(const IdentityRequest& request) noexcept {
         if (request.version != protocol_version)
-            return RequestError::version;
+            return IdentityRequestError::version;
         if (request.reserved != 0)
-            return RequestError::reserved;
-        return RequestError::none;
+            return IdentityRequestError::reserved;
+        return IdentityRequestError::none;
     }
 };
 
-static_assert(sizeof(Request) == 8);
-static_assert(offsetof(Request, reserved) == 4);
+static_assert(sizeof(IdentityRequest) == 8);
+static_assert(offsetof(IdentityRequest, reserved) == 4);
 
-} // namespace device::identity
+} // namespace device::protocol
 ```
 
 Ordinary static or non-virtual member functions add no per-object storage and, by
@@ -235,19 +236,24 @@ Use clear concept nouns, role suffixes only where they disambiguate, and operati
 not a claim that all C++ libraries use the same casing or factory name. Avoid repeating
 a type's name in an operation when its class or namespace already provides that context.
 
-Prefer a project namespace followed by the owning feature, such as
-`sandbox_hwid::identity` or `calendar::booking`. A wire record can live directly in its
-feature namespace. Add a nested `protocol`, `storage` or `domain` only when it separates
-real coexisting responsibilities or representations within that feature. Neither DDD
-nor a shared ABI requires a generic `protocol` namespace. Keep include paths aligned
-with the chosen ownership boundary when changing that boundary is in scope. Preserve
-the wire ABI and use explicit mapping if a separate behaviour-bearing model becomes useful.
+Start with the owning project/library namespace. Add nested namespaces for meaningful
+subsystem or contract boundaries, not automatically for each feature, folder, or domain
+noun. For example, `sandbox_hwid::protocol::Identity` and `IdentityRequest` name records
+in the shared client/driver wire contract. That contract justifies `protocol`; the noun
+`Identity` does not by itself require an enclosing `identity` namespace. Retain the
+concept names instead of renaming them to fit a preferred namespace hierarchy.
+
+Namespace depth is not a measure of scalability. Establish known ownership and dependency
+boundaries through public APIs and build targets; folders and namespaces need not mirror
+one another. Preserve the wire ABI and use explicit mapping if a separate behaviour-bearing
+model becomes useful.
 
 ## Evidence and deliberate house choices
 
 - [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines):
   C.2/C.4/C.5 guide representation and function placement; C.40/C.41 address invariants
-  and construction; F.8 motivates pure functions; NL.8 treats naming as a consistency choice.
+  and construction; F.8 motivates pure functions; SF.20 connects namespaces to logical
+  structure; NL.8 treats naming as a consistency choice.
 - [C++ class properties](https://eel.is/c++draft/class.prop) and
   [aggregate rules](https://eel.is/c++draft/dcl.init.aggr): ordinary static/non-virtual
   member functions do not add object state or disqualify these record properties.
@@ -270,6 +276,6 @@ the wire ABI and use explicit mapping if a separate behaviour-bearing model beco
   Their spelling is evidence of variety, not a dependency recommendation.
 
 The short plugin identifiers, PascalCase types, snake_case functions, `create` default,
-optional `with_x`, type-owned static validation and feature-first namespaces are deliberate
-house choices.
+optional `with_x`, type-owned static validation and a project namespace with meaningful
+nested boundaries are deliberate house choices.
 They are not requirements of DDD or the C++ language.

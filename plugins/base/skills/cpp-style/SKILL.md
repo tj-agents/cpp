@@ -29,13 +29,14 @@ stateful boundaries. This skill owns their spelling and formatting.
 
 - Put reusable and shared code in a stable top-level namespace owned by the project or
   library. Derive its name from that owner and write namespace components in snake_case.
-- Prefer the owning feature as the next namespace component, such as
-  `sandbox_hwid::identity` or `calendar::booking`. Add `protocol`, `storage`, or `ui`
-  beneath a feature only when a real boundary needs that distinction. A shared wire
-  record does not automatically belong in a generic `protocol` namespace.
-- Let namespace context keep type names concise; avoid repeating project and layer
-  names in the type itself. Keep include paths consistent with feature ownership when
-  that organization is in scope.
+- Use that project/library namespace by default. Add a nested namespace when it names
+  a cohesive subsystem, shared contract, or distinct set of responsibilities. A known
+  boundary can be explicit from the outset; do not wait for a collision or another consumer.
+- Do not automatically mirror folders or put every feature or domain noun in its own
+  namespace. File ownership and build-target boundaries do not require another namespace.
+- Preserve meaningful concept names such as `Identity` and `IdentityRequest`. Namespace
+  context can remove redundant project prefixes, but does not justify replacing a clear
+  domain noun with a generic name merely to shorten its qualification.
 - Introduce a `domain` namespace when the codebase has an explicit domain layer whose types
   must be distinguished from protocol, persistence, or presentation representations.
 - Qualify names at public and cross-namespace boundaries. In implementation files, use

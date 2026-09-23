@@ -3,8 +3,11 @@
 ## Unreleased — canonical capability names and domain design
 
 - Added `cpp:domain-design` with researched modelling guidance and a complete C++23 example.
-- Clarified type-owned static validation, feature-first namespaces, and retaining binary
-  layout assertions independently of domain modelling; included a C++17 record example.
+- Clarified type-owned static validation, namespaces for actual ownership boundaries, and
+  retaining binary layout assertions independently of domain modelling; included a C++17
+  record example with meaningful domain names.
+- Allowed cohesive library targets for dependency control and testing with one consumer;
+  separated namespace depth from folder structure and architectural scale.
 - Shortened canonical capability names, including `cpp:style`, `gpp:toolchain`,
   `msvc:scaffold`, and `win32:style`; retained old identifiers through 2027-03-31.
 - Made source discovery scope-aware and flat host-adapter names explicit, preserving the

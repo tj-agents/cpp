@@ -57,15 +57,17 @@ local targets, while a repository-level build may coordinate those products.
 Organize by the owning feature and actual responsibilities. A `domain` folder or library
 is warranted only when a distinct model needs that boundary; passive protocol records
 do not require one. Use `cpp-standards:domain-design` to choose representations and operations
-without imposing an extra architectural layer.
+without imposing an extra architectural layer. Keep namespace hierarchy independent of
+folder depth: a feature can own files and a build target without another C++ namespace.
+Use public headers and target dependencies to express and enforce the module boundary.
 
 ## Adding new code
 
-- New reusable logic starts inside the owning product and library that will
-  consume it. Extract a second library target under that product's
-  `libs/<new-name>/` only once a second real consumer needs it — the same
-  reactive-extraction rule `cpp-standards:cpp-style` applies to constants. Don't
-  pre-create empty library directories "for later."
+- Put new logic in the product and module that own its responsibility. Introduce a
+  library target under that product's `libs/<name>/` when it establishes a cohesive API,
+  controls dependencies, supports independent testing, or serves multiple consumers.
+  One consumer is sufficient when the architectural boundary is useful. Keep known
+  growth requirements in the design; do not pre-create empty library directories.
 - A new library gets a matching `tests/<new-name>/` directory within the same
   product, mirroring `libs/<new-name>/` and registered as its own target in
   that product's `tests/CMakeLists.txt`.
