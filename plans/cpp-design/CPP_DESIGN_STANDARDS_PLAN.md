@@ -21,12 +21,16 @@ feature namespace. Retain and explain the ABI assertions. This turn updates the 
 candidate and sandbox; it does not claim or require a merge, publish a release, or expand
 driver/runtime scope. The earlier Claude handoff produced the commits recorded below.
 
-Latest steering (2026-09-23): apply a project/library namespace by default and add nested
+Completed namespace steering (2026-09-23): apply a project/library namespace by default and add nested
 namespaces for meaningful subsystem or contract boundaries. Keep `Identity` and
 `IdentityRequest`; use `sandbox_hwid::protocol` for the shared client/driver wire contract.
 Keep namespace depth independent of folders and architectural scale. A useful library
 boundary does not require a second consumer. Update the existing guidance and sandbox PRs;
 no wider product-tree reorganization was selected. Keep process notes brief.
+
+Latest steering (2026-09-23): put response rules and their typed errors with `Identity`,
+leaving byte-length checking, copying and delegation in the client decoder. Apply this
+ownership rule to the reusable standards as well as the sandbox and update the existing PRs.
 
 ## Settled decisions
 
@@ -44,6 +48,10 @@ no wider product-tree reorganization was selected. Keep process notes brief.
   for a stateless check owned by that one type when grouping makes the API clearer. Associated
   free functions remain appropriate for independent algorithms and boundary adapters. This
   grouping preference is a house decision, not a requirement of C.4/C.5 or DDD.
+- Types own their validation rules and typed errors. Representation adapters check framing,
+  copy or convert input, then delegate without duplicating those rules. Keep client-only
+  dependencies outside the shared C++17 contract; an intrinsic representation may still
+  justify a type-owned parsing factory when its dependencies fit that component.
 - Immutable transformations use a domain-specific verb. `with_x` is available when it truly
   means "copy this value with one replacement" but is not a mandated C++ naming pattern.
 - C++ value semantics do not require an immutable API. Prefer immutable domain values when
@@ -114,6 +122,15 @@ C++17 without user-mode dependencies; the client decoder remains C++23. Type-own
 validation and all size/offset checks stay in place. No new domain model or operation names
 are needed for this correction.
 
+### 5. Response validation ownership (2026-09-23)
+
+- [x] Document type-owned rules/errors and representation-adapter delegation in the canonical
+      design skill, then regenerate its packages.
+- [x] Move response field checks and `IdentityError` into the shared identity header; make
+      the C++23 decoder check length, copy, delegate and propagate the same error categories.
+- [x] Complete host validation, update current documentation and refresh the lab's guidance.
+- [ ] Commit and update source PR #13 and sandbox draft PR #1, preserving unrelated work.
+
 ## Acceptance criteria
 
 - Canonical examples read as ordinary modern C++, not translated C# or a prescribed OO style.
@@ -126,6 +143,14 @@ are needed for this correction.
 
 ## Progress
 
+- 2026-09-23 response ownership implemented and validated. Required generator/routes, 11 hook
+  tests and 51 source tests pass (one existing optional skip). Both hosts accept all nine
+  packages; evidence is in `C:\Users\tommy\AppData\Local\Temp\cpp-rules-hosts-fc59do6c`.
+  Sandbox client/9 tests, real WDK rebuild/analysis, direct C++17 `/kernel` constexpr checks,
+  owned formatting and client clang-tidy pass. Current docs and local cpp guidance are updated.
+  MSVC 19.51 rejects valid constexpr reads of implicit zero padding after string literals;
+  an isolated reproduction confirms this is independent of validation. Compile-time test
+  fixtures now use explicit character initializers; production records are unchanged.
 - 2026-09-23 namespace correction implemented and validated for the existing PRs. The shared
   contract uses `protocol`; the type names and ABI remain unchanged. Source generator/routes,
   11 hook tests and 51 source tests pass (one existing optional skip); both hosts accept all
@@ -286,9 +311,8 @@ are needed for this correction.
 
 ## Next Steps
 
-The namespace and module-guidance correction is implemented and host-validated. Existing
-cpp-agents PR #13 and sandbox draft PR #1 remain the review owners. The selected namespace
-correction is complete; the remaining release prerequisites are:
+Complete the response-validation checks and documentation, refresh the selected local guidance,
+then update existing cpp-agents PR #13 and sandbox draft PR #1. The release prerequisites remain:
 
 1. Before merging source PR #13, resolve the separately reviewed provenance-pin update and
    trusted exact-head attestation described in the linked debt owner. Preserve the signed
