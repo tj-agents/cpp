@@ -2,6 +2,6 @@
 
 Generated from canonical `.agents/` definitions.
 
-- `win32-style` — contract — `.agents/win32/contract/win32-style/SKILL.md`
-- `windows-cpp-knowledge` — knowledge — `.agents/win32/knowledge/windows-cpp-knowledge/SKILL.md`
-- `windows-overview` — knowledge — `.agents/win32/knowledge/windows-overview/SKILL.md`
+- `knowledge` — knowledge — `.agents/win32/knowledge/knowledge/SKILL.md`
+- `overview` — knowledge — `.agents/win32/knowledge/overview/SKILL.md`
+- `style` — contract — `.agents/win32/contract/style/SKILL.md`

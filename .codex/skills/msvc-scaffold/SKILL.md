@@ -7,5 +7,5 @@ domain: cpp
 
 # MSVC project scaffold
 
-Read and follow the [canonical shared definition](../../../.agents/msvc/utility/msvc-scaffold/SKILL.md) in full.
+Read and follow the [canonical shared definition](../../../.agents/msvc/utility/scaffold/SKILL.md) in full.
 This discovery entry is generated; edit the referenced `.agents/` definition.

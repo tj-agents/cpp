@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — canonical capability names and domain design
+
+- Added `cpp:domain-design` with researched modelling guidance and a complete C++23 example.
+- Clarified type-owned static validation, namespaces for actual ownership boundaries, and
+  retaining binary layout assertions independently of domain modelling; included a C++17
+  record example with meaningful domain names.
+- Made type-owned rules and errors explicit: representation decoders check/copy input
+  and delegate to the owner without importing client-only dependencies into shared types.
+- Allowed cohesive library targets for dependency control and testing with one consumer;
+  separated namespace depth from folder structure and architectural scale.
+- Shortened canonical capability names, including `cpp:style`, `gpp:toolchain`,
+  `msvc:scaffold`, and `win32:style`; retained old identifiers through 2027-03-31.
+- Made source discovery scope-aware and flat host-adapter names explicit, preserving the
+  combined legacy Windows package and historical signed provenance.
+- Updated technical routes and session guidance to use canonical identifiers.
+
 ## 0.3.0 — layered marketplace migration
 
 - Introduced the public `base`, `windows`, and `gcc` plugins.

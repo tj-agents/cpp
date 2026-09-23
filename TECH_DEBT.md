@@ -22,9 +22,9 @@ annotation is absent.
 
 ## Generated skill discovery flattens the kind hierarchy
 
-`.agents/skills/`, `.codex/skills/`, and `.claude/skills/` place every generated `SKILL.md`
+`.codex/skills/` and `.claude/skills/` place every generated `SKILL.md`
 pointer at `<root>/<name>/SKILL.md`, one flat level, regardless of that skill's `kind`
-(`contract`, `knowledge`, `utility`) or domain scope. A `utility` skill such as `gpp-scaffold`
+(`contract`, `knowledge`, `utility`) or domain scope. A `utility` adapter such as `gpp-scaffold`
 or `msvc-scaffold` looks identical in that flat listing to a `contract` like `cpp-build` — the
 kind is only visible by opening the file and reading its frontmatter, or by following it back
 to the authored `.agents/<scope>/<kind>/<name>/` tree. This reads as disorganized when scanning

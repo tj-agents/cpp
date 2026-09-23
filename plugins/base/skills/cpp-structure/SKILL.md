@@ -27,6 +27,25 @@ GCC/g++ and MSVC/clang-cl, so it has no reason to keep two different trees.
   there, never built standalone. See `base:cpp-build` for how those targets and
   presets are actually modeled.
 
+## Public header paths and dependencies
+
+Keep an owner prefix below a public include root even when it is the root's only child:
+`include/<library>/...` gives consumers distinctive paths such as `<device/protocol/identity.hpp>`.
+Compilers search several include roots; storing a dependency elsewhere does not isolate
+its header names. Private headers beside implementation files do not need this prefix.
+
+Use an additional folder such as `protocol/` when it names a real contract or subsystem.
+Wire records and interface/operation identifiers can form that boundary. DDD does not
+prescribe the folder, and a directory does not automatically require a C++ namespace.
+Name source/header files for the concept they own, such as `identity.hpp` and
+`identity.cpp`; keep a type's declarations and out-of-line member definitions together
+conceptually rather than creating a generic validation/errors module.
+
+Third-party libraries keep their own source/include trees in a package cache, an out-of-source
+FetchContent build directory, or `third_party/` when deliberately vendored. Do not copy them
+under the product's public include root. Link dependency targets so they provide their own
+include paths and transitive requirements; never put cache or build paths in `#include`.
+
 ## Preserve meaningful product boundaries
 
 The single-product layout is a rule of thumb, not a reason to flatten a
@@ -52,13 +71,22 @@ code stays under its product root; code moves to `shared/` only when multiple
 products genuinely consume it. Each product-level `CMakeLists.txt` owns its
 local targets, while a repository-level build may coordinate those products.
 
+## Model boundaries
+
+Organize by the owning feature and actual responsibilities. A `domain` folder or library
+is warranted only when a distinct model needs that boundary; passive protocol records
+do not require one. Use `base:domain-design` to choose representations and operations
+without imposing an extra architectural layer. Keep namespace hierarchy independent of
+folder depth: a feature can own files and a build target without another C++ namespace.
+Use public headers and target dependencies to express and enforce the module boundary.
+
 ## Adding new code
 
-- New reusable logic starts inside the owning product and library that will
-  consume it. Extract a second library target under that product's
-  `libs/<new-name>/` only once a second real consumer needs it — the same
-  reactive-extraction rule `base:cpp-style` applies to constants. Don't
-  pre-create empty library directories "for later."
+- Put new logic in the product and module that own its responsibility. Introduce a
+  library target under that product's `libs/<name>/` when it establishes a cohesive API,
+  controls dependencies, supports independent testing, or serves multiple consumers.
+  One consumer is sufficient when the architectural boundary is useful. Keep known
+  growth requirements in the design; do not pre-create empty library directories.
 - A new library gets a matching `tests/<new-name>/` directory within the same
   product, mirroring `libs/<new-name>/` and registered as its own target in
   that product's `tests/CMakeLists.txt`.
@@ -71,6 +99,6 @@ This is the default for new work, not permission to reorganize an existing
 project incidentally. Follow a repository's current directory layout unless
 the task actually requires an architectural change.
 
-`gpp:gpp-scaffold` and `msvc:msvc-scaffold` both bootstrap a new single-product
+`gpp:scaffold` and `msvc:scaffold` both bootstrap a new single-product
 project into this default shape; only their compiler-specific target options
 differ.

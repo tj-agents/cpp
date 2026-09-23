@@ -9,17 +9,17 @@ domain: cpp
 
 Use `gpp-standards:gpp-toolchain` for toolchain decisions. This skill supplies an initial
 **library + console application** with CMake/Ninja presets and Catch2 tests, in
-the project layout `cpp-standards:cpp-structure` defines — the same shape `msvc:msvc-scaffold`
+the project layout `cpp-standards:cpp-structure` defines — the same shape `msvc:scaffold`
 produces for MSVC. Only the compiler-specific target options (warnings flags,
 runtime linkage) differ between the two; the directory structure does not.
 
 ## Create a project
 
-Run the bundled [new-gpp-project.sh](../scripts/new-gpp-project.sh). Resolve its
+Run the bundled [new-gpp-project.sh](../../resources/gpp/utility/scripts/new-gpp-project.sh). Resolve its
 path relative to this document, including when using an installed plugin:
 
 ```bash
-<skill-directory>/../scripts/new-gpp-project.sh --name my_tool --destination ~/projects/cpp
+<skill-directory>/../../resources/gpp/utility/scripts/new-gpp-project.sh --name my_tool --destination ~/projects/cpp
 ```
 
 The result is `~/projects/cpp/my_tool`. Destination must already exist; the new
@@ -36,7 +36,7 @@ Pass `--simple` for a single-file `CMakeLists.txt` + `main.cpp` project instead
 (quick/throwaway or LeetCode-style work) — no library, no tests, no presets
 beyond a single implicit build directory.
 
-Unlike `msvc:msvc-scaffold`, this generator does not accept an external
+Unlike `msvc:scaffold`, this generator does not accept an external
 `.clang-format`/`.clang-tidy` to copy byte-for-byte — there is no separate
 canonical config to preserve here, so the bundled templates *are* the
 canonical defaults (they match `cpp-standards:cpp-style` exactly). Edit the generated

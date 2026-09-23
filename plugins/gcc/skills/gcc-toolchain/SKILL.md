@@ -39,4 +39,4 @@ are independent, neither is "the default".
 - `base:cpp-direction` — the platform-neutral skill tree this toolchain choice fills.
 - `base:cpp-structure` — owns the project layout (`libs/<name>` + `app` + `tests`);
   it's the same shape regardless of toolchain.
-- `gpp:gpp-scaffold` — bootstraps a new project into that layout.
+- `gcc:gpp-scaffold` — bootstraps a new project into that layout.

@@ -68,13 +68,25 @@
       "removeAfter": "2027-03-31",
       "selectorAliases": {
         "base@cpp-agents": "cpp@cpp-agents"
+      },
+      "skillAliases": {
+        "cpp-build": "cpp:build",
+        "cpp-style": "cpp:style",
+        "cpp-structure": "cpp:structure",
+        "cpp-testing": "cpp:testing",
+        "cpp-libraries": "cpp:libraries",
+        "cpp-direction": "cpp:direction",
+        "cpp-knowledge": "cpp:knowledge",
+        "cpp-learning": "cpp:learning",
+        "domain-design": "cpp:domain-design"
       }
     },
     "gcc": {
       "replacedBy": "gpp",
       "removeAfter": "2027-03-31",
       "skillAliases": {
-        "gcc-toolchain": "gpp-toolchain"
+        "gcc-toolchain": "gpp:toolchain",
+        "gpp-scaffold": "gpp:scaffold"
       }
     },
     "windows": {
@@ -83,15 +95,37 @@
         "win32"
       ],
       "removeAfter": "2027-03-31",
-      "requiresExplicitSplit": true
+      "requiresExplicitSplit": true,
+      "skillAliases": {
+        "msvc-toolchain": "msvc:toolchain",
+        "msvc-scaffold": "msvc:scaffold",
+        "win32-style": "win32:style",
+        "windows-cpp-knowledge": "win32:knowledge",
+        "windows-overview": "win32:overview"
+      }
     },
     "cpp-standards": {
       "replacedBy": "cpp",
-      "removeAfter": "2027-03-31"
+      "removeAfter": "2027-03-31",
+      "skillAliases": {
+        "cpp-build": "cpp:build",
+        "cpp-style": "cpp:style",
+        "cpp-structure": "cpp:structure",
+        "cpp-testing": "cpp:testing",
+        "cpp-libraries": "cpp:libraries",
+        "cpp-direction": "cpp:direction",
+        "cpp-knowledge": "cpp:knowledge",
+        "cpp-learning": "cpp:learning",
+        "domain-design": "cpp:domain-design"
+      }
     },
     "gpp-standards": {
       "replacedBy": "gpp",
-      "removeAfter": "2027-03-31"
+      "removeAfter": "2027-03-31",
+      "skillAliases": {
+        "gpp-toolchain": "gpp:toolchain",
+        "gpp-scaffold": "gpp:scaffold"
+      }
     }
   }
 }

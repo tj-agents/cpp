@@ -9,6 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "plugins" / "gpp" / "resources" / "gpp" / "utility" / "scripts" / "new-gpp-project.sh"
+# Resolve PATH explicitly: Windows CreateProcess otherwise checks system32 first.
+BASH = shutil.which("bash") or "bash"
 
 
 class GppScaffoldTests(unittest.TestCase):
@@ -19,9 +21,9 @@ class GppScaffoldTests(unittest.TestCase):
             return resolved
         if len(resolved) < 3 or resolved[1:3] != ":/":
             raise RuntimeError(f"Unsupported Windows path for Bash: {resolved}")
-        if subprocess.run(["bash", "-lc", "test -d /mnt/c"], check=False).returncode == 0:
+        if subprocess.run([BASH, "-lc", "test -d /mnt/c"], check=False).returncode == 0:
             prefix = "/mnt/"
-        elif subprocess.run(["bash", "-lc", "test -d /c"], check=False).returncode == 0:
+        elif subprocess.run([BASH, "-lc", "test -d /c"], check=False).returncode == 0:
             prefix = "/"
         else:
             raise RuntimeError("Bash exposes neither WSL nor Git Bash drive mounts")
@@ -33,7 +35,7 @@ class GppScaffoldTests(unittest.TestCase):
             index = converted.index("--destination") + 1
             converted[index] = self.bash_path(Path(converted[index]))
         return subprocess.run(
-            ["bash", self.bash_path(script), *converted],
+            [BASH, self.bash_path(script), *converted],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -55,7 +57,7 @@ class GppScaffoldTests(unittest.TestCase):
 
             for project in (parent / "cpp20_app", parent / "cpp23_app"):
                 json.loads((project / "CMakePresets.json").read_text(encoding="utf-8"))
-                parsed = subprocess.run(["bash", "-n", self.bash_path(SCRIPT)])
+                parsed = subprocess.run([BASH, "-n", self.bash_path(SCRIPT)])
                 self.assertEqual(0, parsed.returncode, "new-gpp-project.sh")
 
     def test_generated_sources_actually_compile_under_each_standard(self) -> None:
