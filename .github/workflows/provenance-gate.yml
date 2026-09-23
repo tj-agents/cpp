@@ -16,7 +16,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       BASE_SHA: ${{ github.event.pull_request.base.sha }}
-      CANONICAL_REPOSITORY: tomjseery/cpp-agents
+      CANONICAL_REPOSITORY: tj-agents/cpp
       EXPECTED_ATTESTER_ID: "183629855"
       EXPECTED_ATTESTER_LOGIN: tomjseery
       EXPECTED_PRODUCER_COMMIT: 93d8bd57fbfbd793acdebe542f7ae270a0c1d2a1

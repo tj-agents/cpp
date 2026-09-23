@@ -22,9 +22,9 @@ Migration steps:
 Examples:
 
 ```powershell
-python <cpp-agents>/.agents/gen_skill_routes.py --toolchain msvc --into <console-project>
-python <cpp-agents>/.agents/gen_skill_routes.py --toolchain gpp --api win32 --into <win32-project>
-python <cpp-agents>/.agents/gen_skill_routes.py --api win32 --into <compiler-unspecified-project>
+python <cpp-repository>/.agents/gen_skill_routes.py --toolchain msvc --into <console-project>
+python <cpp-repository>/.agents/gen_skill_routes.py --toolchain gpp --api win32 --into <win32-project>
+python <cpp-repository>/.agents/gen_skill_routes.py --api win32 --into <compiler-unspecified-project>
 ```
 
 Legacy `--kind generic`, `--kind gcc`, and `--kind windows` remain accepted as migration input.

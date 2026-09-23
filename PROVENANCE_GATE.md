@@ -1,6 +1,6 @@
 # External contract provenance gate
 
-The `External contract provenance / repository-binding` check protects changes to the external `concertable` skill contract without granting `cpp-agents` a persistent credential for the private producer repository.
+The `External contract provenance / repository-binding` check protects changes to the external `concertable` skill contract without granting `tj-agents/cpp` a persistent credential for the private producer repository.
 
 The check runs as `pull_request_target`, reads its workflow from the trusted default branch, validates the canonical pull-request repository and exact head SHA, and compares base/head Git objects without checking out or executing pull-request content. A protected change requires the newest exact `agent-standards/provenance` commit status to have been posted by GitHub user `tomjseery` (immutable user id `183629855`) for that head. The status issuer is responsible for authenticating `Concertable/agent-standards`, verifying its pinned source and signed evidence, and only then marking the consumer head successful.
 
