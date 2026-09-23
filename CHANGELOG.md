@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased — canonical capability names and domain design
+## v0.2.0 — canonical capability names and domain design (2026-09-23)
+
+Packages: `cpp@0.2.0`, `gpp@0.2.0`, `msvc@0.2.0`, `win32@0.2.0`; compatibility
+`base@0.5.0`, `cpp-standards@0.5.0`, `gcc@0.4.2`, `gpp-standards@0.4.2`, `windows@0.7.0`.
 
 - Added `cpp:domain-design` with researched modelling guidance and a complete C++23 example.
 - Clarified type-owned static validation, namespaces for actual ownership boundaries, and
@@ -15,6 +18,8 @@
 - Made source discovery scope-aware and flat host-adapter names explicit, preserving the
   combined legacy Windows package and historical signed provenance.
 - Updated technical routes and session guidance to use canonical identifiers.
+- Compatibility packages translate every canonical identifier, including cross-scope
+  references, into their legacy namespace, and carry new versions for changed content.
 
 ## 0.3.0 — layered marketplace migration
 

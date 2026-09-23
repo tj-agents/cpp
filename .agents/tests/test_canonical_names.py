@@ -108,6 +108,17 @@ class CanonicalNameTests(unittest.TestCase):
             self.assertEqual((package / "resources" / scope / "utility/scripts" / script).resolve(), target)
             self.assertIn(f"<skill-directory>/{link.group(1)}", body)
 
+    def test_compatibility_packages_never_name_canonical_identifiers(self) -> None:
+        canonical = re.compile(r"(?<![\w@-])(?:cpp|gpp|msvc|win32):[a-z][a-z0-9-]*")
+        compatibility = set(self.payloads["payloads"]) - set(self.payloads["publicPlugins"])
+        self.assertEqual({"base", "gcc", "windows", "cpp-standards", "gpp-standards"}, compatibility)
+        for plugin in sorted(compatibility):
+            for path in sorted((ROOT / "plugins" / plugin).rglob("*")):
+                if not path.is_file() or path.suffix not in {".md", ".json", ".py"}:
+                    continue
+                leaked = canonical.findall(path.read_text(encoding="utf-8"))
+                self.assertEqual([], leaked, path.relative_to(ROOT).as_posix())
+
 
 if __name__ == "__main__":
     unittest.main()
