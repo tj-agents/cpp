@@ -21,13 +21,21 @@ Toolchain and API selection are independent. Never infer MSVC from the host OS o
 and never make Win32 require one compiler. WDK/kernel guidance remains outside these scopes.
 
 Every scope has a documented `utility/` and `utility/scripts/` home. Empty homes state that no
-utilities exist. Repository-owned runtime resources ship inside their owning plugin; the MSVC
-scaffold resources are mapped explicitly by `.agents/plugins/sources.json`.
+utilities exist. Repository-owned runtime resources ship inside every plugin that uses them, as
+mapped explicitly by `.agents/plugins/sources.json`: shared scaffold templates are owned by
+`.agents/base/utility/scripts/`, toolchain templates by `gpp`/`msvc`, the Win32 GUI overlay by
+`win32`, and scaffold route profiles are rendered by the route generator, never hand-written.
+
+Any change to a generated package's content needs a new version in both of its host manifests.
+After regenerating, run `python .agents/sync_generated.py --record-package-versions`; the
+append-only `.agents/plugins/package-versions.json` fails the tests if content changes under a
+recorded version.
 
 `base`, `gcc`, `windows`, `cpp-standards`, and `gpp-standards` are generated compatibility
 packages only. Preserve their 2027-03-31 window and keep the old combined `windows` payload
 containing both MSVC and Win32; never map it silently to only one new scope.
 
 Required validation is the generator check, route self-test, hook tests, marketplace and
-attester tests, both host validators when available, and the MSVC scaffold acceptance matrix.
+attester tests, the package-version record, both host validators when available, and the
+G++, MSVC and Win32 scaffold acceptance tests (real builds where the toolchains exist).
 Keep historical signed provenance unchanged.

@@ -175,7 +175,8 @@
         "msvc:scaffold": "windows:msvc-scaffold",
         "win32:style": "windows:win32-style",
         "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview"
+        "win32:overview": "windows:windows-overview",
+        "win32:scaffold": "windows:win32-scaffold"
       },
       "hookIdentifierRewrites": {
         "cpp:build": "base:cpp-build",
@@ -193,7 +194,8 @@
         "win32:style": "windows:win32-style",
         "win32:knowledge": "windows:windows-cpp-knowledge",
         "win32:overview": "windows:windows-overview",
-        "cpp:domain-design": "base:domain-design"
+        "cpp:domain-design": "base:domain-design",
+        "win32:scaffold": "windows:win32-scaffold"
       }
     },
     "gcc": {
@@ -226,7 +228,8 @@
         "msvc:scaffold": "windows:msvc-scaffold",
         "win32:style": "windows:win32-style",
         "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview"
+        "win32:overview": "windows:windows-overview",
+        "win32:scaffold": "windows:win32-scaffold"
       }
     },
     "windows": {
@@ -247,7 +250,8 @@
         "msvc:scaffold": "msvc-scaffold",
         "win32:style": "win32-style",
         "win32:knowledge": "windows-cpp-knowledge",
-        "win32:overview": "windows-overview"
+        "win32:overview": "windows-overview",
+        "win32:scaffold": "win32-scaffold"
       },
       "identifierRewrites": {
         "cpp:build": "base:cpp-build",
@@ -265,7 +269,8 @@
         "win32:overview": "windows:windows-overview",
         "cpp:domain-design": "base:domain-design",
         "gpp:toolchain": "gcc:gcc-toolchain",
-        "gpp:scaffold": "gcc:gpp-scaffold"
+        "gpp:scaffold": "gcc:gpp-scaffold",
+        "win32:scaffold": "windows:win32-scaffold"
       }
     },
     "cpp-standards": {
@@ -305,7 +310,8 @@
         "msvc:scaffold": "windows:msvc-scaffold",
         "win32:style": "windows:win32-style",
         "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview"
+        "win32:overview": "windows:windows-overview",
+        "win32:scaffold": "windows:win32-scaffold"
       },
       "hookIdentifierRewrites": {
         "cpp:build": "cpp-standards:cpp-build",
@@ -323,7 +329,8 @@
         "win32:style": "windows:win32-style",
         "win32:knowledge": "windows:windows-cpp-knowledge",
         "win32:overview": "windows:windows-overview",
-        "cpp:domain-design": "cpp-standards:domain-design"
+        "cpp:domain-design": "cpp-standards:domain-design",
+        "win32:scaffold": "windows:win32-scaffold"
       }
     },
     "gpp-standards": {
@@ -356,11 +363,25 @@
         "msvc:scaffold": "windows:msvc-scaffold",
         "win32:style": "windows:win32-style",
         "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview"
+        "win32:overview": "windows:windows-overview",
+        "win32:scaffold": "windows:win32-scaffold"
       }
     }
   },
   "resources": [
+    {
+      "plugins": [
+        "gpp",
+        "gcc",
+        "gpp-standards",
+        "msvc",
+        "windows",
+        "win32"
+      ],
+      "source": ".agents/base/utility/scripts",
+      "destination": "resources/base/utility/scripts",
+      "text": true
+    },
     {
       "plugins": [
         "msvc",
@@ -378,6 +399,15 @@
       ],
       "source": ".agents/gpp/utility/scripts",
       "destination": "resources/gpp/utility/scripts",
+      "text": true
+    },
+    {
+      "plugins": [
+        "win32",
+        "windows"
+      ],
+      "source": ".agents/win32/utility/scripts",
+      "destination": "resources/win32/utility/scripts",
       "text": true
     }
   ],
@@ -407,6 +437,61 @@
     "win32:style": "win32-style",
     "win32:knowledge": "windows-cpp-knowledge",
     "win32:overview": "windows-overview",
-    "cpp:domain-design": "cpp-domain-design"
-  }
+    "cpp:domain-design": "cpp-domain-design",
+    "win32:scaffold": "win32-scaffold"
+  },
+  "routeProfiles": [
+    {
+      "plugins": [
+        "gpp"
+      ],
+      "toolchain": "gpp",
+      "apis": [],
+      "destination": "resources/gpp/utility/scripts/templates/.agents/skill-routes.json.in"
+    },
+    {
+      "plugins": [
+        "msvc"
+      ],
+      "toolchain": "msvc",
+      "apis": [],
+      "destination": "resources/msvc/utility/scripts/templates/.agents/skill-routes.json.in"
+    },
+    {
+      "plugins": [
+        "win32"
+      ],
+      "toolchain": "gpp",
+      "apis": [
+        "win32"
+      ],
+      "destination": "resources/win32/utility/scripts/routes/gpp.json"
+    },
+    {
+      "plugins": [
+        "win32"
+      ],
+      "toolchain": "msvc",
+      "apis": [
+        "win32"
+      ],
+      "destination": "resources/win32/utility/scripts/routes/msvc.json"
+    },
+    {
+      "plugins": [
+        "win32"
+      ],
+      "toolchain": "gpp",
+      "apis": [],
+      "destination": "resources/win32/utility/scripts/routes/console/gpp.json"
+    },
+    {
+      "plugins": [
+        "win32"
+      ],
+      "toolchain": "msvc",
+      "apis": [],
+      "destination": "resources/win32/utility/scripts/routes/console/msvc.json"
+    }
+  ]
 }

@@ -7,14 +7,24 @@ C++__CPP_STANDARD__ project using G++, CMake 3.28+ and Ninja, with a
 cmake --preset dev
 cmake --build --preset dev
 ./build/dev/bin/__PROJECT__
-ctest --preset dev --output-on-failure
+ctest --preset dev
 ```
 
-`build/dev` carries sanitizers (`-fsanitize=address,undefined`) and debug
-symbols; `build/release` is the optimized configuration with its own preset.
-Configure editor diagnostics from `build/dev/compile_commands.json`.
+| Preset | Purpose | Directory |
+|---|---|---|
+| `dev` | Debug with AddressSanitizer and UBSan | `build/dev` |
+| `release` | Optimized | `build/release` |
+| `gdb` | Debug without sanitizers, for clean stepping in GDB | `build/gdb` |
 
-Keep reusable logic in `libs/core`; extract a second library target once a
-second consumer actually appears. The sample `core::greeting()` function and
-its Catch2 case exist only to prove the scaffold builds and tests end to end —
-replace them with real logic.
+Warnings and sanitizers are applied through the `__NAMESPACE___warnings` and
+`__NAMESPACE___sanitize` interface targets, so they affect only this project's targets.
+Pass `-D__NAMESPACE_UPPER___WARNINGS_AS_ERRORS=ON` to promote warnings to errors. MinGW
+does not ship the sanitizer runtimes; use the `gdb` preset there.
+
+clangd reads `build/dev/compile_commands.json`, so configure `dev` once before editing.
+`.vscode/launch.json` debugs the `gdb` build. `cmake --install build/dev` copies the
+executable into `~/.local/bin` (or `%LOCALAPPDATA%\Microsoft\WindowsApps` on Windows)
+unless you pass `--prefix`.
+
+The sample `core::greeting()` function and its Catch2 case exist only to prove the
+scaffold builds and tests end to end — replace them with real logic.

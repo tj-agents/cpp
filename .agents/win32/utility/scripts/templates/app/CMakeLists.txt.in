@@ -1,0 +1,24 @@
+add_executable(__PROJECT__ WIN32
+    src/main.cpp
+    app.rc)
+
+target_link_libraries(__PROJECT__
+    PRIVATE
+        __NAMESPACE__::core
+        __NAMESPACE___warnings
+        __NAMESPACE___sanitize
+        user32
+        gdi32
+        shell32
+        comctl32)
+
+# Unicode Win32 with lean headers; the entry point is wWinMain.
+target_compile_definitions(__PROJECT__ PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
+
+# app.rc embeds app.manifest, so MSVC-style linkers must not generate a second one;
+# GNU-style drivers need -municode to accept wWinMain.
+target_link_options(__PROJECT__ PRIVATE
+    $<$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>:/MANIFEST:NO>
+    $<$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},GNU>:-municode>)
+
+install(TARGETS __PROJECT__ RUNTIME DESTINATION .)

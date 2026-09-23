@@ -1,0 +1,7 @@
+#include <windows.h>
+
+#include "core/core.hpp"
+
+int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
+    return 0;
+}

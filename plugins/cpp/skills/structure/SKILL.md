@@ -101,4 +101,5 @@ the task actually requires an architectural change.
 
 `gpp:scaffold` and `msvc:scaffold` both bootstrap a new single-product
 project into this default shape; only their compiler-specific target options
-differ.
+differ. `win32:scaffold` converts either result's `app` target into a Win32 GUI
+application without changing the layout.

@@ -34,11 +34,23 @@ foreach ($entry in @(@('.clang-format', $FormatConfig), @('.clang-tidy', $TidyCo
         $configurations[$entry[0]] = $configuration.FullName
     }
 }
-$templateRoot = Join-Path $PSScriptRoot 'templates'
-if (!(Test-Path -LiteralPath $templateRoot -PathType Container)) {
-    throw 'The packaged MSVC templates are missing.'
+# The platform-neutral cpp templates are layered under the MSVC ones; an MSVC
+# template replaces a shared template at the same relative path.
+$templateRoots = @(
+    (Join-Path $PSScriptRoot '../../../base/utility/scripts/templates'),
+    (Join-Path $PSScriptRoot 'templates')
+)
+$templates = [ordered]@{}
+foreach ($templateRoot in $templateRoots) {
+    if (!(Test-Path -LiteralPath $templateRoot -PathType Container)) {
+        throw 'The packaged MSVC templates are missing.'
+    }
+    $resolvedRoot = (Resolve-Path -LiteralPath $templateRoot).Path
+    foreach ($template in Get-ChildItem -LiteralPath $resolvedRoot -Recurse -Force -File -Filter '*.in') {
+        $relative = [IO.Path]::GetRelativePath($resolvedRoot, $template.FullName)
+        $templates[$relative.Substring(0, $relative.Length - '.in'.Length)] = $template.FullName
+    }
 }
-$templates = @(Get-ChildItem -LiteralPath $templateRoot -Recurse -Force -File -Filter '*.in')
 if (!$templates.Count) { throw 'The packaged MSVC templates are missing.' }
 if (!$PSCmdlet.ShouldProcess($projectPath, 'Create MSVC console project')) { return }
 
@@ -47,12 +59,10 @@ $namespaceUpper = $namespace.ToUpperInvariant()
 
 New-Item -ItemType Directory -Path $projectPath -ErrorAction Stop | Out-Null
 $utf8 = [Text.UTF8Encoding]::new($false)
-foreach ($template in $templates) {
-    $relative = [IO.Path]::GetRelativePath($templateRoot, $template.FullName)
-    $relative = $relative.Substring(0, $relative.Length - '.in'.Length)
+foreach ($relative in $templates.Keys) {
     $target = Join-Path $projectPath $relative
     New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
-    $text = [IO.File]::ReadAllText($template.FullName)
+    $text = [IO.File]::ReadAllText($templates[$relative])
     $text = $text.Replace('__CPP_STANDARD__', [string]$CppStandard).Replace('__NAMESPACE_UPPER__', $namespaceUpper).Replace('__NAMESPACE__', $namespace).Replace('__PROJECT__', $Name)
     [IO.File]::WriteAllText($target, $text, $utf8)
 }
@@ -61,6 +71,7 @@ foreach ($configurationName in $configurations.Keys) {
 }
 Write-Output "Created $projectPath (C++$CppStandard, MSVC x64)."
 foreach ($configurationName in @('.clang-format', '.clang-tidy')) {
-    if (!$configurations.ContainsKey($configurationName)) { Write-Output "$configurationName omitted: no existing configuration supplied." }
+    $origin = if ($configurations.ContainsKey($configurationName)) { $configurations[$configurationName] } else { 'the canonical cpp configuration' }
+    Write-Output "${configurationName}: copied from $origin."
 }
-Write-Output 'Next: open the project and run ./scripts/Build.ps1.'
+Write-Output 'Next: open the project and run ./scripts/Build.ps1 -Test.'

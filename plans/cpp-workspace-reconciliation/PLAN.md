@@ -34,7 +34,12 @@ Requested before the wider reconciliation.
   scripts README, restored the canonical packages' `repository` URL (`tj-agents/cpp`,
   regressed by #13), added regression tests for both, bumped `base`/`cpp-standards` 0.5.0,
   `gcc`/`gpp-standards` 0.4.2, `windows` 0.7.0, and promoted the changelog to v0.2.0.
-- [ ] Release PR merged on green exact-head CI; immutable release `v0.2.0` published.
+- [x] Release PR [#16](https://github.com/tj-agents/cpp/pull/16) opened; exact-head CI,
+  attester safety and repository-binding green on `225a2ad`; independent review found no
+  defects (notes: `windows` minor bump is deliberate for new Win32 guidance; widen the leak
+  test to scripts — done in Stage 2).
+- [x] User approved; #16 merged as `fa11c1d1c8cc2aff7e3206c3000456f1ba81e2d1`. Release
+  [v0.2.0](https://github.com/tj-agents/cpp/releases/tag/v0.2.0) published from that commit.
 - [ ] `sandbox-hwid` adoption: refresh the Claude `cpp-agents` marketplace, install
   `cpp`/`msvc`/`win32@cpp-agents`, disable `base`/`gcc`/`windows@cpp-agents`, remove the
   local marketplace override from `.codex/config.toml`, regenerate
@@ -51,8 +56,8 @@ Requested before the wider reconciliation.
 | `newcpp` sanitizer option carrier (`<project>_sanitize`, `-D<PROJECT>_SANITIZE`) | `gpp:scaffold`, `msvc:scaffold` | G++ preset sets sanitizers through global `CMAKE_CXX_FLAGS`, contradicting `cpp:build`; MSVC has none | Target-scoped carrier in both; G++ `dev` enables it, MSVC keeps it opt-in. |
 | `newcpp` `gdb` preset (Debug, no sanitizers) | `gpp:scaffold` | Absent | Add. |
 | `.clang-tidy` `-portability-avoid-pragma-once`, `AllowPointerConditions` | `cpp` (shared config) | Absent from G++ template; MSVC ships none | One canonical formatter/analysis config owned by `cpp`, shipped with both toolchain packages; MSVC keeps its explicit override. |
+| `.clangd` removal of GCC module flags | toolchain root CMake | Workaround only fixed clangd; clang-tidy still failed on the flags | Superseded: `CMAKE_CXX_SCAN_FOR_MODULES OFF` until a project adopts modules fixes clangd and clang-tidy. |
 | `.editorconfig`, `.vscode/settings.json` (clangd) | `cpp` (shared config) | Absent | Shared template. |
-| `.clangd` removing GCC module flags | `gpp:scaffold` | Absent | Add. |
 | `.vscode/launch.json` gdb / cppvsdbg | `gpp:scaffold` / `msvc:scaffold` | Absent | Add per toolchain. |
 | Install to an on-PATH directory | scaffolds (shared app template) | Absent | Add to both. |
 | Project `AGENTS.md` / `CLAUDE.md` | scaffolds | Absent | Add project-facts stubs. |
@@ -69,20 +74,68 @@ Compatibility aliases therefore stay through 2027-03-31.
 
 ## Stage 2 — implementation (branch `Refactor/ReconcileCppWorkspace`)
 
-- [ ] Shared `cpp` project configuration resources and resource mapping.
-- [ ] G++ scaffold parity; MSVC scaffold parity; `win32:scaffold` overlay.
-- [ ] `msvc:toolchain` skill-tree picks; scaffold/structure/README/ARCHITECTURE docs.
-- [ ] Package-version guard (see `TECH_DEBT.md`).
-- [ ] Generator check, route self-test, hook/source tests, both host validators, real
-  builds: `cpp+gpp`, `cpp+msvc` (no Win32), `cpp+msvc+win32`, `cpp+gpp+win32` when a
-  MinGW toolchain is present.
-- [ ] Independent review, fixes, incremental review; PR, green exact-head CI, merge,
-  release.
+- [x] Shared `cpp` templates under `.agents/base/utility/scripts/templates/`, shipped to
+  `gpp`, `msvc`, `win32` and the compatibility packages that run them; duplicated G++/MSVC
+  sources removed.
+- [x] G++ parity (sanitizer carrier, `gdb` preset, configs, launch, install, project notes);
+  MSVC parity (opt-in ASan carrier and `asan` preset selecting the ASan component, configs,
+  `cppvsdbg`, install, project notes); `win32:scaffold` overlay (`Add-Win32App.ps1`).
+- [x] Route profiles rendered by the generator into canonical packages only.
+- [x] `msvc:toolchain` skill-tree picks; learning/structure/scaffold/README/ARCHITECTURE/AGENTS.
+- [x] Package-version guard: `package-versions.json` + `test_package_versions.py`; debt
+  entry deleted. Versions: `cpp`/`gpp`/`msvc`/`win32` 0.3.0, `base`/`cpp-standards` 0.6.0,
+  `gcc`/`gpp-standards` 0.5.0, `windows` 0.8.0.
+- [x] Generator current (289 files / 17 definitions), route self-test, 11 hook tests,
+  63 source tests (1 optional skip), Claude validation of marketplace + nine packages,
+  isolated Codex install of all nine, scaffolds run from installed copies. Real builds:
+  `cpp+gpp` MinGW (`gdb`, Catch2 tests pass), `cpp+msvc` (`dev` and `asan`, Catch2 tests
+  pass), `cpp+msvc+win32` and `cpp+gpp+win32` GUI builds (PE subsystem GUI, manifest
+  embedded), clang-tidy clean on console and Win32 sources. The G++ sanitizer `dev` preset
+  is not yet built anywhere: CI has no Ninja and `ci.yml` is trust-pinned; Docker and WSL
+  compilers are unavailable here. Recorded in `TECH_DEBT.md`.
+- [x] CI run 1 on #17 failed: the repository `.gitignore` ignored every `.vscode/`, so the
+  scaffold `.vscode` templates were never committed. Anchored the ignores to the root and
+  added a test that no authored or generated file is git-ignored.
+- [x] PR [#17](https://github.com/tj-agents/cpp/pull/17) opened (stacked on #16). CI run 2
+  failed on host-dependent digest ordering (Windows `Path` sorting is case-insensitive);
+  fixed by ordering on the POSIX relative path with a direct test, green at `897b8c8`.
+- [x] Independent review of `731d6c5` and `731d6c5..897b8c8`: fixed every finding —
+  Win32 genex needed CMake 3.30 (now `$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},…>`,
+  verified with CMake 3.28.4); MSYS2 CMake first on PATH broke MSVC `rc` (`Enter-DevShell`
+  now puts a native Windows CMake first; the MSVC build test reproduces MSYS-first PATH);
+  direct `asan` preset use now fails at configure with the component to install and is
+  documented; ASan binaries documented to run from the developer shell; customized route
+  profiles are left untouched; install prefix tests the host and a defined environment;
+  MSVC `/WX` is target-scoped; manifest adds the `true/pm` DPI fallback; version records
+  must increase monotonically and may not rewrite `origin/main`'s history; legacy
+  `win32-scaffold` doc no longer promises a route profile.
+- [x] Incremental review of the fixes: all ten resolved, no new defects; its one
+  observation (misleading message for a branch behind main) fixed in `95610ed`.
+- [x] #17 was opened against `main` instead of its parent branch, so it was not a real
+  stacked PR; retargeted to `Release/v0.2.0`, then to `main` after #16 merged.
+- [ ] Merge #17 on green exact-head CI; release v0.3.0.
 
 ## Stage 3 — consumer migration
 
-- [ ] Old workspace through its own worktree: pointers, wrapper, routes, global notes.
-- [ ] Other active consumers: record or migrate their route profiles to the release.
+- [x] Old workspace prepared in its own worktree
+  (`C:\Users\tommy\source\repos\cpp\.worktrees\AdoptCanonicalCppAgents`, branch
+  `Refactor/AdoptCanonicalCppAgents`, local commit `1c4e00a`, not pushed): `newcpp` is a
+  wrapper over the installed `gpp`/`msvc`/`win32` scaffolds (requires 0.3.0+; `-Windows`
+  keeps the MSVC + Win32 GUI shorthand), pointers name `tj-agents/cpp` and canonical
+  identifiers, stale `dotfiles/skill-routes/` snapshots deleted, `claude-global.md` names
+  `cpp` plus explicit toolchains, root route profile regenerated (`cpp`). Verified against
+  this branch's packages through a temporary plugin registry: `cpp+gpp`, `cpp+msvc`,
+  `cpp+msvc+win32`, each `git init` on `main`. The normal checkout's dirty `NORTH_STAR.md`
+  edit is untouched.
+- [ ] Push the workspace branch and open its PR once v0.3.0 is released and installed.
+- [ ] Follow-up for the user: workspace `NORTH_STAR.md` duplicates `cpp:direction` (which
+  now defers compiler/debugger/profiler to the toolchain skills). It was not converted to a
+  pointer because the normal checkout holds an uncommitted user edit to it.
+- [x] Other active consumers: `cpp/gpp/note-cli`, `cpp/windows/icon-dropper`,
+  `cpp/windows/wifi-toggle`, `cpp/windows/winwrap` use legacy identifiers served by the
+  compatibility packages until 2027-03-31; nothing here breaks them, so they are recorded
+  rather than rewritten. Migrate each with `gen_skill_routes.py --toolchain … --api …`
+  before the window closes. `sandbox-hwid` is handled by Stage 0.
 
 ## Progress
 

@@ -12,10 +12,11 @@ Use `windows:msvc-toolchain` for toolchain decisions. This skill supplies an ini
 PowerShell entry points, in the project layout `base:cpp-structure` defines — the same
 shape `gcc:gpp-scaffold` produces for G++. Only the compiler-specific target options
 (warnings flags, runtime linkage) differ between the two; the directory structure
-does not. It is editor-independent and has no Win32, WIL, WinWrap or third-party
-dependency beyond Catch2 by default. It does not scaffold a driver, GUI framework or
-DLL ABI by relabeling a console target. Choose the appropriate project model when
-one of those output types is requested.
+does not. It has no Win32, WIL, WinWrap or third-party dependency beyond Catch2 by
+default. Convert its `app` target into a user-mode Win32 GUI application with
+`windows:win32-scaffold`; it does not scaffold a driver, GUI framework or DLL ABI by relabeling a
+console target. Choose the appropriate project model when one of those output types is
+requested.
 
 ## Create a project
 
@@ -34,10 +35,15 @@ C++23 is the default. Pass `-CppStandard 20` for a consumer that actually requir
 The initial source works in either mode; later APIs must respect the selected baseline.
 Toolchain conformance must still be verified by compiling the project.
 
-Pass `-FormatConfig <existing-.clang-format>` and `-TidyConfig <existing-.clang-tidy>` to
-copy the user's actual configurations byte for byte. Locate them before generating when
-available. Otherwise report the omission; do not fabricate the user's formatter policy.
-The generator does not search the machine or download tools and dependencies.
+The project receives the canonical `cpp` formatter, analysis and editor configuration
+(`.clang-format`, `.clang-tidy`, `.editorconfig`, `.vscode/settings.json` for clangd), the
+shared `libs/core` + `app` + `tests` sources, and MSVC-specific files: presets, PowerShell
+helpers, a `.clangd` that strips sanitizer flags clang rejects with the debug CRT, a
+Visual Studio debugger (`cppvsdbg`) `.vscode/launch.json`, `AGENTS.md`/`CLAUDE.md` project
+facts and the `cpp` + `msvc` route profile in `.agents/skill-routes.json`. Pass
+`-FormatConfig <existing-.clang-format>` and `-TidyConfig <existing-.clang-tidy>` to copy a
+project's own configurations byte for byte instead. The generator does not search the
+machine or download tools and dependencies.
 
 ## Build and adapt
 
@@ -45,12 +51,19 @@ The generator does not search the machine or download tools and dependencies.
 ./scripts/Build.ps1 -Test
 ./build/dev/bin/my_tool.exe
 ./scripts/Build.ps1 -Configuration Release
+./scripts/Build.ps1 -Configuration Asan -Test
 ```
 
 `Enter-DevShell.ps1` uses component-filtered `vswhere` and Microsoft's Developer PowerShell
 launcher. An explicit `-VsInstallPath` selects an installed instance. Build calls CMake
 presets and checks native exit codes. `-Fresh` resets CMake configuration after a toolchain
 change; a different architecture/generator should use its own build directory and presets.
+Warnings and AddressSanitizer are target-scoped through the `<project>_warnings` and
+`<project>_sanitize` interface libraries, following `base:cpp-build`. The `asan` preset enables
+the sanitizer and requires the Visual Studio "C++ AddressSanitizer" component
+(`Microsoft.VisualStudio.Component.VC.ASAN`); `Build.ps1 -Configuration Asan` selects an
+installation that has it. `cmake --install` places the executable in
+`%LOCALAPPDATA%\Microsoft\WindowsApps` unless a prefix is given.
 
 The sample `core::greeting()` function and its Catch2 case exist only to prove the scaffold
 builds and tests end to end — replace them with real logic. `Build.ps1 -Test` runs the
@@ -60,8 +73,9 @@ testing, or reuse, per `base:cpp-structure`; it does not require a second consum
 
 For an existing repository, inspect its build entry points and preserve them. Reuse an
 individual helper only where it fits; do not run the new-project generator over the tree.
-The older workspace `newcpp` script retains its existing generic/GUI behavior. This MSVC
-starter's authored home is `tj-agents/cpp`; changes do not silently migrate older projects.
+A personal wrapper may add conveniences such as a default destination or `git init`; those
+stay in the consuming workspace. This MSVC starter's authored home is `tj-agents/cpp`;
+changes do not silently migrate older projects.
 
 ## Validation and publication
 
@@ -69,7 +83,9 @@ Generate into a fresh scratch directory, parse the generated PowerShell and JSON
 and run with real MSVC, and exercise rejection of existing destinations. Check C++20 and
 C++23 separately if both are offered. Report missing tools as prerequisites.
 
-The skill, script and templates are authored once under `.agents/msvc/utility/` and copied to
-plugin payloads by `sync-generated.ps1`; never edit the generated copies. Future WinWrap guidance belongs in
+The skill, script and MSVC templates are authored once under `.agents/msvc/utility/`; the
+shared templates belong to `.agents/base/utility/scripts/` and the route profile is rendered
+by the route generator. `sync-generated.ps1` copies all of them into the plugin payloads;
+never edit the generated copies. Future WinWrap guidance belongs in
 the Win32 scope once a tested library API and consumption contract are ready. It must
 describe its supported native operations rather than make every MSVC project depend on it.
