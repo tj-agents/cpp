@@ -11,15 +11,18 @@ scaffold into the canonical packages.
 - Added `win32:scaffold`, a toolchain-independent overlay that converts a fresh G++ or MSVC
   scaffold into a Unicode Win32 GUI application (`wWinMain`, embedded Per-Monitor V2 /
   Common Controls v6 / UTF-8 / `asInvoker` manifest, Win32 clang-tidy carve-outs and
-  `<windows.h>` include ordering). Legacy `windows` carries it as `win32-scaffold`.
+  `<windows.h>` include ordering). A customized configuration or route profile is left
+  untouched and reported. Legacy `windows` carries it as `win32-scaffold`.
 - Both scaffolds now share one `cpp`-owned template set: canonical `.clang-format`,
   `.clang-tidy` (including `-portability-avoid-pragma-once` and pointer conditions),
   `.editorconfig`, clangd VS Code settings, `AGENTS.md`/`CLAUDE.md`, and the shared
   `libs/core`/`app`/`tests` sources. MSVC projects receive the canonical formatter and
   analysis configuration unless `-FormatConfig`/`-TidyConfig` override it.
 - Sanitizers are target-scoped `<project>_sanitize` carriers in both toolchains instead of
-  global flags. G++ gains a `gdb` preset; MSVC gains an `asan` preset that selects an
-  installation with the AddressSanitizer component.
+  global flags. G++ gains a `gdb` preset; MSVC gains an `asan` preset; `Build.ps1 -Configuration Asan` selects an
+  installation with the AddressSanitizer component and configuration fails clearly without it.
+  MSVC warnings-as-errors is now target-scoped too, and the developer shell puts a native
+  Windows CMake ahead of MSYS2/MinGW builds.
 - Generated projects carry the route profile for their exact composition, rendered by the
   route generator; module scanning is off until a project adopts modules, so clangd and
   clang-tidy parse the compile database; debugger launch configurations and an on-`PATH`

@@ -12,8 +12,11 @@ the build helper discovers an existing C++ installation and does not install too
 ./scripts/Build.ps1 -Configuration Asan -Test
 ```
 
-Or run `./scripts/Enter-DevShell.ps1`, then use the CMake `dev`, `release` and `asan`
-presets directly. An editor launched from that shell inherits the environment. clangd reads
+Or run `./scripts/Enter-DevShell.ps1`, then use the CMake `dev` and `release` presets
+directly; for `asan`, enter with `-Component Microsoft.VisualStudio.Component.VC.ASAN` so an
+installation with the "C++ AddressSanitizer" component is selected. Run sanitized binaries
+from that shell, which puts the ASan runtime DLL on `PATH`. An editor launched from that
+shell inherits the environment. clangd reads
 `build/dev/compile_commands.json`; `.vscode/launch.json` debugs the `dev` build.
 
 The initial targets use the dynamic MSVC CRT, exceptions, and warnings as errors for owned

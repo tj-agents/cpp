@@ -18,3 +18,12 @@ if (!(Test-Path -LiteralPath $launcher)) { throw "Developer PowerShell launcher 
 & $launcher -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
 if (!$env:VCToolsInstallDir) { throw 'Developer PowerShell did not initialize MSVC.' }
 Get-Command cl -ErrorAction Stop | Out-Null
+
+# CMake built for MSYS2/MinGW/Cygwin drives rc.exe through a wrapper that fails on MSVC
+# resource files, so a native Windows CMake must come first on PATH.
+$bundledCMake = Join-Path $VsInstallPath 'Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin'
+$candidates = @(if (Test-Path -LiteralPath (Join-Path $bundledCMake 'cmake.exe')) { Join-Path $bundledCMake 'cmake.exe' }) +
+    @(Get-Command cmake -All -CommandType Application -ErrorAction SilentlyContinue | ForEach-Object Source)
+$cmake = $candidates | Where-Object { $_ -notmatch '[\\/](msys64|msys2|mingw(32|64)?|cygwin(64)?)[\\/]' } | Select-Object -First 1
+if (!$cmake) { throw 'No native Windows CMake found; install the Visual Studio CMake component or CMake for Windows.' }
+$env:PATH = (Split-Path -Parent $cmake) + [IO.Path]::PathSeparator + $env:PATH

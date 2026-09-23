@@ -97,8 +97,20 @@ Compatibility aliases therefore stay through 2027-03-31.
 - [x] CI run 1 on #17 failed: the repository `.gitignore` ignored every `.vscode/`, so the
   scaffold `.vscode` templates were never committed. Anchored the ignores to the root and
   added a test that no authored or generated file is git-ignored.
-- [ ] Independent review, fixes, incremental review; PR, green exact-head CI, merge,
-  release.
+- [x] PR [#17](https://github.com/tj-agents/cpp/pull/17) opened (stacked on #16). CI run 2
+  failed on host-dependent digest ordering (Windows `Path` sorting is case-insensitive);
+  fixed by ordering on the POSIX relative path with a direct test, green at `897b8c8`.
+- [x] Independent review of `731d6c5` and `731d6c5..897b8c8`: fixed every finding —
+  Win32 genex needed CMake 3.30 (now `$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},…>`,
+  verified with CMake 3.28.4); MSYS2 CMake first on PATH broke MSVC `rc` (`Enter-DevShell`
+  now puts a native Windows CMake first; the MSVC build test reproduces MSYS-first PATH);
+  direct `asan` preset use now fails at configure with the component to install and is
+  documented; ASan binaries documented to run from the developer shell; customized route
+  profiles are left untouched; install prefix tests the host and a defined environment;
+  MSVC `/WX` is target-scoped; manifest adds the `true/pm` DPI fallback; version records
+  must increase monotonically and may not rewrite `origin/main`'s history; legacy
+  `win32-scaffold` doc no longer promises a route profile.
+- [ ] Incremental review of the fixes; green exact-head CI; merge after #16; release v0.3.0.
 
 ## Stage 3 — consumer migration
 

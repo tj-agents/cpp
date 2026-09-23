@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -24,12 +25,28 @@ class PackageVersionTests(unittest.TestCase):
                 version, history,
                 f"{package} {version} is unrecorded: run `python .agents/sync_generated.py --record-package-versions`",
             )
+            newest = max(history, key=lambda value: tuple(int(part) for part in value.split(".")))
+            self.assertEqual(newest, version, f"{package} {version} is older than recorded {newest}")
             self.assertEqual(
                 history[version], digest,
                 f"{package} content changed without a version bump from {version}; bump both host manifests, "
                 "regenerate, then record the new version",
             )
 
+
+    def test_recorded_versions_are_never_rewritten(self) -> None:
+        # Shallow CI checkouts have no main branch; local and merge-queue runs do.
+        base = subprocess.run(
+            ["git", "show", f"origin/main:{SYNC.PACKAGE_VERSIONS}"],
+            cwd=ROOT, capture_output=True, text=True,
+        )
+        if base.returncode != 0:
+            self.skipTest("no published package-version record on origin/main")
+        published = json.loads(base.stdout)
+        current = json.loads((ROOT / SYNC.PACKAGE_VERSIONS).read_text(encoding="utf-8"))
+        for package, history in published.items():
+            for version, digest in history.items():
+                self.assertEqual(digest, current.get(package, {}).get(version), f"{package} {version} was rewritten")
 
     def test_digest_orders_files_by_case_sensitive_posix_path(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

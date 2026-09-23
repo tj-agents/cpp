@@ -15,9 +15,9 @@ if(PROJECT_IS_TOP_LEVEL)
 
     # `cmake --install` places the executable in a directory already on PATH.
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        if(WIN32)
+        if(CMAKE_HOST_WIN32 AND DEFINED ENV{LOCALAPPDATA})
             set(CMAKE_INSTALL_PREFIX "$ENV{LOCALAPPDATA}/Microsoft/WindowsApps" CACHE PATH "" FORCE)
-        else()
+        elseif(NOT CMAKE_HOST_WIN32 AND DEFINED ENV{HOME})
             set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local/bin" CACHE PATH "" FORCE)
         endif()
     endif()
