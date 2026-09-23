@@ -9,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "plugins" / "gpp" / "resources" / "gpp" / "utility" / "scripts" / "new-gpp-project.sh"
+SHARED = ROOT / "plugins" / "gpp" / "resources" / "base" / "utility" / "scripts" / "templates"
 # Resolve PATH explicitly: Windows CreateProcess otherwise checks system32 first.
 BASH = shutil.which("bash") or "bash"
 
@@ -98,6 +99,76 @@ class GppScaffoldTests(unittest.TestCase):
                     text=True,
                 )
                 self.assertEqual(0, simple_compiled.returncode, simple_compiled.stdout + simple_compiled.stderr)
+
+    def test_project_layout_configuration_and_route_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            created = self.run_scaffold("--name", "my-tool", "--destination", str(parent))
+            self.assertEqual(0, created.returncode, created.stdout + created.stderr)
+            project = parent / "my-tool"
+            expected = {
+                ".agents/skill-routes.json",
+                ".clang-format",
+                ".clang-tidy",
+                ".clangd",
+                ".editorconfig",
+                ".gitignore",
+                ".vscode/launch.json",
+                ".vscode/settings.json",
+                "AGENTS.md",
+                "CLAUDE.md",
+                "CMakeLists.txt",
+                "CMakePresets.json",
+                "README.md",
+                "app/CMakeLists.txt",
+                "app/src/main.cpp",
+                "libs/core/CMakeLists.txt",
+                "libs/core/include/core/core.hpp",
+                "libs/core/src/core.cpp",
+                "tests/CMakeLists.txt",
+                "tests/core/core_test.cpp",
+            }
+            actual = {p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file()}
+            self.assertEqual(expected, actual)
+            for name in (".clang-format", ".clang-tidy", ".editorconfig"):
+                self.assertEqual((SHARED / f"{name}.in").read_bytes(), (project / name).read_bytes())
+            routes = json.loads((project / ".agents/skill-routes.json").read_text(encoding="utf-8"))
+            self.assertEqual({"toolchain": "gpp", "apis": []}, routes["profile"])
+            self.assertEqual(["cpp", "gpp"], routes["layers"])
+            presets = json.loads((project / "CMakePresets.json").read_text(encoding="utf-8"))
+            configure = {preset["name"]: preset for preset in presets["configurePresets"]}
+            self.assertEqual({"dev", "release", "gdb"}, set(configure))
+            self.assertEqual("ON", configure["dev"]["cacheVariables"]["MY_TOOL_SANITIZE"])
+            self.assertNotIn("CMAKE_CXX_FLAGS", configure["dev"]["cacheVariables"])
+            self.assertNotIn("MY_TOOL_SANITIZE", configure["gdb"]["cacheVariables"])
+            self.assertIn("set(CMAKE_CXX_SCAN_FOR_MODULES OFF)", (project / "CMakeLists.txt").read_text(encoding="utf-8"))
+            launch = json.loads((project / ".vscode/launch.json").read_text(encoding="utf-8"))
+            self.assertEqual("gdb", launch["configurations"][0]["MIMode"])
+
+    def test_project_builds_and_runs_with_cmake_presets(self) -> None:
+        gxx = shutil.which("g++")
+        if not gxx or not shutil.which("cmake") or not shutil.which("ninja"):
+            self.skipTest("g++, CMake or Ninja not available")
+        # MinGW ships no sanitizer runtimes, so only the gdb preset is portable there.
+        presets = ["gdb"] if os.name == "nt" else ["gdb", "dev"]
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            created = self.run_scaffold("--name", "built", "--destination", str(parent))
+            self.assertEqual(0, created.returncode, created.stdout + created.stderr)
+            project = parent / "built"
+            for preset in presets:
+                # Tests are not built: Catch2 would be downloaded. Every owned target is.
+                configured = subprocess.run(
+                    ["cmake", "--preset", preset, f"-DCMAKE_CXX_COMPILER={gxx}", "-DBUILD_TESTING=OFF", "-DBUILT_WARNINGS_AS_ERRORS=ON"],
+                    cwd=project, capture_output=True, text=True,
+                )
+                self.assertEqual(0, configured.returncode, configured.stdout + configured.stderr)
+                built = subprocess.run(["cmake", "--build", "--preset", preset], cwd=project, capture_output=True, text=True)
+                self.assertEqual(0, built.returncode, built.stdout + built.stderr)
+                binary = project / "build" / preset / "bin" / ("built.exe" if os.name == "nt" else "built")
+                run = subprocess.run([str(binary)], capture_output=True, text=True)
+                self.assertEqual(0, run.returncode, run.stderr)
+                self.assertIn("hello from built", run.stdout)
 
     def test_simple_variant(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

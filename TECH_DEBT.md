@@ -37,11 +37,24 @@ actually require `<skills-root>/<name>/SKILL.md` with no deeper nesting, or whet
 this instead by rendering `kind` into the pointer stub's heading (e.g. `# gpp-scaffold (utility)`)
 so the distinction survives a flat listing, then delete this entry.
 
-## Package content changes do not force a version bump
+## Legacy route profiles must migrate before the compatibility window closes
 
-A generated package can change while its manifest version stays the same. PR #13 changed every
-compatibility package without a bump, which would have published new content under versions that
-installed consumers had already cached; the v0.2.0 release preparation corrected it by hand.
+`cpp/gpp/note-cli`, `cpp/windows/icon-dropper`, `cpp/windows/wifi-toggle` and `cpp/windows/winwrap`
+still route to legacy `base:`, `gcc:` and `windows:` identifiers, which only the compatibility
+packages serve. Removing those packages after 2027-03-31 would leave the routes unresolved.
 
-Resolve this entry when a committed per-package content digest is checked in CI so that any change
-to a package's generated files fails unless its manifest version also changes, then delete it.
+Resolve this entry when each of those repositories has regenerated `.agents/skill-routes.json`
+with an explicit `--toolchain`/`--api` profile (G++ for `note-cli`, MSVC + Win32 for the Windows
+projects unless their builds show otherwise) and no known consumer names a legacy identifier;
+then the compatibility packages may be retired and this entry deleted.
+
+## CI does not build the G++ scaffold's sanitizer preset
+
+`test_gpp_scaffold.test_project_builds_and_runs_with_cmake_presets` builds the `dev` preset
+(AddressSanitizer + UBSan) only on a non-Windows host with Ninja. The Ubuntu CI job has no Ninja,
+and `.github/workflows/ci.yml` is pinned inside the provenance closure, so adding it needs a
+reviewed trust-root rotation. The preset has so far been built only through the MinGW `gdb`
+preset, which has no sanitizer runtimes.
+
+Resolve this entry when a trust-root rotation installs `ninja-build` in the CI job (or another
+Linux job builds the scaffold), the `dev` preset test runs unskipped and passes, then delete it.

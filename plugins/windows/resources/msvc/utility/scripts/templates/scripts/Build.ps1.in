@@ -1,15 +1,17 @@
 #Requires -Version 5.1
 [CmdletBinding()]
 param(
-    [ValidateSet('Debug', 'Release')][string]$Configuration = 'Debug',
+    [ValidateSet('Debug', 'Release', 'Asan')][string]$Configuration = 'Debug',
     [string]$VsInstallPath,
     [switch]$Fresh,
     [switch]$Test
 )
 
 $ErrorActionPreference = 'Stop'
-& (Join-Path $PSScriptRoot 'Enter-DevShell.ps1') -VsInstallPath $VsInstallPath
-$preset = if ($Configuration -eq 'Debug') { 'dev' } else { 'release' }
+# The asan preset needs the Visual Studio "C++ AddressSanitizer" component.
+$components = if ($Configuration -eq 'Asan') { @('Microsoft.VisualStudio.Component.VC.ASAN') } else { @() }
+& (Join-Path $PSScriptRoot 'Enter-DevShell.ps1') -VsInstallPath $VsInstallPath -Component $components
+$preset = @{ Debug = 'dev'; Release = 'release'; Asan = 'asan' }[$Configuration]
 Push-Location -LiteralPath (Split-Path -Parent $PSScriptRoot)
 try {
     $configureArguments = @('--preset', $preset)

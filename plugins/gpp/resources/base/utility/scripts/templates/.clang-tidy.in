@@ -1,0 +1,18 @@
+Checks: >
+  -*,
+  bugprone-*,
+  cppcoreguidelines-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -modernize-use-trailing-return-type,
+  -readability-identifier-length,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-magic-numbers,
+  -readability-braces-around-statements,
+  -portability-avoid-pragma-once
+WarningsAsErrors: ''
+HeaderFilterRegex: '(libs|app)/.*'
+CheckOptions:
+  readability-implicit-bool-conversion.AllowPointerConditions: true

@@ -1,5 +1,7 @@
 import json
 import re
+import shutil
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -24,7 +26,7 @@ class CanonicalNameTests(unittest.TestCase):
             "cpp": {"build", "style", "structure", "testing", "libraries", "direction", "knowledge", "learning", "domain-design"},
             "gpp": {"toolchain", "scaffold"},
             "msvc": {"toolchain", "scaffold"},
-            "win32": {"style", "knowledge", "overview"},
+            "win32": {"style", "knowledge", "overview", "scaffold"},
         }
         legacy = {
             "cpp": {"cpp-build", "cpp-style", "cpp-structure", "cpp-testing", "cpp-libraries", "cpp-direction", "cpp-knowledge", "cpp-learning"},
@@ -43,7 +45,7 @@ class CanonicalNameTests(unittest.TestCase):
             "cpp-standards": legacy["cpp"] | {"domain-design"},
             "gcc": {"gcc-toolchain", "gpp-scaffold"},
             "gpp-standards": legacy["gpp"],
-            "windows": legacy["msvc"] | legacy["win32"],
+            "windows": legacy["msvc"] | legacy["win32"] | {"win32-scaffold"},
         }
         for plugin, expected in expected_legacy_packages.items():
             inventory = {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")}
@@ -89,14 +91,16 @@ class CanonicalNameTests(unittest.TestCase):
                 self.assertEqual(name, target.parent.name)
 
     def test_scaffold_links_resolve_inside_every_standalone_package(self) -> None:
-        cases = {
-            "gpp": ("scaffold", "gpp", "new-gpp-project.sh"),
-            "gcc": ("gpp-scaffold", "gpp", "new-gpp-project.sh"),
-            "gpp-standards": ("gpp-scaffold", "gpp", "new-gpp-project.sh"),
-            "msvc": ("scaffold", "msvc", "New-MsvcProject.ps1"),
-            "windows": ("msvc-scaffold", "msvc", "New-MsvcProject.ps1"),
-        }
-        for plugin, (name, scope, script) in cases.items():
+        cases = [
+            ("gpp", "scaffold", "gpp", "new-gpp-project.sh"),
+            ("gcc", "gpp-scaffold", "gpp", "new-gpp-project.sh"),
+            ("gpp-standards", "gpp-scaffold", "gpp", "new-gpp-project.sh"),
+            ("msvc", "scaffold", "msvc", "New-MsvcProject.ps1"),
+            ("windows", "msvc-scaffold", "msvc", "New-MsvcProject.ps1"),
+            ("win32", "scaffold", "win32", "Add-Win32App.ps1"),
+            ("windows", "win32-scaffold", "win32", "Add-Win32App.ps1"),
+        ]
+        for plugin, name, scope, script in cases:
             package = ROOT / "plugins" / plugin
             skill = package / "skills" / name / "SKILL.md"
             body = skill.read_text(encoding="utf-8")
@@ -114,13 +118,29 @@ class CanonicalNameTests(unittest.TestCase):
         for manifest in manifests:
             self.assertEqual("https://github.com/tj-agents/cpp", read_json(manifest)["repository"], manifest.name)
 
+    def test_no_generated_or_authored_file_is_git_ignored(self) -> None:
+        # An ignored template is present locally but missing from every clone and package.
+        if shutil.which("git") is None or not (ROOT / ".git").exists():
+            self.skipTest("not a git checkout")
+        files = [
+            path.relative_to(ROOT).as_posix()
+            for top in (".agents", ".claude", ".codex", "plugins")
+            for path in (ROOT / top).rglob("*")
+            if path.is_file() and "__pycache__" not in path.parts
+        ]
+        ignored = subprocess.run(
+            ["git", "check-ignore", "--no-index", "--stdin"],
+            cwd=ROOT, input="\n".join(files), capture_output=True, text=True,
+        )
+        self.assertEqual("", ignored.stdout)
+
     def test_compatibility_packages_never_name_canonical_identifiers(self) -> None:
         canonical = re.compile(r"(?<![\w@-])(?:cpp|gpp|msvc|win32):[a-z][a-z0-9-]*")
         compatibility = set(self.payloads["payloads"]) - set(self.payloads["publicPlugins"])
         self.assertEqual({"base", "gcc", "windows", "cpp-standards", "gpp-standards"}, compatibility)
         for plugin in sorted(compatibility):
             for path in sorted((ROOT / "plugins" / plugin).rglob("*")):
-                if not path.is_file() or path.suffix not in {".md", ".json", ".py"}:
+                if not path.is_file() or path.suffix not in {".md", ".json", ".py", ".sh", ".ps1", ".in"}:
                     continue
                 leaked = canonical.findall(path.read_text(encoding="utf-8"))
                 self.assertEqual([], leaked, path.relative_to(ROOT).as_posix())

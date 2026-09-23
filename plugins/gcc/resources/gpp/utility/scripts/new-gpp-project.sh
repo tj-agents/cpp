@@ -59,24 +59,32 @@ if [ -e "$project_path" ]; then
     exit 1
 fi
 
-template_subdir="$template_root"
+# Full projects layer the platform-neutral cpp templates under the G++ ones; a
+# G++ template replaces a shared template at the same relative path.
 if [ "$simple" -eq 1 ]; then
-    template_subdir="$template_root/simple"
-fi
-if [ ! -d "$template_subdir" ]; then
-    echo "new-gpp-project: the packaged G++ templates are missing" >&2
-    exit 1
-fi
-
-if [ "$simple" -eq 1 ]; then
-    mapfile -t templates < <(find "$template_subdir" -type f -name '*.in' | sort)
+    roots=("$template_root/simple")
 else
-    mapfile -t templates < <(find "$template_subdir" -type f -name '*.in' -not -path "$template_root/simple/*" | sort)
+    roots=("$script_dir/../../../base/utility/scripts/templates" "$template_root")
 fi
-if [ "${#templates[@]}" -eq 0 ]; then
+declare -A sources=()
+for root in "${roots[@]}"; do
+    if [ ! -d "$root" ]; then
+        echo "new-gpp-project: the packaged G++ templates are missing" >&2
+        exit 1
+    fi
+    exclude=()
+    if [ "$root" = "$template_root" ]; then
+        exclude=(-not -path "$template_root/simple/*")
+    fi
+    while IFS= read -r template; do
+        sources["${template#"$root"/}"]="$template"
+    done < <(find "$root" -type f -name '*.in' "${exclude[@]}" | sort)
+done
+if [ "${#sources[@]}" -eq 0 ]; then
     echo "new-gpp-project: the packaged G++ templates are missing" >&2
     exit 1
 fi
+mapfile -t relatives < <(printf '%s\n' "${!sources[@]}" | sort)
 
 # Templates use __PROJECT__ (raw name), __NAMESPACE__ (C++ identifier), __NAMESPACE_UPPER__.
 namespace="${name//[^a-zA-Z0-9]/_}"
@@ -84,16 +92,15 @@ namespace_upper="$(printf '%s' "$namespace" | tr '[:lower:]' '[:upper:]')"
 
 if [ "$dry_run" -eq 1 ]; then
     echo "new-gpp-project: would create $project_path:"
-    for template in "${templates[@]}"; do
-        relative="${template#"$template_subdir"/}"
+    for relative in "${relatives[@]}"; do
         echo "  ${relative%.in}"
     done
     exit 0
 fi
 
 mkdir -p "$project_path"
-for template in "${templates[@]}"; do
-    relative="${template#"$template_subdir"/}"
+for relative in "${relatives[@]}"; do
+    template="${sources[$relative]}"
     target="$project_path/${relative%.in}"
     mkdir -p "$(dirname -- "$target")"
     sed \
