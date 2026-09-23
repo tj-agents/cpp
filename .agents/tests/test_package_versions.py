@@ -1,5 +1,7 @@
+import hashlib
 import importlib.util
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -27,6 +29,31 @@ class PackageVersionTests(unittest.TestCase):
                 f"{package} content changed without a version bump from {version}; bump both host manifests, "
                 "regenerate, then record the new version",
             )
+
+
+    def test_digest_orders_files_by_case_sensitive_posix_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = root / "plugins" / "sample"
+            for relative, text in {"INDEX.md": "index", "hooks/a.py": "hook", "skills/x/SKILL.md": "skill"}.items():
+                (package / relative).parent.mkdir(parents=True, exist_ok=True)
+                (package / relative).write_bytes(text.encode())
+            for host in ("claude", "codex"):
+                (package / f".{host}-plugin").mkdir()
+                (package / f".{host}-plugin/plugin.json").write_text('{"name": "sample", "version": "1.0.0"}')
+            version, digest = SYNC.package_state(root, "sample")
+            expected = hashlib.sha256()
+            manifest = json.dumps({"name": "sample"}, sort_keys=True).encode()
+            # Byte order: ".claude-plugin" < ".codex-plugin" < "INDEX.md" < "hooks" < "skills".
+            for relative, data in (
+                (".claude-plugin/plugin.json", manifest),
+                (".codex-plugin/plugin.json", manifest),
+                ("INDEX.md", b"index"),
+                ("hooks/a.py", b"hook"),
+                ("skills/x/SKILL.md", b"skill"),
+            ):
+                expected.update(relative.encode() + b"\0" + hashlib.sha256(data).digest())
+            self.assertEqual(("1.0.0", expected.hexdigest()), (version, digest))
 
 
 if __name__ == "__main__":

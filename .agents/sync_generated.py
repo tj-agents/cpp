@@ -453,11 +453,14 @@ def package_state(root: Path, package: str) -> tuple[str, str]:
     package_root = root / EXPECTED_PACKAGE_ROOT / package
     versions: set[str] = set()
     digest = hashlib.sha256()
-    for path in sorted(package_root.rglob("*")):
-        if not path.is_file() or "__pycache__" in path.parts:
-            continue
-        relative = path.relative_to(package_root).as_posix()
-        data = path.read_bytes()
+    # Order by the POSIX relative path: Windows compares Path objects case-insensitively.
+    files = {
+        path.relative_to(package_root).as_posix(): path
+        for path in package_root.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts
+    }
+    for relative in sorted(files):
+        data = files[relative].read_bytes()
         if relative in (".claude-plugin/plugin.json", ".codex-plugin/plugin.json"):
             manifest = json.loads(data)
             versions.add(manifest.pop("version"))
