@@ -40,11 +40,15 @@ Requested before the wider reconciliation.
   test to scripts — done in Stage 2).
 - [x] User approved; #16 merged as `fa11c1d1c8cc2aff7e3206c3000456f1ba81e2d1`. Release
   [v0.2.0](https://github.com/tj-agents/cpp/releases/tag/v0.2.0) published from that commit.
-- [ ] `sandbox-hwid` adoption: refresh the Claude `cpp-agents` marketplace, install
-  `cpp`/`msvc`/`win32@cpp-agents`, disable `base`/`gcc`/`windows@cpp-agents`, remove the
-  local marketplace override from `.codex/config.toml`, regenerate
-  `.agents/skill-routes.json` from the release if it differs, and confirm a new Claude
-  session can write a C++ file without a skill-router block.
+- [x] `sandbox-hwid` adopted the release (v0.3.0, which contains v0.2.0): Claude marketplace
+  refreshed and `cpp`/`msvc`/`win32` at 0.3.0 (user scope; `gpp` 0.3.0 also installed for G++
+  work), `base`/`gcc`/`windows` disabled for the repository at local scope (still updated to
+  0.6.0/0.5.0/0.8.0 for the legacy consumers), Codex marketplace upgraded and all seven used
+  packages at the release versions, the local marketplace override removed from
+  `.codex/config.toml`, `.agents/skill-routes.json` regenerated (header-only change) and pushed
+  as `6ed123c` on `Refactor/Canonical-Structure`. A fresh `claude -p` session wrote
+  `probe/router_probe.cpp` without a skill-router block (probe removed). Unrelated uncommitted
+  sandbox edits untouched.
 
 ## Stage 1 — inventory (old workspace vs canonical at `c718b76`)
 
@@ -113,7 +117,9 @@ Compatibility aliases therefore stay through 2027-03-31.
   observation (misleading message for a branch behind main) fixed in `95610ed`.
 - [x] #17 was opened against `main` instead of its parent branch, so it was not a real
   stacked PR; retargeted to `Release/v0.2.0`, then to `main` after #16 merged.
-- [ ] Merge #17 on green exact-head CI; release v0.3.0.
+- [x] #17 merged as `bdabb8dc85ad958d5fa9955f7521f23e003c90b8` after green exact-head CI; `main`
+  CI and attester safety green on the merge commit. Release
+  [v0.3.0](https://github.com/tj-agents/cpp/releases/tag/v0.3.0) published from it.
 
 ## Stage 3 — consumer migration
 
@@ -127,7 +133,10 @@ Compatibility aliases therefore stay through 2027-03-31.
   this branch's packages through a temporary plugin registry: `cpp+gpp`, `cpp+msvc`,
   `cpp+msvc+win32`, each `git init` on `main`. The normal checkout's dirty `NORTH_STAR.md`
   edit is untouched.
-- [ ] Push the workspace branch and open its PR once v0.3.0 is released and installed.
+- [x] Workspace [tomjseery/cpp#4](https://github.com/tomjseery/cpp/pull/4) merged as
+  `5b95182` after `newcpp` was verified against the real v0.3.0 install (`cpp+gpp`,
+  `cpp+msvc+win32`). The normal checkout was fast-forwarded; its `NORTH_STAR.md` edit is
+  preserved. The migration worktree was removed.
 - [ ] Follow-up for the user: workspace `NORTH_STAR.md` duplicates `cpp:direction` (which
   now defers compiler/debugger/profiler to the toolchain skills). It was not converted to a
   pointer because the normal checkout holds an uncommitted user edit to it.
@@ -137,7 +146,19 @@ Compatibility aliases therefore stay through 2027-03-31.
   rather than rewritten. Migrate each with `gen_skill_routes.py --toolchain … --api …`
   before the window closes. `sandbox-hwid` is handled by Stage 0.
 
+## Follow-ups
+
+- Stacked PRs are opened by hand from prose (`--base <parent>`), which is how #17 was first
+  opened against `main`. The shared workflow owner (the future `tj-agents/core`) should gain a
+  scripted stacked-PR workflow that creates, drafts, updates and retargets child PRs the same
+  way every time.
+- `NORTH_STAR.md` duplication and the legacy route profiles above; the G++ sanitizer CI gap is
+  in `TECH_DEBT.md`.
+
 ## Progress
+
+- 2026-09-23 Delivered: #16 → v0.2.0, #17 → v0.3.0, `sandbox-hwid` and the old workspace
+  adopted the release.
 
 - 2026-09-23 PR #13 merged at `c718b76` after exact-head green checks on `1fe4183`.
   Release preparation validated locally: generator current (220 files / 16 definitions),
