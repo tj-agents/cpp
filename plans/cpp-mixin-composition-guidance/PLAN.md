@@ -104,5 +104,5 @@ drivers, and host-machine state are out of scope. The unrelated commit on
 
 ## Next action
 
-Open the pull request for `1b83735`, then drive exact-head CI, review state, and merge to
-terminal delivery without touching Winwrap or host configuration.
+Open the pull request for the current reviewed branch head, then drive exact-head CI,
+review state, and merge to terminal delivery without touching Winwrap or host configuration.
