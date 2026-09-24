@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.4.1 — mixin composition and header exposure guidance
+
+Packages: `cpp@0.4.1`; compatibility `base@0.7.1`, `cpp-standards@0.7.1`.
+
+- Added generic mixin guidance for behavior-oriented naming, stateless `struct` providers,
+  stateful invariant-bearing `class` providers, and explicit first-match routing policy.
+- Documented composition hazards including overlapping conditions, hidden order, shared
+  state, lifetime coupling, and resource-owning base construction/destruction.
+- Clarified that source and public-header layout follows domains, resources, and stable
+  protocols rather than C++ mechanisms, and that `detail/` marks an unsupported
+  compatibility contract rather than access control.
+- Added library-prefixed macro containment, deliberately repeatable internal fragments,
+  independent public-header leakage checks, and behavior-focused composition tests.
+
 ## v0.3.0 — workspace scaffold reconciliation
 
 Packages: `cpp@0.3.0`, `gpp@0.3.0`, `msvc@0.3.0`, `win32@0.3.0`; compatibility

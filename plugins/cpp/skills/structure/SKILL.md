@@ -46,6 +46,40 @@ FetchContent build directory, or `third_party/` when deliberately vendored. Do n
 under the product's public include root. Link dependency targets so they provide their own
 include paths and transitive requirements; never put cache or build paths in `#include`.
 
+## Organize by ownership, not composition technique
+
+Group headers and sources by the domain concept, public resource, or stable native
+protocol they implement. For example:
+
+```text
+include/acme/editor/file_drop.hpp
+include/acme/protocol/command.hpp
+src/editor/file_drop.cpp
+```
+
+A language mechanism such as a mixin, template, callback, or inheritance hierarchy is not
+a mandatory folder category. Do not create `mixins/`, placeholder types, or public APIs
+merely to make a directory look complete. Several behavior providers may belong beside
+the resource or protocol they extend; introduce a common folder only when it names a real,
+stable ownership boundary.
+
+A public template may physically include support headers because its definition must be
+available to consumers. Put implementation-only support under an owner-prefixed path such
+as `<acme/detail/file_drop_dispatch.hpp>` when that distinction is useful. `detail/` means
+the declaration has no supported compatibility contract; it is not access control, and
+consumers can still include or name it at their own risk. The public header remains
+responsible for presenting the complete supported API and for containing any implementation
+macros it uses.
+
+Do not create a public forwarding header for every detail file. Promote a declaration out
+of `detail/` only when consumers need a supported contract. Conversely, a detail header's
+physical inclusion by a public template does not make its names public API.
+
+Keep paths independent from C++ namespaces. A folder may help humans navigate a resource
+family without adding a namespace; add a namespace only when it names a real library,
+subsystem, or protocol ownership boundary. Do not mirror `detail/` into namespace spelling
+as a substitute for documenting its unsupported status.
+
 ## Preserve meaningful product boundaries
 
 The single-product layout is a rule of thumb, not a reason to flatten a
