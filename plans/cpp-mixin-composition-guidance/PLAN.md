@@ -46,8 +46,9 @@ drivers, and host-machine state are out of scope. The unrelated commit on
       append the new immutable package-version records.
 - [x] Run generator freshness, route self-test, hooks, marketplace, attester,
       package-version, host-validator, and G++/MSVC/Win32 scaffold acceptance checks.
-- [ ] Create a focused commit, complete independent review and any repair cycle, then
-      deliver the reviewed exact head through the repository's pull-request workflow.
+- [x] Create focused commits and complete full, independent, repair, and incremental
+      review cycles.
+- [ ] Deliver the reviewed exact head through the repository's pull-request workflow.
 
 ## Acceptance criteria
 
@@ -88,9 +89,13 @@ drivers, and host-machine state are out of scope. The unrelated commit on
   assertions. Because the repair changed already-recorded package content, final package
   versions are `cpp` 0.4.1 and `base`/`cpp-standards` 0.7.1 with new appended digests.
   Incremental review of `54abac6..0cff8fd` found no new issues and approved that head.
+- 2026-09-24: A separate read-only final-candidate review found that phrase-only coverage
+  would not catch regression to the original single-expansion macro example and that this
+  plan's next action repeated an existing commit. Added canonical/generated structural
+  assertions for exactly two contained expansions; four focused tests pass and a negative
+  control rejects the frozen `54abac6` form. Reconciled this checklist and next action.
 
 ## Next action
 
-Commit this material review checkpoint, run the final post-review validation and a clean
-incremental pass for the plan-only delta, then open and drive the pull request and
-exact-head CI to terminal delivery.
+Run incremental review and final required validation over the independent-review fixes,
+then open and drive the pull request and exact-head CI to terminal delivery.
