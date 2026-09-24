@@ -94,8 +94,15 @@ drivers, and host-machine state are out of scope. The unrelated commit on
   plan's next action repeated an existing commit. Added canonical/generated structural
   assertions for exactly two contained expansions; four focused tests pass and a negative
   control rejects the frozen `54abac6` form. Reconciled this checklist and next action.
+- 2026-09-24: Committed the independent-review fixes as `1b83735`; independent incremental
+  review found no new issues and approved that head. Final validation is green: 70 source
+  tests with one expected optional skip, generator freshness at 291 files/17 definitions,
+  the six-profile route self-test, 11 hook tests, strict Claude marketplace/all-package
+  validation, and the exact macro examples under strict G++20 syntax checks. Codex package
+  installation remains assigned to the existing isolated CI job because the local CLI has
+  no read-only validator.
 
 ## Next action
 
-Run incremental review and final required validation over the independent-review fixes,
-then open and drive the pull request and exact-head CI to terminal delivery.
+Open the pull request for `1b83735`, then drive exact-head CI, review state, and merge to
+terminal delivery without touching Winwrap or host configuration.
