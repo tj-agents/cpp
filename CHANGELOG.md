@@ -1,8 +1,8 @@
 # Changelog
 
-## v0.4.0 — mixin composition and header exposure guidance
+## v0.4.1 — mixin composition and header exposure guidance
 
-Packages: `cpp@0.4.0`; compatibility `base@0.7.0`, `cpp-standards@0.7.0`.
+Packages: `cpp@0.4.1`; compatibility `base@0.7.1`, `cpp-standards@0.7.1`.
 
 - Added generic mixin guidance for behavior-oriented naming, stateless `struct` providers,
   stateful invariant-bearing `class` providers, and explicit first-match routing policy.
