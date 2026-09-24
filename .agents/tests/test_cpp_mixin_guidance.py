@@ -46,6 +46,12 @@ PACKAGE_CAPABILITIES = {
         "testing": "cpp-testing",
     },
 }
+DETAIL_INCLUDE = "#include <acme/detail/event_kinds.inc>"
+MACRO_EXPANSIONS = (
+    f"#define ACME_DETAIL_EVENT(name) name, {DETAIL_INCLUDE} #undef ACME_DETAIL_EVENT",
+    "#define ACME_DETAIL_EVENT(name) case EventKind::name: return #name; "
+    f"{DETAIL_INCLUDE} #undef ACME_DETAIL_EVENT",
+)
 
 
 def normalized(path: Path) -> str:
@@ -67,6 +73,22 @@ class CppMixinGuidanceTests(unittest.TestCase):
                 with self.subTest(package=package, capability=capability):
                     for phrase in REQUIRED_GUIDANCE[owner]:
                         self.assertIn(phrase, generated)
+
+    def test_canonical_macro_example_is_repeatable_and_contained(self) -> None:
+        self.assert_macro_example(ROOT / ".agents/base/contract/style/SKILL.md")
+
+    def test_generated_macro_examples_are_repeatable_and_contained(self) -> None:
+        for package, capabilities in PACKAGE_CAPABILITIES.items():
+            with self.subTest(package=package):
+                self.assert_macro_example(
+                    ROOT / f"plugins/{package}/skills/{capabilities['style']}/SKILL.md"
+                )
+
+    def assert_macro_example(self, path: Path) -> None:
+        guidance = normalized(path)
+        self.assertEqual(2, guidance.count(DETAIL_INCLUDE))
+        for expansion in MACRO_EXPANSIONS:
+            self.assertIn(expansion, guidance)
 
 
 if __name__ == "__main__":
