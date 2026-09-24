@@ -72,16 +72,25 @@ drivers, and host-machine state are out of scope. The unrelated commit on
   unrelated debt commit remains on `Docs/Record-Layer-Inheritance-Debt`.
 - 2026-09-24: Implemented the four owner-scoped guidance updates and a regression test
   covering canonical plus `cpp`, `base`, and `cpp-standards` generated packages. Bumped
-  `cpp` to 0.4.0 and the two compatibility packages to 0.7.0 in both host manifests,
-  regenerated 291 files from 17 definitions, and recorded final package digests.
+  the initial review candidate to `cpp` 0.4.0 and the two compatibility packages 0.7.0
+  in both host manifests, regenerated 291 files from 17 definitions, and recorded its
+  package digests.
 - 2026-09-24: Local validation green: generator `-Check`; route self-test across six
   profiles; hook syntax plus 11 hook tests; 68 source tests with one expected optional
   skip, including marketplace, attester, package-version, and real G++/MSVC/Win32
   scaffold acceptance checks; strict Claude marketplace and all-nine-plugin validation.
   The installed Codex CLI has no read-only validation command, and its installer would
   modify forbidden host state, so the existing isolated CI install job owns that check.
+- 2026-09-24: Full review of `2f97ec5..54abac6` found one medium issue: the repeatable
+  macro fragment was shown with only one expansion. Fixed it in `0cff8fd` by generating
+  both the enum and stable name function with separate adjacent macro setup/cleanup pairs.
+  The exact combined example passes strict G++20 syntax compilation and leakage
+  assertions. Because the repair changed already-recorded package content, final package
+  versions are `cpp` 0.4.1 and `base`/`cpp-standards` 0.7.1 with new appended digests.
+  Incremental review of `54abac6..0cff8fd` found no new issues and approved that head.
 
 ## Next action
 
-Create the focused-green commit, run independent review and any repair/incremental-review
-cycle, then open and drive the pull request and exact-head CI to terminal delivery.
+Commit this material review checkpoint, run the final post-review validation and a clean
+incremental pass for the plan-only delta, then open and drive the pull request and
+exact-head CI to terminal delivery.
