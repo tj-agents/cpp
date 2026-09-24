@@ -13,6 +13,7 @@
     "cpp-structure",
     "cpp-style",
     "cpp-testing",
-    "domain-design"
+    "domain-design",
+    "mixins"
   ]
 }

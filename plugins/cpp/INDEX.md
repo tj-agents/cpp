@@ -8,6 +8,7 @@ Generated from canonical `.agents/` definitions.
 - `knowledge` — knowledge — `.agents/base/knowledge/knowledge/SKILL.md`
 - `learning` — knowledge — `.agents/base/knowledge/learning/SKILL.md`
 - `libraries` — contract — `.agents/base/contract/libraries/SKILL.md`
+- `mixins` — contract — `.agents/base/contract/mixins/SKILL.md`
 - `structure` — contract — `.agents/base/contract/structure/SKILL.md`
 - `style` — contract — `.agents/base/contract/style/SKILL.md`
 - `testing` — contract — `.agents/base/contract/testing/SKILL.md`

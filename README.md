@@ -14,10 +14,12 @@ Compiler and API choices are separate. A console library can select `cpp + msvc`
 Win32 guidance. A Win32 project can select `cpp + win32 + gpp` or `cpp + win32 + msvc`.
 The host operating system never silently chooses a compiler.
 
-Use plugin-qualified capability names: `cpp:style`, `cpp:build`, `cpp:domain-design`,
+Use plugin-qualified capability names: `cpp:style`, `cpp:build`, `cpp:domain-design`, `cpp:mixins`,
 `gpp:toolchain`, `msvc:scaffold`, and `win32:style`. The plugin supplies the scope, so the
 capability does not repeat it. `cpp:domain-design` covers records, invariants, values,
-operations, typed errors, and external state without requiring a domain layer.
+operations, typed errors, and external state without requiring a domain layer. `cpp:mixins`
+separately owns CRTP, behavior-provider, and policy-style composition; mixins are not a
+domain-driven-design concern.
 
 Canonical definitions live at:
 

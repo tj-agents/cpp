@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.4.2 — standalone mixin capability
+
+Packages: `cpp@0.4.2`; compatibility `base@0.7.2`, `cpp-standards@0.7.2`.
+
+- Moved all mixin, CRTP behavior-provider, layout, macro-containment, and composition-test
+  guidance into the standalone `cpp:mixins` capability.
+- Removed mixin ownership from `cpp:domain-design`, `cpp:structure`, `cpp:style`, and
+  `cpp:testing`; domain design remains limited to its declared modelling concerns.
+- Added an authored capability-ownership rule plus regression coverage preventing general
+  C++ patterns from being filed under an unrelated skill again.
+
 ## v0.4.1 — mixin composition and header exposure guidance
 
 Packages: `cpp@0.4.1`; compatibility `base@0.7.1`, `cpp-standards@0.7.1`.
