@@ -140,9 +140,12 @@ ACME_DETAIL_EVENT(file_drop)
 ACME_DETAIL_EVENT(command)
 ```
 
-The public header contains the macro locally:
+A public header that genuinely needs both the enum and its stable display names contains
+each expansion locally:
 
 ```cpp
+#include <string_view>
+
 namespace acme {
 
 enum class EventKind {
@@ -151,15 +154,24 @@ enum class EventKind {
 #undef ACME_DETAIL_EVENT
 };
 
+[[nodiscard]] constexpr std::string_view event_name(EventKind event) noexcept {
+    switch (event) {
+#define ACME_DETAIL_EVENT(name) case EventKind::name: return #name;
+#include <acme/detail/event_kinds.inc>
+#undef ACME_DETAIL_EVENT
+    }
+    return {};
+}
+
 } // namespace acme
 ```
 
-The `.inc` file deliberately has no `#pragma once` or include guard: repeatability is its
-contract. Keep it under `detail/`, require the setup macro with `#error`, and never expose
-that macro as part of the supported API. Prefer an ordinary `constexpr` table, template,
-or function when repeated preprocessing is unnecessary. `cpp:structure` owns the
-unsupported compatibility meaning of `detail/`; `cpp:testing` owns the independent
-public-header leakage check.
+Each include gets its own adjacent `#define`/`#undef` pair. The `.inc` file deliberately
+has no `#pragma once` or include guard: repeatability is its contract. Keep it under
+`detail/`, require the setup macro with `#error`, and never expose that macro as part of
+the supported API. Prefer an ordinary `constexpr` table, template, or function when
+repeated preprocessing is unnecessary. `cpp:structure` owns the unsupported compatibility
+meaning of `detail/`; `cpp:testing` owns the independent public-header leakage check.
 
 ## Lint (clang-tidy)
 
