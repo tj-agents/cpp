@@ -57,7 +57,9 @@ editing SandboxHwid or WinWrap, merging the pull request, or publishing a plugin
   and advances the affected package versions to `cpp` 0.4.4 and compatibility 0.7.4.
 - [x] Re-ran the generator check, route self-test, 11 hook tests, 72 repository tests, and
   strict Claude marketplace/package validation successfully after the remediation.
-- [ ] Review, commit, push, and open the pull request.
+- [x] Committed the initial candidate as `e39ecce`, the remediation as `f7c2e62`, and
+  completed the incremental review of `e39ecce..f7c2e62` with no new findings.
+- [ ] Push the branch, open the pull request, and complete remote validation.
 
 The installed Codex host has `cpp-agents` bound to the remote marketplace. Replacing that
 user-level source with this unpublished worktree would be disruptive, so the exact Codex
@@ -65,5 +67,5 @@ install validator remains assigned to the pull request's CI job after push.
 
 ## Current next action
 
-Commit the review fix, run the incremental review, then push, open the pull request, and
-own its Codex validation and other CI checks to completion.
+Push the reviewed branch, open the pull request, and own its Codex validation and other CI
+checks to completion without merging or publishing a plugin release.
