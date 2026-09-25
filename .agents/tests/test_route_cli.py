@@ -32,7 +32,7 @@ class RouteCliTests(unittest.TestCase):
                     declaration = self.generated(*arguments)
                     self.assertEqual({"toolchain": toolchain, "apis": apis}, declaration["profile"])
                     self.assertEqual(["cpp", *([toolchain] if toolchain else []), *apis], declaration["layers"])
-                    expected = {"cpp:style", "cpp:domain-design"}
+                    expected = {"cpp:style", "cpp:domain-design", "cpp:mixins"}
                     if toolchain:
                         expected.add(f"{toolchain}:toolchain")
                     if apis:

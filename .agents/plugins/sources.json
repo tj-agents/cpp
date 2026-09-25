@@ -271,6 +271,7 @@
         "win32:knowledge": "windows:windows-cpp-knowledge",
         "win32:overview": "windows:windows-overview",
         "cpp:domain-design": "base:domain-design",
+        "cpp:mixins": "base:mixins",
         "gpp:toolchain": "gcc:gcc-toolchain",
         "gpp:scaffold": "gcc:gpp-scaffold",
         "win32:scaffold": "windows:win32-scaffold"
