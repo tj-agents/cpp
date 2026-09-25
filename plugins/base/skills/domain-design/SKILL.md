@@ -167,14 +167,14 @@ Identity::decode(std::span<const std::byte> bytes,
     if (bytes.size() != sizeof(Identity))
         return std::unexpected{IdentityError::length};
 
-    Identity record{};
-    std::memcpy(&record, bytes.data(), sizeof(record));
-    if (record.profile != requested_profile ||
-        (record.profile != baseline_profile && record.profile != alternate_profile))
+    Identity identity{};
+    std::memcpy(&identity, bytes.data(), sizeof(identity));
+    if (identity.profile != requested_profile ||
+        (identity.profile != baseline_profile && identity.profile != alternate_profile))
         return std::unexpected{IdentityError::profile};
-    if (!valid_text(record.serial))
+    if (!valid_text(identity.serial))
         return std::unexpected{IdentityError::text};
-    return record;
+    return identity;
 }
 
 bool Identity::valid_text(std::span<const char, text_capacity> text) noexcept {
@@ -295,6 +295,14 @@ Use `create` for fallible construction when that name is sufficient. Prefer a mo
 specific verb such as `parse`, `decode`, or `open` when it describes the work better.
 Ordinary constructors remain appropriate for infallible construction or a project's
 established exception policy. Do not require heap allocation or a factory class.
+
+An infallible static `create` is also reasonable when it centralizes repeated setup for
+a passive record while public fields remain available for direct construction and
+malformed-input tests. For example, `IdentityRequest::create(profile)` can fill its size,
+version, and reserved fields. Use the established `create` spelling when it reads
+naturally; do not invent `for_profile` solely because the operation is infallible. This
+convenience factory does not make factories mandatory for passive records or prove that
+every possible input, such as an arbitrary enum cast, has been validated.
 
 Name immutable transformations for their meaning: `shifted_by`, `normalized`, or
 `rescheduled`. A `with_title` operation is reasonable when it means exactly a copy with
