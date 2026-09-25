@@ -296,6 +296,14 @@ specific verb such as `parse`, `decode`, or `open` when it describes the work be
 Ordinary constructors remain appropriate for infallible construction or a project's
 established exception policy. Do not require heap allocation or a factory class.
 
+An infallible static `create` is also reasonable when it centralizes repeated setup for
+a passive record while public fields remain available for direct construction and
+malformed-input tests. For example, `IdentityRequest::create(profile)` can fill its size,
+version, and reserved fields. Use the established `create` spelling when it reads
+naturally; do not invent `for_profile` solely because the operation is infallible. This
+convenience factory does not make factories mandatory for passive records or prove that
+every possible input, such as an arbitrary enum cast, has been validated.
+
 Name immutable transformations for their meaning: `shifted_by`, `normalized`, or
 `rescheduled`. A `with_title` operation is reasonable when it means exactly a copy with
 one title replacement, but `with_x` is not a universal C++ convention. If a replacement
