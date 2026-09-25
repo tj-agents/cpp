@@ -167,14 +167,14 @@ Identity::decode(std::span<const std::byte> bytes,
     if (bytes.size() != sizeof(Identity))
         return std::unexpected{IdentityError::length};
 
-    Identity record{};
-    std::memcpy(&record, bytes.data(), sizeof(record));
-    if (record.profile != requested_profile ||
-        (record.profile != baseline_profile && record.profile != alternate_profile))
+    Identity identity{};
+    std::memcpy(&identity, bytes.data(), sizeof(identity));
+    if (identity.profile != requested_profile ||
+        (identity.profile != baseline_profile && identity.profile != alternate_profile))
         return std::unexpected{IdentityError::profile};
-    if (!valid_text(record.serial))
+    if (!valid_text(identity.serial))
         return std::unexpected{IdentityError::text};
-    return record;
+    return identity;
 }
 
 bool Identity::valid_text(std::span<const char, text_capacity> text) noexcept {

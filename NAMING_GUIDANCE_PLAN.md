@@ -42,15 +42,21 @@ editing SandboxHwid or WinWrap, merging the pull request, or publishing a plugin
   `C:\Users\tommy\source\repos\tj-agents\cpp\.worktrees\Docs-Clarify-Naming-Guidance`.
 - [x] Inspected source/package mappings, manifests, package-version records, nearby
   examples, generated aliases, validation workflows, and current versions.
-- [x] Added both canonical rules and bumped the six affected host manifests (`cpp`
-  0.4.3; `base` and `cpp-standards` 0.7.3).
-- [x] Regenerated 296 files from 18 definitions and recorded the new `cpp`, `base`, and
-  `cpp-standards` package hashes.
+- [x] Added both canonical rules and bumped the six affected host manifests. The reviewed
+  final payloads are `cpp` 0.4.4 and `base` / `cpp-standards` 0.7.4; the initial immutable
+  candidate remains recorded as 0.4.3 / 0.7.3.
+- [x] Regenerated 296 files from 18 definitions and recorded both immutable candidate and
+  review-fix hashes for `cpp`, `base`, and `cpp-standards`.
 - [x] Passed the generated-content check, route self-test, 11 hook tests, and 72 repository
   tests (one documented optional live-source comparison skipped). The repository suite ran
   real G++, MSVC, MinGW/Win32, marketplace, attester, package-version, and scaffold checks.
 - [x] Passed Claude Code strict validation for the marketplace and all nine packages.
 - [x] Verified the repository's `AGENTS.md` / `CLAUDE.md` pair in both directions.
+- [x] Full review of candidate `e39ecce` found one contradiction: the nearby decode
+  example still used the generic `record` local. The remediation renames it to `identity`
+  and advances the affected package versions to `cpp` 0.4.4 and compatibility 0.7.4.
+- [x] Re-ran the generator check, route self-test, 11 hook tests, 72 repository tests, and
+  strict Claude marketplace/package validation successfully after the remediation.
 - [ ] Review, commit, push, and open the pull request.
 
 The installed Codex host has `cpp-agents` bound to the remote marketplace. Replacing that
@@ -59,5 +65,5 @@ install validator remains assigned to the pull request's CI job after push.
 
 ## Current next action
 
-Review the full diff, create the focused candidate commit, push it, open the pull request,
-and own its Codex validation and other CI checks to completion.
+Commit the review fix, run the incremental review, then push, open the pull request, and
+own its Codex validation and other CI checks to completion.
