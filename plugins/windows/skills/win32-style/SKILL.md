@@ -99,14 +99,13 @@ Raw `BOOL` / `HRESULT` never leak inward.
   `THROW_IF_FAILED(obj->Method(...))`. `RETURN_IF_*` only where code must stay
   exception-free; `FAIL_FAST_IF_*` for invariant breaks.
 
-## Wrap the ceremony once — [style]
+## Wrap the Win32 ceremony once — [style]
 
-- Class registration, window creation and callback routing go in a **class template**
-  `Window<T>` once, not per window. If every window does X, X lives in the base.
-- **No `virtual`.** The derived type defines its own `handle_message`, resolved at
-  compile time — historically CRTP + `static_cast<T*>`; winwrap now respells it as
-  C++23 *deducing this* plus composed mixins (see `winwrap/MIXINS.md`). Not MSVC's
-  `__super::` — keep it portable.
+- Centralize class registration, window creation, and callback routing in one reusable
+  window abstraction rather than repeating them per window.
+- The Win32 contract is one static or free window-procedure bridge to the owning object.
+  Load `base:mixins` for CRTP, deducing-this, behavior-provider ordering, and the choice
+  between static composition and runtime polymorphism.
 
 ## Object lifetime — any object that hands `this` to the OS — [platform]
 

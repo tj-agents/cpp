@@ -20,6 +20,13 @@ Scope ownership is strict: `base` is platform-neutral C++, `gpp` is the G++/GCC 
 Toolchain and API selection are independent. Never infer MSVC from the host OS or Win32 use,
 and never make Win32 require one compiler. WDK/kernel guidance remains outside these scopes.
 
+Capability ownership must match the subject named by the capability, not merely a nearby
+design concern or an example that happens to use it. Before adding guidance to an existing
+skill, compare the topic with that skill's name and description; when the topic is a distinct
+general pattern with its own trigger, give it its own capability. In particular, mixins,
+CRTP behavior providers, and policy-style composition belong to `cpp:mixins`, never
+`cpp:domain-design`. `CLAUDE.md` imports this file, so do not duplicate this rule there.
+
 Every scope has a documented `utility/` and `utility/scripts/` home. Empty homes state that no
 utilities exist. Repository-owned runtime resources ship inside every plugin that uses them, as
 mapped explicitly by `.agents/plugins/sources.json`: shared scaffold templates are owned by
