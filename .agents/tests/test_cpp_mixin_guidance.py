@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import re
 import unittest
 
 
@@ -10,11 +11,19 @@ GENERATED = (
     ROOT / "plugins/base/skills/mixins/SKILL.md",
     ROOT / "plugins/cpp-standards/skills/mixins/SKILL.md",
 )
-NEIGHBOURING_CAPABILITIES = (
-    "domain-design",
-    "structure",
-    "style",
-    "testing",
+AUTHORED_SCOPE_ROOTS = (
+    ROOT / ".agents/base",
+    ROOT / ".agents/gpp",
+    ROOT / ".agents/msvc",
+    ROOT / ".agents/win32",
+)
+FORBIDDEN_OWNERSHIP_MARKERS = (
+    "## Compose behavior deliberately",
+    "### Behavior-provider names",
+    "Use a transparent `struct` when the provider is stateless",
+    "struct FileDroppable",
+    "first-match-wins",
+    "ACME_DETAIL_EVENT",
 )
 REQUIRED_GUIDANCE = (
     "Mixins are a general C++ composition pattern",
@@ -55,13 +64,19 @@ class CppMixinGuidanceTests(unittest.TestCase):
                     self.assertIn(phrase, guidance)
 
     def test_mixins_do_not_return_to_unrelated_capabilities(self) -> None:
-        for capability in NEIGHBOURING_CAPABILITIES:
-            path = ROOT / f".agents/base/contract/{capability}/SKILL.md"
-            guidance = path.read_text(encoding="utf-8").casefold()
-            with self.subTest(capability=capability):
-                self.assertNotRegex(guidance, r"\bmixins?\b")
-                self.assertNotIn("filedroppable", guidance)
-                self.assertNotIn("acme_detail_event", guidance)
+        for scope_root in AUTHORED_SCOPE_ROOTS:
+            for path in scope_root.glob("*/*/SKILL.md"):
+                if path == CANONICAL:
+                    continue
+                guidance = path.read_text(encoding="utf-8")
+                with self.subTest(path=path.relative_to(ROOT).as_posix()):
+                    for marker in FORBIDDEN_OWNERSHIP_MARKERS:
+                        self.assertNotIn(marker, guidance)
+
+        win32_style = (ROOT / ".agents/win32/contract/style/SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("Load `cpp:mixins`", win32_style)
+        self.assertNotIn("historically CRTP", win32_style)
+        self.assertNotIn("composed mixins", win32_style)
 
     def test_repository_instructions_guard_capability_ownership(self) -> None:
         agents = normalized(ROOT / "AGENTS.md")
@@ -80,13 +95,34 @@ class CppMixinGuidanceTests(unittest.TestCase):
                 self.assertEqual(identifier, sources["packages"][package]["identifierRewrites"]["cpp:mixins"])
                 self.assertEqual("cpp:mixins", payloads["compatibilityAliases"][package]["skillAliases"]["mixins"])
 
-    def test_macro_example_is_repeatable_and_contained_everywhere(self) -> None:
+    def test_examples_are_structurally_complete_everywhere(self) -> None:
         for path in (CANONICAL, *GENERATED):
             with self.subTest(path=path.relative_to(ROOT).as_posix()):
-                guidance = normalized(path)
-                self.assertEqual(2, guidance.count(DETAIL_INCLUDE))
+                guidance = path.read_text(encoding="utf-8")
+                blocks = re.findall(r"```(?:cpp|text)\n(.*?)```", guidance, re.DOTALL)
+
+                provider = next(block for block in blocks if "struct FileDroppable" in block)
+                self.assertIn("static_cast<Host&>(*this).on_file_drop(drop->path)", provider)
+
+                dispatch = next(block for block in blocks if "class Editor" in block)
+                self.assertIn("return FileDroppable<Editor>::try_handle(event) ||", dispatch)
+                self.assertIn("CommandRouter<Editor>::try_handle(event)", dispatch)
+
+                fragment = next(block for block in blocks if "#ifndef ACME_DETAIL_EVENT" in block)
+                self.assertIn('#error "Define ACME_DETAIL_EVENT before including this internal fragment"', fragment)
+                self.assertIn("ACME_DETAIL_EVENT(file_drop)", fragment)
+                self.assertIn("ACME_DETAIL_EVENT(command)", fragment)
+
+                public_header = next(block for block in blocks if "enum class EventKind" in block)
+                self.assertEqual(2, public_header.count(DETAIL_INCLUDE))
+                normalized_header = " ".join(public_header.split())
                 for expansion in MACRO_EXPANSIONS:
-                    self.assertIn(expansion, guidance)
+                    self.assertIn(expansion, normalized_header)
+
+                leakage = next(block for block in blocks if "event_kind.hpp leaked" in block)
+                self.assertIn("#include <acme/event_kind.hpp>", leakage)
+                self.assertIn("#if defined(ACME_DETAIL_EVENT)", leakage)
+                self.assertIn("int main() {}", leakage)
 
 
 if __name__ == "__main__":
