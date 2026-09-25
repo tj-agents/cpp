@@ -18,6 +18,14 @@ stateful boundaries. This skill owns their spelling and formatting.
 - **Constants:** no prefix — `constexpr auto notes_filename = "notes.txt"`, not `k_notes_filename`
 - **Everything else:** snake_case for variables/functions, PascalCase for types/classes
 
+### Semantic local names
+
+- Name a local for the value or role it holds at the use site: prefer `identity` for a
+  `protocol::Identity` and `bytes_returned` for an expected byte count from
+  `device.control`, rather than generic names such as `record` or `control_result`.
+- Preserve meaningful role names when several values have the same type. Do not
+  mechanically copy the type name when the local's use-specific role says more.
+
 ### Semantic type names
 
 - Name domain and value types with the clearest noun for the concept they represent.
