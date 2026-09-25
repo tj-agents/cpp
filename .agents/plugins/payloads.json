@@ -78,7 +78,8 @@
         "cpp-direction": "cpp:direction",
         "cpp-knowledge": "cpp:knowledge",
         "cpp-learning": "cpp:learning",
-        "domain-design": "cpp:domain-design"
+        "domain-design": "cpp:domain-design",
+        "mixins": "cpp:mixins"
       }
     },
     "gcc": {
@@ -117,7 +118,8 @@
         "cpp-direction": "cpp:direction",
         "cpp-knowledge": "cpp:knowledge",
         "cpp-learning": "cpp:learning",
-        "domain-design": "cpp:domain-design"
+        "domain-design": "cpp:domain-design",
+        "mixins": "cpp:mixins"
       }
     },
     "gpp-standards": {

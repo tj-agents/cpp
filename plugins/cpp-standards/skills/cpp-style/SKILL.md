@@ -25,13 +25,6 @@ stateful boundaries. This skill owns their spelling and formatting.
 - Add a role suffix when it distinguishes real coexisting representations or
   responsibilities at a boundary.
 
-### Behavior-provider names
-
-Name a mixin for the behavior it adds, not for the fact that it uses inheritance. Use an
-`-able` name selectively when it expresses a real capability, such as `FileDroppable`.
-Use natural role names for observed events and protocol responsibilities, such as
-`ConnectionObserver` and `CommandRouter`; do not impose one suffix on every provider.
-
 ## Namespaces
 
 - Put reusable and shared code in a stable top-level namespace owned by the project or
@@ -119,59 +112,6 @@ class or the file. Widen a constant's scope only when a second user appears
 ## Misc
 
 - Anonymous `namespace { }` for file-local helpers and constants (instead of `static`)
-
-## Contain preprocessor macros
-
-A macro cannot live in a C++ namespace. Give every library macro a library-specific
-prefix, define an implementation macro only around the expansion that needs it, and
-`#undef` it before the public header finishes. A namespace qualification does not prevent
-collisions or leakage.
-
-Use a deliberately repeatable internal include fragment only when the same declaration
-list must be expanded in more than one form. For example, an unsupported
-`acme/detail/event_kinds.inc` fragment may contain:
-
-```cpp
-#ifndef ACME_DETAIL_EVENT
-#error "Define ACME_DETAIL_EVENT before including this internal fragment"
-#endif
-
-ACME_DETAIL_EVENT(file_drop)
-ACME_DETAIL_EVENT(command)
-```
-
-A public header that genuinely needs both the enum and its stable display names contains
-each expansion locally:
-
-```cpp
-#include <string_view>
-
-namespace acme {
-
-enum class EventKind {
-#define ACME_DETAIL_EVENT(name) name,
-#include <acme/detail/event_kinds.inc>
-#undef ACME_DETAIL_EVENT
-};
-
-[[nodiscard]] constexpr std::string_view event_name(EventKind event) noexcept {
-    switch (event) {
-#define ACME_DETAIL_EVENT(name) case EventKind::name: return #name;
-#include <acme/detail/event_kinds.inc>
-#undef ACME_DETAIL_EVENT
-    }
-    return {};
-}
-
-} // namespace acme
-```
-
-Each include gets its own adjacent `#define`/`#undef` pair. The `.inc` file deliberately
-has no `#pragma once` or include guard: repeatability is its contract. Keep it under
-`detail/`, require the setup macro with `#error`, and never expose that macro as part of
-the supported API. Prefer an ordinary `constexpr` table, template, or function when
-repeated preprocessing is unnecessary. `cpp-standards:cpp-structure` owns the unsupported compatibility
-meaning of `detail/`; `cpp-standards:cpp-testing` owns the independent public-header leakage check.
 
 ## Lint (clang-tidy)
 

@@ -157,7 +157,8 @@
         "cpp:direction": "cpp-direction",
         "cpp:knowledge": "cpp-knowledge",
         "cpp:learning": "cpp-learning",
-        "cpp:domain-design": "domain-design"
+        "cpp:domain-design": "domain-design",
+        "cpp:mixins": "mixins"
       },
       "identifierRewrites": {
         "cpp:build": "base:cpp-build",
@@ -169,6 +170,7 @@
         "cpp:knowledge": "base:cpp-knowledge",
         "cpp:learning": "base:cpp-learning",
         "cpp:domain-design": "base:domain-design",
+        "cpp:mixins": "base:mixins",
         "gpp:toolchain": "gcc:gcc-toolchain",
         "gpp:scaffold": "gcc:gpp-scaffold",
         "msvc:toolchain": "windows:msvc-toolchain",
@@ -195,6 +197,7 @@
         "win32:knowledge": "windows:windows-cpp-knowledge",
         "win32:overview": "windows:windows-overview",
         "cpp:domain-design": "base:domain-design",
+        "cpp:mixins": "base:mixins",
         "win32:scaffold": "windows:win32-scaffold"
       }
     },
@@ -268,6 +271,7 @@
         "win32:knowledge": "windows:windows-cpp-knowledge",
         "win32:overview": "windows:windows-overview",
         "cpp:domain-design": "base:domain-design",
+        "cpp:mixins": "base:mixins",
         "gpp:toolchain": "gcc:gcc-toolchain",
         "gpp:scaffold": "gcc:gpp-scaffold",
         "win32:scaffold": "windows:win32-scaffold"
@@ -292,7 +296,8 @@
         "cpp:direction": "cpp-direction",
         "cpp:knowledge": "cpp-knowledge",
         "cpp:learning": "cpp-learning",
-        "cpp:domain-design": "domain-design"
+        "cpp:domain-design": "domain-design",
+        "cpp:mixins": "mixins"
       },
       "identifierRewrites": {
         "cpp:build": "cpp-standards:cpp-build",
@@ -304,6 +309,7 @@
         "cpp:knowledge": "cpp-standards:cpp-knowledge",
         "cpp:learning": "cpp-standards:cpp-learning",
         "cpp:domain-design": "cpp-standards:domain-design",
+        "cpp:mixins": "cpp-standards:mixins",
         "gpp:toolchain": "gpp-standards:gpp-toolchain",
         "gpp:scaffold": "gpp-standards:gpp-scaffold",
         "msvc:toolchain": "windows:msvc-toolchain",
@@ -330,6 +336,7 @@
         "win32:knowledge": "windows:windows-cpp-knowledge",
         "win32:overview": "windows:windows-overview",
         "cpp:domain-design": "cpp-standards:domain-design",
+        "cpp:mixins": "cpp-standards:mixins",
         "win32:scaffold": "windows:win32-scaffold"
       }
     },
@@ -438,6 +445,7 @@
     "win32:knowledge": "windows-cpp-knowledge",
     "win32:overview": "windows-overview",
     "cpp:domain-design": "cpp-domain-design",
+    "cpp:mixins": "cpp-mixins",
     "win32:scaffold": "win32-scaffold"
   },
   "routeProfiles": [
