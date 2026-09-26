@@ -131,6 +131,9 @@ class MsvcScaffoldTests(unittest.TestCase):
             self.assertIn("/fsanitize=address", cmake)
             presets = json.loads((project / "CMakePresets.json").read_text(encoding="utf-8"))
             self.assertEqual({"dev", "release", "asan"}, {preset["name"] for preset in presets["configurePresets"]})
+            clangd = (project / ".clangd").read_text(encoding="utf-8")
+            self.assertIn("PathMatch: (app|libs|tests)/.*", clangd)
+            self.assertIn("CompilationDatabase: build/dev", clangd)
             launch = json.loads((project / ".vscode/launch.json").read_text(encoding="utf-8"))
             self.assertEqual("cppvsdbg", launch["configurations"][0]["type"])
 

@@ -1,6 +1,6 @@
 {
   "name": "msvc",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "MSVC and clang-cl toolchain guidance and project scaffold layered on cpp.",
   "author": {
     "name": "Tommy Seery",
