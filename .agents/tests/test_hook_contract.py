@@ -55,6 +55,15 @@ class HookContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "script target is missing"):
             self.validate(output)
 
+    def test_unknown_hook_type_is_rejected(self) -> None:
+        output = copy.deepcopy(self.output)
+        path = "plugins/cpp/hooks/codex.json"
+        payload = json.loads(output[path])
+        payload["hooks"]["SessionStart"][0]["hooks"][0]["type"] = "commnad"
+        output[path] = json.dumps(payload).encode()
+        with self.assertRaisesRegex(ValueError, "unsupported hook type"):
+            self.validate(output)
+
     def test_codex_windows_python_root_resolution_is_enforced(self) -> None:
         output = copy.deepcopy(self.output)
         path = "plugins/cpp/hooks/codex.json"
