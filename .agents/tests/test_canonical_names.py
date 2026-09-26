@@ -113,7 +113,11 @@ class CanonicalNameTests(unittest.TestCase):
             self.assertIn(f"<skill-directory>/{link.group(1)}", body)
 
     def test_every_host_manifest_names_the_canonical_repository(self) -> None:
-        manifests = sorted((ROOT / ".agents" / "plugins" / "manifests").glob("*/*.json"))
+        manifests = sorted(
+            ROOT / ".agents" / "plugins" / "manifests" / host / f"{package}.json"
+            for host in ("claude", "codex")
+            for package in self.payloads["payloads"]
+        )
         self.assertEqual(2 * len(self.payloads["payloads"]), len(manifests))
         for manifest in manifests:
             self.assertEqual("https://github.com/tj-agents/cpp", read_json(manifest)["repository"], manifest.name)

@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/session_context.py\"",
-            "commandWindows": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/session_context.py\"",
+            "command": "python3 -B \"${PLUGIN_ROOT}/hooks/session_context.py\"",
+            "commandWindows": "python -B -c \"import os,runpy,sys;p=os.path.join(os.environ['PLUGIN_ROOT'],'hooks/session_context.py');sys.path.insert(0,os.path.dirname(p));runpy.run_path(p,run_name='__main__')\"; exit $LASTEXITCODE",
             "timeout": 5,
             "additionalContextLimit": 800
           }

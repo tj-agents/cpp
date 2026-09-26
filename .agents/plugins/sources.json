@@ -38,6 +38,20 @@
     "codex": ".agents/plugins/manifests/codex",
     "claude": ".agents/plugins/manifests/claude"
   },
+  "host_hook_sources": {
+    "cpp": {
+      "codex": ".agents/plugins/manifests/codex/hooks.json",
+      "claude": ".agents/plugins/manifests/claude/hooks.json"
+    },
+    "base": {
+      "codex": ".agents/plugins/manifests/codex/hooks.json",
+      "claude": ".agents/plugins/manifests/claude/hooks.json"
+    },
+    "cpp-standards": {
+      "codex": ".agents/plugins/manifests/codex/hooks.json",
+      "claude": ".agents/plugins/manifests/claude/hooks.json"
+    }
+  },
   "generated_roots": [
     ".codex/skills",
     ".claude/skills",

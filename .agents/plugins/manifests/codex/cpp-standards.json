@@ -1,6 +1,6 @@
 {
   "name": "cpp-standards",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Deprecated compatibility package for cpp@cpp-agents; remove after 2027-03-31.",
   "author": {
     "name": "Tommy Seery",
@@ -8,6 +8,7 @@
   },
   "repository": "https://github.com/tj-agents/cpp",
   "skills": "./skills/",
+  "hooks": "./hooks/codex.json",
   "keywords": [
     "cpp",
     "compatibility",
