@@ -187,6 +187,20 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
         raise ValueError("Host adapter names must map every canonical skill exactly once")
     if len(set(adapter_names.values())) != len(adapter_names) or any(not NAME.fullmatch(name) for name in adapter_names.values()):
         raise ValueError("Host adapter names must be unique valid flat skill names")
+    hosts = set(config["host_manifest_roots"])
+    hook_packages = set(config["hook_packages"])
+    hook_sources = config.get("host_hook_sources", {})
+    if set(hook_sources) != hook_packages:
+        raise ValueError("Hook package source declarations differ")
+    for package, sources in hook_sources.items():
+        if set(sources) != hosts:
+            raise ValueError(f"{package}: hook sources must declare every host exactly once")
+        for host, source in sources.items():
+            relative = PurePosixPath(source)
+            if relative.is_absolute() or ".." in relative.parts:
+                raise ValueError(f"{package}/{host}: invalid hook source {source}")
+            if not root.joinpath(*relative.parts).is_file():
+                raise ValueError(f"{package}/{host}: missing hook source {source}")
     for package, cfg in packages.items():
         if set(cfg["scopes"]) - scopes:
             raise ValueError(f"{package}: unknown scope")
@@ -213,6 +227,12 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
             manifest = load(manifest_path)
             if manifest.get("name") != package or manifest.get("skills") != "./skills/":
                 raise ValueError(f"{manifest_path}: invalid name or skills root")
+            hook_source = hook_sources.get(package, {}).get(host)
+            if hook_source:
+                if manifest.get("hooks") != f"./hooks/{host}.json":
+                    raise ValueError(f"{manifest_path}: hook path disagrees with source map")
+            elif "hooks" in manifest:
+                raise ValueError(f"{manifest_path}: undeclared hook source")
     for package, dependencies in payloads.get("dependencies", {}).items():
         if package not in packages or set(dependencies) - set(packages):
             raise ValueError(f"{package}: invalid dependencies")
@@ -223,7 +243,7 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
         raise ValueError(f"Compatibility packages must retain {COMPATIBILITY_DEADLINE}")
     if packages["windows"]["scopes"] != ["msvc", "win32"]:
         raise ValueError("The compatibility windows package must retain both MSVC and Win32")
-    if set(config["hook_packages"]) != set(payloads["hooks"]):
+    if hook_packages != set(payloads["hooks"]):
         raise ValueError("Hook package declarations differ")
     return [*public, *(name for name in packages if name not in public)]
 
@@ -290,6 +310,83 @@ def resource_bytes(path: Path, text: bool) -> bytes:
     return path.read_bytes()
 
 
+def validate_hook_outputs(output: dict[str, bytes], config: dict, packages: list[str]) -> None:
+    known_roots = ("${PLUGIN_ROOT}", "%PLUGIN_ROOT%", "${CLAUDE_PLUGIN_ROOT}", "os.environ['PLUGIN_ROOT']")
+    host_fields = {
+        "codex": (
+            ("command", "${PLUGIN_ROOT}", re.compile(r"\$\{PLUGIN_ROOT\}/([^\"']+)")),
+            (
+                "commandWindows",
+                "os.environ['PLUGIN_ROOT']",
+                re.compile(r"os\.environ\['PLUGIN_ROOT'\]\s*,\s*'([^']+)'"),
+            ),
+        ),
+        "claude": (
+            ("command", "${CLAUDE_PLUGIN_ROOT}", re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/([^\"']+)")),
+        ),
+    }
+    hook_packages = set(config["hook_packages"])
+    for package in packages:
+        shipped = set()
+        for path, data in output.items():
+            if path.startswith(f"plugins/{package}/hooks/") and path.endswith(".json"):
+                payload = json.loads(data)
+                if isinstance(payload, dict) and isinstance(payload.get("hooks"), dict):
+                    shipped.add(path)
+        expected = {f"plugins/{package}/hooks/{host}.json" for host in host_fields} if package in hook_packages else set()
+        if shipped != expected:
+            raise ValueError(f"{package}: shipped hooks disagree with source map")
+        for host, fields in host_fields.items():
+            manifest_path = f"plugins/{package}/.{host}-plugin/plugin.json"
+            manifest = json.loads(output[manifest_path])
+            pointer = manifest.get("hooks")
+            if package not in hook_packages:
+                if pointer is not None:
+                    raise ValueError(f"{manifest_path}: undeclared hook pointer")
+                continue
+            expected_pointer = f"./hooks/{host}.json"
+            if pointer != expected_pointer:
+                raise ValueError(f"{manifest_path}: hook pointer must be {expected_pointer}")
+            relative_pointer = PurePosixPath(pointer)
+            if relative_pointer.is_absolute() or ".." in relative_pointer.parts:
+                raise ValueError(f"{manifest_path}: hook pointer escapes package")
+            hook_path = f"plugins/{package}/{relative_pointer.as_posix()}"
+            if hook_path not in output:
+                raise ValueError(f"{manifest_path}: hook pointer target is missing")
+            payload = json.loads(output[hook_path])
+            events = payload.get("hooks")
+            if not isinstance(events, dict) or not events:
+                raise ValueError(f"{hook_path}: no hook events")
+            for groups in events.values():
+                if not isinstance(groups, list) or not groups:
+                    raise ValueError(f"{hook_path}: hook event has no groups")
+                for group in groups:
+                    hooks = group.get("hooks") if isinstance(group, dict) else None
+                    if not isinstance(hooks, list) or not hooks:
+                        raise ValueError(f"{hook_path}: hook group has no commands")
+                    for hook in hooks:
+                        if hook.get("type") != "command":
+                            continue
+                        for field, root_token, script_pattern in fields:
+                            command = hook.get(field)
+                            if not isinstance(command, str) or not command:
+                                raise ValueError(f"{hook_path}: command hook is missing {field}")
+                            if field == "commandWindows" and not command.endswith("; exit $LASTEXITCODE"):
+                                raise ValueError(f"{hook_path}: commandWindows does not preserve the hook exit code")
+                            wrong_roots = [token for token in known_roots if token != root_token and token in command]
+                            if wrong_roots:
+                                raise ValueError(f"{hook_path}: {field} uses the wrong plugin root")
+                            match = script_pattern.search(command)
+                            if match is None:
+                                raise ValueError(f"{hook_path}: {field} has no package-relative script")
+                            script = PurePosixPath(match.group(1))
+                            if script.is_absolute() or ".." in script.parts:
+                                raise ValueError(f"{hook_path}: {field} script escapes package")
+                            target = f"plugins/{package}/{script.as_posix()}"
+                            if target not in output:
+                                raise ValueError(f"{hook_path}: {field} script target is missing: {script}")
+
+
 def build(root: Path) -> tuple[dict[str, bytes], dict]:
     config = load(root / ".agents/plugins/sources.json")
     payloads = load(root / ".agents/plugins/payloads.json")
@@ -337,7 +434,11 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             emit(f"{package_root}/{package}/skills/{alias_name}/SKILL.md", compatibility_alias_body(skill, alias_name, target_name, alias["removeAfter"]))
 
         for host, manifest_root in config["host_manifest_roots"].items():
-            emit(f"{package_root}/{package}/.{host}-plugin/plugin.json", read(root / manifest_root / f"{package}.json"))
+            manifest_path = root / manifest_root / f"{package}.json"
+            emit(f"{package_root}/{package}/.{host}-plugin/plugin.json", read(manifest_path))
+            hook_source = config.get("host_hook_sources", {}).get(package, {}).get(host)
+            if hook_source:
+                emit(f"{package_root}/{package}/hooks/{host}.json", read(root / hook_source))
 
         index = [f"# {package} capabilities", "", "Generated from canonical `.agents/` definitions.", ""]
         for skill in sorted(owned, key=lambda item: item["name"]):
@@ -361,7 +462,6 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             for old, new in cfg.get("hookRewrites", {}).items():
                 hook = hook.replace(old, new)
             emit(f"{package_root}/{package}/hooks/session_context.py", hook)
-            emit(f"{package_root}/{package}/hooks/hooks.json", read(root / ".agents/hooks/hooks.json"))
 
     for resource in config.get("resources", []):
         source = root / resource["source"]
@@ -385,6 +485,8 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
                 if package not in payloads["publicPlugins"]:
                     raise ValueError(f"Route profiles name canonical skills; {package} is not a canonical package")
                 emit(f"{package_root}/{package}/{profile['destination']}", rendered)
+
+    validate_hook_outputs(output, config, package_order)
 
     codex_plugins = []
     claude_plugins = []
