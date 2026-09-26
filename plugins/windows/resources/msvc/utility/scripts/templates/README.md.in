@@ -16,8 +16,11 @@ Or run `./scripts/Enter-DevShell.ps1`, then use the CMake `dev` and `release` pr
 directly; for `asan`, enter with `-Component Microsoft.VisualStudio.Component.VC.ASAN` so an
 installation with the "C++ AddressSanitizer" component is selected. Run sanitized binaries
 from that shell, which puts the ASan runtime DLL on `PATH`. An editor launched from that
-shell inherits the environment. clangd reads
-`build/dev/compile_commands.json`; `.vscode/launch.json` debugs the `dev` build.
+shell inherits the environment. clangd reads `build/dev/compile_commands.json` for the
+scaffold's `app`, `libs`, and `tests` source roots; `.vscode/launch.json` debugs the `dev`
+build. If another build system owns another source root, generate its compilation database
+and add a path-scoped entry to `.clangd`; the C/C++ extension's compile-commands setting does
+not configure clangd.
 
 The initial targets use the dynamic MSVC CRT, exceptions, and warnings as errors for owned
 code. Warnings and AddressSanitizer are applied through the `__NAMESPACE___warnings` and

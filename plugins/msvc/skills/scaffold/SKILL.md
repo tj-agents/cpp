@@ -45,6 +45,12 @@ facts and the `cpp` + `msvc` route profile in `.agents/skill-routes.json`. Pass
 project's own configurations byte for byte instead. The generator does not search the
 machine or download tools and dependencies.
 
+The scaffold's `.clangd` maps only its CMake-owned `app`, `libs`, and `tests` directories
+to `build/dev/compile_commands.json`. If the repository adds a source root built by another
+system, generate that system's compile database and add a separate path-scoped `.clangd`
+entry. Do not use a workspace-wide CMake database or a C/C++ extension setting as clangd's
+configuration for those sources.
+
 ## Build and adapt
 
 ```powershell
