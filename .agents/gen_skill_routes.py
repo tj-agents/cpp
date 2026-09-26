@@ -60,7 +60,7 @@ def compatibility_kind(toolchain: str | None, apis: tuple[str, ...]) -> str:
 def routes(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> dict:
     toolchain, apis = normalize(toolchain, apis)
     result = [
-        {"path": CPP_PATH, "skills": ["cpp:style", "cpp:domain-design", "cpp:mixins"], "note": "C++ style, data and invariant design, and behavior composition."},
+        {"path": CPP_PATH, "skills": ["cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure"], "note": "C++ style, data and invariant design, behavior composition, and project structure."},
         {"path": BUILD_PATH, "skills": ["cpp:build", "cpp:structure", "cpp:libraries"]},
         {"path": TEST_PATH, "skills": ["cpp:testing"]},
     ]
@@ -132,14 +132,14 @@ def self_test() -> int:
         print("legacy profile normalization failed")
         return 1
     cases = {
-        ((None, ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins"},
-        (("msvc", ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "msvc:toolchain"},
+        ((None, ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure"},
+        (("msvc", ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure", "msvc:toolchain"},
         (("msvc", ()), "app/app.rc"): set(),
-        ((None, ("win32",)), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "win32:overview", "win32:style"},
+        ((None, ("win32",)), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure", "win32:overview", "win32:style"},
         ((None, ("win32",)), "app/app.vcxproj"): {"win32:overview", "win32:style"},
         ((None, ("win32",)), "CMakeLists.txt"): {"cpp:build", "cpp:structure", "cpp:libraries", "win32:overview", "win32:style"},
-        (("gpp", ("win32",)), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "gpp:toolchain", "win32:overview", "win32:style"},
-        ((None, ()), "tests/core_test.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:testing"},
+        (("gpp", ("win32",)), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure", "gpp:toolchain", "win32:overview", "win32:style"},
+        ((None, ()), "tests/core_test.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure", "cpp:testing"},
         ((None, ()), "CMakeLists.txt"): {"cpp:build", "cpp:structure", "cpp:libraries"},
         (("msvc", ()), "lib/lib.vcxproj"): {"msvc:toolchain"},
         (("msvc", ("win32",)), "app/app.vcxproj"): {"msvc:toolchain", "win32:overview", "win32:style"},

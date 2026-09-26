@@ -1,5 +1,14 @@
 # Technical debt
 
+## Normalize Windows temporary paths in generated-root checks
+
+`test_sync_generated_safety.test_retired_generated_root_is_reported_and_removed` fails on hosts
+where `tempfile` returns a short 8.3 path but `Path.resolve()` expands a child to its long path.
+The generator compares those spellings with `relative_to`, which raises `ValueError` before
+the test can inspect retired generated roots. Resolve this when the generator normalizes
+both root and child through the same filesystem path representation and the test passes
+on a host exposing short temporary paths.
+
 ## Enforce the provenance gate through branch protection
 
 `External contract provenance / repository-binding` is an automated, trusted exact-head check, but GitHub

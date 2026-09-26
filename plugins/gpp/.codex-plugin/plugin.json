@@ -1,6 +1,6 @@
 {
   "name": "gpp",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "G++, GCC, GDB, and Linux guidance layered on cpp.",
   "author": {
     "name": "Tommy Seery",
