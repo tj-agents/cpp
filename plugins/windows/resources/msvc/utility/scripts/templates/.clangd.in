@@ -1,3 +1,5 @@
+If:
+  PathMatch: (app|libs|tests)/.*
 CompileFlags:
   CompilationDatabase: build/dev
   Remove:

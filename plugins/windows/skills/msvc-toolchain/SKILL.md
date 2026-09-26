@@ -93,6 +93,11 @@ machine-specific compiler paths, automatic tool upgrades or restarts in a build 
 - Point editor tooling at the selected build configuration. Export a compile database when
   supported; do not invent a second flag list to quiet the editor. Launch the editor from
   the configured shell when it needs that environment.
+- When a workspace has sources from more than one build model, scope clangd's compilation
+  databases by source root in `.clangd`; each source root must use commands evaluated by its
+  own build system. A `C_Cpp.default.compileCommands` setting configures Microsoft C/C++
+  IntelliSense, not clangd. Do not disable that extension in favor of clangd until every
+  edited source root has a valid clangd command.
 - Reuse the actual clang-format/clang-tidy configurations. A formatter's distribution does
   not determine the program's ABI. clang-tidy needs compatible flags and headers; report
   a parsing/toolchain failure separately from a clean analysis result.
