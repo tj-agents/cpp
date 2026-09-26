@@ -1,6 +1,6 @@
 {
   "name": "cpp",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Platform-neutral modern C++ contracts and learning guidance.",
   "author": {
     "name": "Tommy Seery",
@@ -8,6 +8,7 @@
   },
   "repository": "https://github.com/tj-agents/cpp",
   "skills": "./skills/",
+  "hooks": "./hooks/codex.json",
   "keywords": [
     "cpp",
     "cmake",
