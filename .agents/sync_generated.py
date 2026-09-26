@@ -365,8 +365,9 @@ def validate_hook_outputs(output: dict[str, bytes], config: dict, packages: list
                     if not isinstance(hooks, list) or not hooks:
                         raise ValueError(f"{hook_path}: hook group has no commands")
                     for hook in hooks:
-                        if hook.get("type") != "command":
-                            continue
+                        hook_type = hook.get("type") if isinstance(hook, dict) else None
+                        if hook_type != "command":
+                            raise ValueError(f"{hook_path}: unsupported hook type: {hook_type!r}")
                         for field, root_token, script_pattern in fields:
                             command = hook.get(field)
                             if not isinstance(command, str) or not command:
