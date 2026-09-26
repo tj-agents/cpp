@@ -22,9 +22,10 @@
       "skills": [
         "cpp:style",
         "cpp:domain-design",
-        "cpp:mixins"
+        "cpp:mixins",
+        "cpp:structure"
       ],
-      "note": "C++ style, data and invariant design, and behavior composition."
+      "note": "C++ style, data and invariant design, behavior composition, and project structure."
     },
     {
       "path": "(?i:(^|/)(CMakeLists\\.txt|CMakePresets\\.json|[^/]+\\.cmake))$",
