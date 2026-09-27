@@ -52,6 +52,24 @@ The C++ mapping here is a house design decision; DDD does not prescribe these C+
 
 ## Place operations with their actual owner
 
+Keep a meaningful concept's data and cohesive behavior together on its owning type where
+relevant. This preference covers creation, acquisition, decoding, validation, queries,
+transformations and permitted state changes; it is not limited to factories. Use instance
+methods for behavior of an existing object and static members for type-owned operations
+that do not require a receiver. Keep supporting implementation details private to that owner.
+
+Choose ownership from the concept and its contract, not merely from whether a function
+stores state or needs private access. A stateless validator or decoder can still belong
+to its type. Resource handles are not required: a retrieved table or parsed value can
+own its data and the operations that make that data meaningful. Keep construction and
+subsequent operations consistent with the same invariants and error vocabulary.
+
+Use associated free functions when they better express independent, isolated behavior,
+an algorithm spanning peer types, or an operation with no natural single type owner.
+Do not force such functions into empty service classes, enlarge a type with unrelated
+responsibilities, or introduce inheritance merely to group operations. DDD's emphasis on
+cohesive models informs this house preference; no domain layer or DDD architecture is required.
+
 Prefer `IdentityRequest::validate(request)` for a stateless contract check that belongs to one
 record type and benefits from discovery on that type. A static member has no implicit
 `this` object; the checked record remains an explicit input. Static is not a
