@@ -155,7 +155,7 @@ are needed for this correction.
 - [x] Preserve associated free functions for isolated behavior, cross-type algorithms and
       operations without a natural single owner; do not prescribe empty service classes or
       a domain layer.
-- [ ] Regenerate the affected canonical and compatibility packages, record the required
+- [x] Regenerate the affected canonical and compatibility packages, record the required
       patch versions, run the required source and host validations, and deliver the
       verified cpp-agents change through a personal GitHub PR.
 
@@ -557,7 +557,9 @@ Primary references supporting the design:
 
 ## Progress
 
-- 2026-09-27 behavior-ownership standard is validated locally and pending delivery. The
+- 2026-09-27 behavior-ownership standard is delivered for review in
+  [PR #28](https://github.com/tj-agents/cpp/pull/28) at
+  `4acf39a766a410bad3b9f914daecb719ae91541f`. The
   authored `cpp:domain-design` addition makes cohesive type ownership a general preference
   rather than a factory-only rule, while retaining free functions for independent or
   cross-type behavior. The change affects `cpp` and the `base`/`cpp-standards` compatibility
