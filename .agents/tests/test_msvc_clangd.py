@@ -50,7 +50,7 @@ class ClangdMsvcInstallerTests(unittest.TestCase):
             self.assertEqual(original, settings.read_text(encoding="utf-8"))
             self.assertIn("clangd.useScriptAsExecutable", installed.stdout)
 
-    def test_launcher_writes_nothing_but_clangd_to_stdout(self) -> None:
+    def test_launcher_silences_developer_environment_output(self) -> None:
         # stdout carries the language-server protocol, so developer-environment banners
         # printed before clangd starts would corrupt the session.
         text = (SCRIPTS / "clangd-msvc.cmd").read_text(encoding="utf-8")
