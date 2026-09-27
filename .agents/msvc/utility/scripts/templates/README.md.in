@@ -15,8 +15,10 @@ the build helper discovers an existing C++ installation and does not install too
 Or run `./scripts/Enter-DevShell.ps1`, then use the CMake `dev` and `release` presets
 directly; for `asan`, enter with `-Component Microsoft.VisualStudio.Component.VC.ASAN` so an
 installation with the "C++ AddressSanitizer" component is selected. Run sanitized binaries
-from that shell, which puts the ASan runtime DLL on `PATH`. An editor launched from that
-shell inherits the environment. clangd reads `build/dev/compile_commands.json` for the
+from that shell, which puts the ASan runtime DLL on `PATH`. Open the editor with
+`./scripts/Open-Editor.ps1` (VS Code by default, `-Editor nvim` for another editor) so
+clangd inherits that environment; otherwise it cannot find `windows.h` or the MSVC STL.
+Install the recommended clangd extension. clangd reads `build/dev/compile_commands.json` for the
 scaffold's `app`, `libs`, and `tests` source roots; `.vscode/launch.json` debugs the `dev`
 build. If another build system owns another source root, generate its compilation database
 and add a path-scoped entry to `.clangd`; the C/C++ extension's compile-commands setting does

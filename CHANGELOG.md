@@ -1,5 +1,20 @@
 # Changelog
 
+## msvc v0.3.4 — clangd editor environment
+
+Packages: `gpp@0.3.3`, `msvc@0.3.4`, `win32@0.3.3`; compatibility `gcc@0.5.2`,
+`gpp-standards@0.5.2`, `windows@0.8.4`.
+
+- Scaffolds now ship `.vscode/extensions.json` recommending the clangd and C/C++ extensions,
+  because the shared settings disable Microsoft IntelliSense in favor of clangd.
+- MSVC scaffolds ship `scripts/Open-Editor.ps1`, which enters the component-filtered
+  developer shell before opening the editor. clangd's own Visual Studio discovery selects
+  the newest Setup instance even without C++ tools, such as SQL Server Management Studio,
+  and then cannot find `windows.h` or the MSVC STL.
+- `msvc:toolchain` documents that failure, forbids pinning a versioned toolset path in
+  editor configuration, and requires regenerating the compile database after moving
+  source roots.
+
 ## v0.4.2 — standalone mixin capability
 
 Packages: `cpp@0.4.2`, `gpp@0.3.1`, `msvc@0.3.1`, `win32@0.3.1`; compatibility

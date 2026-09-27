@@ -113,6 +113,7 @@ class GppScaffoldTests(unittest.TestCase):
                 ".clangd",
                 ".editorconfig",
                 ".gitignore",
+                ".vscode/extensions.json",
                 ".vscode/launch.json",
                 ".vscode/settings.json",
                 "AGENTS.md",
