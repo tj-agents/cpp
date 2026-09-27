@@ -41,6 +41,12 @@ layers (`win32`). The route profile records these dimensions separately. Win32 m
 a suggestion when no profile exists, but detection never applies an API or compiler. MSVC alone
 does not select Win32, a Windows host does not select MSVC, and Win32 does not require MSVC.
 
+A route requires only the skills that govern every file it matches. For sources that means
+`cpp:style` and the selected API's style skill. Design, composition, layout, dependency, toolchain
+and API-orientation skills are conditional on sources. The core router names each with its condition
+and never blocks on it. A toolchain skill is required on build and toolchain files. The route schema
+belongs to core's `skill-routes` contract.
+
 Generated routes contain technical skills only. Engineering workflows are independently owned and
 installed; this repository retains immutable provenance evidence for the historical external
 contract without making it a compulsory new-route dependency.

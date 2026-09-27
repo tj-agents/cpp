@@ -20,7 +20,18 @@ class RouteCliTests(unittest.TestCase):
 
     @staticmethod
     def matching_skills(declaration: dict, path: str) -> set[str]:
-        return {skill for route in declaration["routes"] if re.search(route["path"], path) for skill in route["skills"]}
+        """The required tier: what blocks a write to `path` until loaded."""
+        return {skill for route in declaration["routes"] if re.search(route["path"], path) for skill in route.get("skills", [])}
+
+    @classmethod
+    def conditional_skills(cls, declaration: dict, path: str) -> set[str]:
+        """The advisory tier, less anything another matching route already requires."""
+        named = {
+            entry["skill"]
+            for route in declaration["routes"] if re.search(route["path"], path)
+            for entry in route.get("conditional", [])
+        }
+        return named - cls.matching_skills(declaration, path)
 
     def test_canonical_profiles_resolve_installed_skills(self) -> None:
         for toolchain in (None, "gpp", "msvc"):
@@ -32,16 +43,30 @@ class RouteCliTests(unittest.TestCase):
                     declaration = self.generated(*arguments)
                     self.assertEqual({"toolchain": toolchain, "apis": apis}, declaration["profile"])
                     self.assertEqual(["cpp", *([toolchain] if toolchain else []), *apis], declaration["layers"])
-                    expected = {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure"}
+                    required = {"cpp:style"}
+                    conditional = {"cpp:domain-design", "cpp:mixins", "cpp:structure"}
+                    build = {"cpp:build", "cpp:structure"}
                     if toolchain:
-                        expected.add(f"{toolchain}:toolchain")
+                        conditional.add(f"{toolchain}:toolchain")
+                        build.add(f"{toolchain}:toolchain")
                     if apis:
-                        expected.update({"win32:style", "win32:overview"})
-                    for path in ("src/main.cpp", "libs/core/include/core/model.hpp"):
-                        self.assertEqual(expected, self.matching_skills(declaration, path))
-                    self.assertEqual(expected | {"cpp:testing"}, self.matching_skills(declaration, "tests/core_test.cpp"))
+                        required.add("win32:style")
+                        conditional.add("win32:overview")
+                        build.update({"win32:style", "win32:overview"})
+                    for path in ("src/main.cpp", "libs/winwrap/include/winwrap/window.hpp"):
+                        self.assertEqual(required, self.matching_skills(declaration, path))
+                        self.assertEqual(conditional, self.conditional_skills(declaration, path))
+                    self.assertEqual(required | {"cpp:testing"}, self.matching_skills(declaration, "tests/core_test.cpp"))
+                    for path in ("CMakeLists.txt", "cmake/warnings.cmake", "CMakePresets.json"):
+                        self.assertEqual(build, self.matching_skills(declaration, path))
+                        self.assertEqual({"cpp:libraries"}, self.conditional_skills(declaration, path))
                     for route in declaration["routes"]:
-                        for identifier in route["skills"]:
+                        self.assertTrue(route.get("skills") or route.get("conditional"), route)
+                        for entry in route.get("conditional", []):
+                            self.assertEqual({"skill", "when"}, set(entry))
+                            self.assertTrue(entry["when"].strip())
+                        identifiers = [*route.get("skills", []), *(entry["skill"] for entry in route.get("conditional", []))]
+                        for identifier in identifiers:
                             package, capability = identifier.split(":")
                             self.assertIn(package, declaration["layers"])
                             self.assertNotRegex(capability, r"^(?:cpp|gpp|msvc|win32|windows)-")
