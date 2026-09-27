@@ -20,10 +20,15 @@ stateful boundaries. This skill owns their spelling and formatting.
 
 ### Semantic type names
 
-- Name domain and value types with the clearest noun for the concept they represent.
-  Let the enclosing namespace provide project and subsystem context.
-- Add a role suffix when it distinguishes real coexisting representations or
-  responsibilities at a boundary.
+- Name types and concepts with the clearest meaningful noun. Let the enclosing namespace
+  provide project and subsystem context; do not mechanically append `Record`, `Data`,
+  `Model`, `Info`, or a similar category label.
+- Add a qualifier only when it distinguishes real coexisting representations or
+  responsibilities at a boundary. `IdentityRequest` distinguishes a request from
+  `Identity`; `ContextConfig` distinguishes configuration from a context.
+- Preserve established names whose qualifiers carry that distinction. For example,
+  `winwrap::kernel::driver::Context` needs no repeated driver label, while
+  `ObjectContext<T>` names a wrapper rather than the context itself.
 
 ## Namespaces
 
