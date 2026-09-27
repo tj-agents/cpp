@@ -93,6 +93,16 @@ machine-specific compiler paths, automatic tool upgrades or restarts in a build 
 - Point editor tooling at the selected build configuration. Export a compile database when
   supported; do not invent a second flag list to quiet the editor. Launch the editor from
   the configured shell when it needs that environment.
+- clangd needs the developer environment to find the MSVC headers and Windows SDK. Without
+  it, clang selects the newest Visual Studio Setup instance even when that instance has no
+  C++ tools (SQL Server Management Studio registers one), then falls back to obsolete paths
+  and reports `windows.h` as missing. Launch the editor through a helper that enters the
+  component-filtered developer shell, as the scaffold's `scripts/Open-Editor.ps1` does. Do not
+  pin a versioned `VCToolsInstallDir` or `/vctoolsdir` in editor or clangd configuration;
+  it silently breaks when the toolset updates.
+- Disabling Microsoft C/C++ IntelliSense in favor of clangd requires the clangd extension.
+  Recommend it in `.vscode/extensions.json`, keeping `ms-vscode.cpptools` for the
+  `cppvsdbg` debugger. Regenerate the compile database after moving source roots.
 - When a workspace has sources from more than one build model, scope clangd's compilation
   databases by source root in `.clangd`; each source root must use commands evaluated by its
   own build system. A `C_Cpp.default.compileCommands` setting configures Microsoft C/C++
