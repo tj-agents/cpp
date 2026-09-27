@@ -40,7 +40,12 @@ ctest --preset dev
 
 Build out of source under `build/<preset>/` and export
 `compile_commands.json` where the selected generator supports it. Do not commit
-build output.
+build output. Reconfigure after moving or renaming source roots; clangd reads the
+exported database, and a stale one leaves navigation silently broken.
+
+The shared editor settings disable Microsoft C/C++ IntelliSense in favor of clangd, so
+projects recommend the clangd extension in `.vscode/extensions.json`. Keep
+`ms-vscode.cpptools` recommended for its debuggers.
 
 ## Dependencies
 
