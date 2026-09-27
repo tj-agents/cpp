@@ -96,13 +96,13 @@ machine-specific compiler paths, automatic tool upgrades or restarts in a build 
 - clangd needs the developer environment to find the MSVC headers and Windows SDK. Without
   it, clang selects the newest Visual Studio Setup instance even when that instance has no
   C++ tools (SQL Server Management Studio registers one), then falls back to obsolete paths
-  and reports `windows.h` as missing. Launch the editor through a helper that enters the
-  component-filtered developer shell, as the scaffold's `scripts/Open-Editor.ps1` does. Do not
-  pin a versioned `VCToolsInstallDir` or `/vctoolsdir` in editor or clangd configuration;
-  it silently breaks when the toolset updates.
-- Disabling Microsoft C/C++ IntelliSense in favor of clangd requires the clangd extension.
-  Recommend it in `.vscode/extensions.json`, keeping `ms-vscode.cpptools` for the
-  `cppvsdbg` debugger. Regenerate the compile database after moving source roots.
+  and reports `windows.h` as missing. This is machine setup, not project content: run the
+  packaged `Install-ClangdMsvc.ps1` once per machine. It installs `clangd-msvc.cmd`, which
+  enters the component-filtered developer environment before starting clangd, and points
+  the VS Code user settings `clangd.path` and `clangd.useScriptAsExecutable` at it, so every
+  project works however the editor is launched. Rerun it after a plugin update. Do not copy
+  a launcher into projects or pin a versioned `VCToolsInstallDir` or `/vctoolsdir`; a pinned
+  path silently breaks when the toolset updates.
 - When a workspace has sources from more than one build model, scope clangd's compilation
   databases by source root in `.clangd`; each source root must use commands evaluated by its
   own build system. A `C_Cpp.default.compileCommands` setting configures Microsoft C/C++

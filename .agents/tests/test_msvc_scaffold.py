@@ -99,7 +99,6 @@ class MsvcScaffoldTests(unittest.TestCase):
                 "tests/core/core_test.cpp",
                 "scripts/Build.ps1",
                 "scripts/Enter-DevShell.ps1",
-                "scripts/Open-Editor.ps1",
                 ".clang-format",
                 ".clang-tidy",
                 ".clangd",
@@ -144,8 +143,6 @@ class MsvcScaffoldTests(unittest.TestCase):
             extensions = json.loads((project / ".vscode/extensions.json").read_text(encoding="utf-8"))
             self.assertIn("llvm-vs-code-extensions.vscode-clangd", extensions["recommendations"])
             self.assertIn("ms-vscode.cpptools", extensions["recommendations"])
-            open_editor = (project / "scripts/Open-Editor.ps1").read_text(encoding="utf-8")
-            self.assertIn("Enter-DevShell.ps1", open_editor)
 
     def test_console_project_builds_and_runs_with_real_msvc(self) -> None:
         if not VSWHERE.is_file() or not shutil.which("cmake") or not shutil.which("ninja"):

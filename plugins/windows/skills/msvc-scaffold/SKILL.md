@@ -62,11 +62,9 @@ configuration for those sources.
 ```
 
 `Enter-DevShell.ps1` uses component-filtered `vswhere` and Microsoft's Developer PowerShell
-launcher. An explicit `-VsInstallPath` selects an installed instance. `Open-Editor.ps1`
-enters that shell, then opens the project in `code` (or `-Editor <command>`) so clangd
-inherits the MSVC and Windows SDK environment; clangd's own Visual Studio discovery is
-unreliable (see `windows:msvc-toolchain`). A window that is already open keeps its original
-environment. Build calls CMake
+launcher. An explicit `-VsInstallPath` selects an installed instance. Editor support for
+the MSVC headers is machine setup, not project content: see `Install-ClangdMsvc.ps1` in
+`windows:msvc-toolchain`. Build calls CMake
 presets and checks native exit codes. `-Fresh` resets CMake configuration after a toolchain
 change; a different architecture/generator should use its own build directory and presets.
 Warnings and AddressSanitizer are target-scoped through the `<project>_warnings` and
