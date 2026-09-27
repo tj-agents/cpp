@@ -17,19 +17,35 @@
     {
       "path": "(?i:\\.(c|cc|cpp|cxx|h|hh|hpp|hxx|ixx))$",
       "skills": [
-        "cpp:style",
-        "cpp:domain-design",
-        "cpp:mixins",
-        "cpp:structure"
+        "cpp:style"
       ],
-      "note": "C++ style, data and invariant design, behavior composition, and project structure."
+      "conditional": [
+        {
+          "skill": "cpp:domain-design",
+          "when": "designing records, invariant-bearing values, entities, typed errors or stateful boundaries"
+        },
+        {
+          "skill": "cpp:mixins",
+          "when": "composing or changing mixins, CRTP behavior providers or policy-style composition"
+        },
+        {
+          "skill": "cpp:structure",
+          "when": "adding, moving or renaming files, targets or folders, or deciding where code lives"
+        }
+      ],
+      "note": "C++ style governs every source; design, composition and layout apply when the change does."
     },
     {
       "path": "(?i:(^|/)(CMakeLists\\.txt|CMakePresets\\.json|[^/]+\\.cmake))$",
       "skills": [
         "cpp:build",
-        "cpp:structure",
-        "cpp:libraries"
+        "cpp:structure"
+      ],
+      "conditional": [
+        {
+          "skill": "cpp:libraries",
+          "when": "adding, removing or upgrading a dependency (find_package, FetchContent, a backport)"
+        }
       ]
     },
     {
@@ -39,11 +55,21 @@
       ]
     },
     {
-      "path": "(?i:\\.(c|cc|cpp|cxx|h|hh|hpp|hxx|ixx))$|(?i:(^|/)(CMakeLists\\.txt|CMakePresets\\.json|[^/]+\\.cmake))$",
+      "path": "(?i:(^|/)(CMakeLists\\.txt|CMakePresets\\.json|[^/]+\\.cmake))$",
       "skills": [
         "gpp:toolchain"
       ],
       "note": "Explicit G++ toolchain selection."
+    },
+    {
+      "path": "(?i:\\.(c|cc|cpp|cxx|h|hh|hpp|hxx|ixx))$",
+      "conditional": [
+        {
+          "skill": "gpp:toolchain",
+          "when": "using compiler-specific flags, pragmas, intrinsics, warnings or ABI behavior, or diagnosing a build"
+        }
+      ],
+      "note": "Explicit G++ toolchain selection; sources need it only for compiler-specific work."
     }
   ]
 }
