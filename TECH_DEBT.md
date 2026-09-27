@@ -46,17 +46,6 @@ actually require `<skills-root>/<name>/SKILL.md` with no deeper nesting, or whet
 this instead by rendering `kind` into the pointer stub's heading (e.g. `# gpp-scaffold (utility)`)
 so the distinction survives a flat listing, then delete this entry.
 
-## Legacy route profiles must migrate before the compatibility window closes
-
-`cpp/gpp/note-cli`, `cpp/windows/icon-dropper`, `cpp/windows/wifi-toggle` and `cpp/windows/winwrap`
-still route to legacy `base:`, `gcc:` and `windows:` identifiers, which only the compatibility
-packages serve. Removing those packages after 2027-03-31 would leave the routes unresolved.
-
-Resolve this entry when each of those repositories has regenerated `.agents/skill-routes.json`
-with an explicit `--toolchain`/`--api` profile (G++ for `note-cli`, MSVC + Win32 for the Windows
-projects unless their builds show otherwise) and no known consumer names a legacy identifier;
-then the compatibility packages may be retired and this entry deleted.
-
 ## CI does not build the G++ scaffold's sanitizer preset
 
 `test_gpp_scaffold.test_project_builds_and_runs_with_cmake_presets` builds the `dev` preset
