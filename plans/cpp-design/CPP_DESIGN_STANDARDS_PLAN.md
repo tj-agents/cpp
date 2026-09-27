@@ -147,6 +147,18 @@ are needed for this correction.
 - [x] Pass the source/host checks, refresh installed cpp guidance and preserve unrelated work.
 - [x] Commit and update both existing PRs; verify remote heads and source CI/provenance.
 
+### 7. General behavior ownership standard (2026-09-27)
+
+- [x] State the general preference that a meaningful concept owns its cohesive data and
+      behavior, including construction, decoding, validation, queries, transformations,
+      and permitted state changes where relevant.
+- [x] Preserve associated free functions for isolated behavior, cross-type algorithms and
+      operations without a natural single owner; do not prescribe empty service classes or
+      a domain layer.
+- [x] Regenerate the affected canonical and compatibility packages, record the required
+      patch versions, run the required source and host validations, and deliver the
+      verified cpp-agents change through a personal GitHub PR.
+
 ## Acceptance criteria
 
 - Canonical examples read as ordinary modern C++, not translated C# or a prescribed OO style.
@@ -545,6 +557,19 @@ Primary references supporting the design:
 
 ## Progress
 
+- 2026-09-27 behavior-ownership standard is delivered for review in
+  [PR #28](https://github.com/tj-agents/cpp/pull/28) at
+  `4acf39a766a410bad3b9f914daecb719ae91541f`. The
+  authored `cpp:domain-design` addition makes cohesive type ownership a general preference
+  rather than a factory-only rule, while retaining free functions for independent or
+  cross-type behavior. The change affects `cpp` and the `base`/`cpp-standards` compatibility
+  packages; their source manifests have the required patch bumps and generated package
+  versions are recorded. Generator freshness, all six route profiles, 11 hook tests,
+  marketplace/attester/package contracts, strict Claude validation for the marketplace and
+  all nine packages, and the available MSVC and Win32 scaffold acceptance checks pass.
+  G++ scaffold acceptance could not run: `bash.exe` is a WSL launcher but no Linux
+  distribution is installed (`execvpe(/bin/bash)` fails). Codex's local CLI is unavailable;
+  no claim is made for its host validator. The change itself does not alter scaffolds.
 - 2026-09-23 implementation delivered to the existing review candidates. Source PR #13
   is at `1229f9d6c355bbf1d11cc2898188429731ffca90`; sandbox draft PR #1 is at
   `d37d333358d6bd0b3cdd67d2bc0db45ac52c7a4e`. Both remote heads were verified.
