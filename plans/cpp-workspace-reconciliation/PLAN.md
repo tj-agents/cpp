@@ -137,14 +137,14 @@ Compatibility aliases therefore stay through 2027-03-31.
   `5b95182` after `newcpp` was verified against the real v0.3.0 install (`cpp+gpp`,
   `cpp+msvc+win32`). The normal checkout was fast-forwarded; its `NORTH_STAR.md` edit is
   preserved. The migration worktree was removed.
-- [ ] Follow-up for the user: workspace `NORTH_STAR.md` duplicates `cpp:direction` (which
-  now defers compiler/debugger/profiler to the toolchain skills). It was not converted to a
-  pointer because the normal checkout holds an uncommitted user edit to it.
+- [x] Follow-up for the user: workspace `NORTH_STAR.md` duplicated `cpp:direction`; the
+  workspace's legacy instruction files were deleted in `tomjseery/cpp` `450be02`.
 - [x] Other active consumers: `cpp/gpp/note-cli`, `cpp/windows/icon-dropper`,
   `cpp/windows/wifi-toggle`, `cpp/windows/winwrap` use legacy identifiers served by the
   compatibility packages until 2027-03-31; nothing here breaks them, so they are recorded
   rather than rewritten. Migrate each with `gen_skill_routes.py --toolchain … --api …`
-  before the window closes. `sandbox-hwid` is handled by Stage 0.
+  before the window closes. `sandbox-hwid` is handled by Stage 0. Migrated 2026-09-27:
+  note-cli `50cf620`, icon-dropper `b47fd28`, wifi-toggle `ee09cb2`, winwrap `9c46ca2`.
 
 ## Follow-ups
 
@@ -152,8 +152,7 @@ Compatibility aliases therefore stay through 2027-03-31.
   opened against `main`. The shared workflow owner (the future `tj-agents/core`) should gain a
   scripted stacked-PR workflow that creates, drafts, updates and retargets child PRs the same
   way every time.
-- `NORTH_STAR.md` duplication and the legacy route profiles above; the G++ sanitizer CI gap is
-  in `TECH_DEBT.md`.
+- The G++ sanitizer CI gap is in `TECH_DEBT.md`.
 
 ## Progress
 
