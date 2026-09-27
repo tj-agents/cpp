@@ -36,7 +36,8 @@ The initial source works in either mode; later APIs must respect the selected ba
 Toolchain conformance must still be verified by compiling the project.
 
 The project receives the canonical `cpp` formatter, analysis and editor configuration
-(`.clang-format`, `.clang-tidy`, `.editorconfig`, `.vscode/settings.json` for clangd), the
+(`.clang-format`, `.clang-tidy`, `.editorconfig`, `.vscode/settings.json` for clangd and
+`.vscode/extensions.json` recommending the clangd and C/C++ extensions), the
 shared `libs/core` + `app` + `tests` sources, and MSVC-specific files: presets, PowerShell
 helpers, a `.clangd` that strips sanitizer flags clang rejects with the debug CRT, a
 Visual Studio debugger (`cppvsdbg`) `.vscode/launch.json`, `AGENTS.md`/`CLAUDE.md` project
@@ -61,7 +62,9 @@ configuration for those sources.
 ```
 
 `Enter-DevShell.ps1` uses component-filtered `vswhere` and Microsoft's Developer PowerShell
-launcher. An explicit `-VsInstallPath` selects an installed instance. Build calls CMake
+launcher. An explicit `-VsInstallPath` selects an installed instance. Editor support for
+the MSVC headers is machine setup, not project content: see `Install-ClangdMsvc.ps1` in
+`msvc:toolchain`. Build calls CMake
 presets and checks native exit codes. `-Fresh` resets CMake configuration after a toolchain
 change; a different architecture/generator should use its own build directory and presets.
 Warnings and AddressSanitizer are target-scoped through the `<project>_warnings` and

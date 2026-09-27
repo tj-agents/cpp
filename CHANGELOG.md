@@ -1,5 +1,21 @@
 # Changelog
 
+## msvc v0.3.4 — clangd editor environment
+
+Packages: `cpp@0.4.6`, `gpp@0.3.3`, `msvc@0.3.4`, `win32@0.3.3`; compatibility
+`base@0.7.6`, `cpp-standards@0.7.6`, `gcc@0.5.2`, `gpp-standards@0.5.2`, `windows@0.8.4`.
+
+- Every scaffold now ships `.vscode/extensions.json` recommending the clangd and C/C++
+  extensions, because the shared settings disable Microsoft IntelliSense in favor of clangd.
+  `cpp:build` records that rule and requires reconfiguring after moving source roots.
+- The msvc plugin ships `Install-ClangdMsvc.ps1`, one-time machine setup that installs the
+  `clangd-msvc.cmd` launcher and points VS Code's `clangd.path` at it. clangd's own Visual
+  Studio discovery selects the newest Setup instance even without C++ tools, such as SQL
+  Server Management Studio, and then cannot find `windows.h` or the MSVC STL. Nothing is
+  copied into projects, and G++ projects are unaffected.
+- `msvc:toolchain` documents the failure and forbids per-project launchers or a pinned
+  versioned toolset path.
+
 ## v0.4.2 — standalone mixin capability
 
 Packages: `cpp@0.4.2`, `gpp@0.3.1`, `msvc@0.3.1`, `win32@0.3.1`; compatibility

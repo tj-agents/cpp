@@ -37,7 +37,8 @@ Pass `--simple` for a single-file `CMakeLists.txt` + `main.cpp` project instead
 beyond a single implicit build directory.
 
 The project receives the canonical `cpp` formatter, analysis and editor configuration
-(`.clang-format`, `.clang-tidy`, `.editorconfig`, `.vscode/settings.json` for clangd), the
+(`.clang-format`, `.clang-tidy`, `.editorconfig`, `.vscode/settings.json` for clangd and
+`.vscode/extensions.json` recommending the clangd and C/C++ extensions), the
 shared `libs/core` + `app` + `tests` sources, and G++-specific files: presets, a `.clangd`
 that reads the `dev` compile database, a GDB `.vscode/launch.json`, `AGENTS.md`/
 `CLAUDE.md` project facts and the `cpp` + `gpp` route profile in `.agents/skill-routes.json`.

@@ -104,6 +104,7 @@ class MsvcScaffoldTests(unittest.TestCase):
                 ".clangd",
                 ".editorconfig",
                 ".vscode/settings.json",
+                ".vscode/extensions.json",
                 ".vscode/launch.json",
                 "AGENTS.md",
                 "CLAUDE.md",
@@ -136,6 +137,12 @@ class MsvcScaffoldTests(unittest.TestCase):
             self.assertIn("CompilationDatabase: build/dev", clangd)
             launch = json.loads((project / ".vscode/launch.json").read_text(encoding="utf-8"))
             self.assertEqual("cppvsdbg", launch["configurations"][0]["type"])
+            # IntelliSense is disabled for clangd, so the clangd extension must be recommended.
+            settings = json.loads((project / ".vscode/settings.json").read_text(encoding="utf-8"))
+            self.assertEqual("disabled", settings["C_Cpp.intelliSenseEngine"])
+            extensions = json.loads((project / ".vscode/extensions.json").read_text(encoding="utf-8"))
+            self.assertIn("llvm-vs-code-extensions.vscode-clangd", extensions["recommendations"])
+            self.assertIn("ms-vscode.cpptools", extensions["recommendations"])
 
     def test_console_project_builds_and_runs_with_real_msvc(self) -> None:
         if not VSWHERE.is_file() or not shutil.which("cmake") or not shutil.which("ninja"):
