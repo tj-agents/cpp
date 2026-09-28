@@ -27,6 +27,10 @@ GCC/g++ and MSVC/clang-cl, so it has no reason to keep two different trees.
   there, never built standalone. See `base:cpp-build` for how those targets and
   presets are actually modeled.
 
+A repository that is one library, with no app, keeps it at the root: `include/<name>/`,
+`src/`, `tests/` and the root `CMakeLists.txt`. `libs/<name>/` is only for a repository holding
+several libraries or an app; move the first library there when a second one or an app arrives.
+
 ## Public header paths and dependencies
 
 Keep an owner prefix below a public include root even when it is the root's only child:
