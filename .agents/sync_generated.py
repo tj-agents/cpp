@@ -441,10 +441,22 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             if hook_source:
                 emit(f"{package_root}/{package}/hooks/{host}.json", read(root / hook_source))
 
+        # A compatibility package gates like the tier that replaced it; "windows" is replaced by two
+        # tiers, so it carries its own authored declaration.
+        replaced_by = payloads.get("compatibilityAliases", {}).get(package, {}).get("replacedBy")
+        tier_source = replaced_by if isinstance(replaced_by, str) else package
+        tier_path = root / f".agents/tiers/{tier_source}.json"
+        if not tier_path.is_file():
+            raise ValueError(f"{package}: no tier declaration at .agents/tiers/{tier_source}.json")
+        emit(f"{package_root}/{package}/tier.json", read(tier_path))
+
         index = [f"# {package} capabilities", "", "Generated from canonical `.agents/` definitions.", ""]
         for skill in sorted(owned, key=lambda item: item["name"]):
             output_name = cfg.get("skillNames", {}).get(skill["identifier"], skill["name"])
             index.append(f"- `{output_name}` — {skill['metadata']['kind']} — `{skill['relative']}`")
+        for alias_name in sorted(cfg.get("compatibilitySkillAliases", {})):
+            skill = skills[cfg["compatibilitySkillAliases"][alias_name]["source"]]
+            index.append(f"- `{alias_name}` — {skill['metadata']['kind']} — `{skill['relative']}`")
         index.append("")
         emit(f"{package_root}/{package}/INDEX.md", "\n".join(index))
         selection = {
