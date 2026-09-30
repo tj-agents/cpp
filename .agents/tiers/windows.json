@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "tier": "windows",
+  "stack": "Windows C++ (MSVC/Win32)",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "globs": [
+      "*.vcxproj"
+    ],
+    "content": [
+      {
+        "glob": "CMakePresets.json",
+        "pattern": "(?i)msvc|cl\\.exe|clang-cl"
+      },
+      {
+        "glob": "*.cpp",
+        "pattern": "#include\\s*[<\"](windows\\.h|wil/)"
+      },
+      {
+        "glob": "*.h",
+        "pattern": "#include\\s*[<\"](windows\\.h|wil/)"
+      }
+    ]
+  }
+}

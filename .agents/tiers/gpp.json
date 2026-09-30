@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "tier": "gpp",
+  "stack": "the g++/MinGW toolchain",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "content": [
+      {
+        "glob": "CMakePresets.json",
+        "pattern": "(?i)g\\+\\+|mingw|\\bgcc\\b"
+      },
+      {
+        "glob": "*.cmake",
+        "pattern": "(?i)mingw"
+      }
+    ]
+  }
+}

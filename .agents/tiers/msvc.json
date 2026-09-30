@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "tier": "msvc",
+  "stack": "the MSVC/clang-cl toolchain",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "globs": [
+      "*.vcxproj"
+    ],
+    "content": [
+      {
+        "glob": "CMakePresets.json",
+        "pattern": "(?i)msvc|cl\\.exe|clang-cl"
+      }
+    ]
+  }
+}
