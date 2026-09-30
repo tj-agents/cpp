@@ -23,7 +23,7 @@ jobs:
           path: .core-standards
       - name: Tier payloads conform to the shipped shape
         shell: pwsh
-        run: python -B .core-standards/plugins/base/skills/stack-tiers/scripts/check_tier_payload.py --root .
+        run: python -B .core-standards/plugins/base/hooks/check_tier_payload.py --root .
       - name: Check hook syntax
         run: python3 -m py_compile .agents/hooks/session_context.py
       - name: Test session routing
