@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "tier": "win32",
+  "stack": "the Win32 API",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "content": [
+      {
+        "glob": "*.cpp",
+        "pattern": "#include\\s*[<\"](windows\\.h|wil/)"
+      },
+      {
+        "glob": "*.hpp",
+        "pattern": "#include\\s*[<\"](windows\\.h|wil/)"
+      },
+      {
+        "glob": "*.h",
+        "pattern": "#include\\s*[<\"](windows\\.h|wil/)"
+      }
+    ]
+  }
+}

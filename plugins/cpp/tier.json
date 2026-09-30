@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "tier": "cpp",
+  "stack": "C++",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "globs": [
+      "*.cpp",
+      "*.cxx",
+      "*.cc",
+      "*.hpp",
+      "*.hxx",
+      "*.ixx"
+    ]
+  }
+}

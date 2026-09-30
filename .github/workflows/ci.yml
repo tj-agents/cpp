@@ -42,3 +42,10 @@ jobs:
           for plugin in cpp gpp msvc win32 base gcc windows cpp-standards gpp-standards; do
             claude plugin validate --strict "plugins/$plugin"
           done
+      - uses: actions/checkout@v4
+        with:
+          repository: tj-agents/core
+          path: .core-standards
+      - name: Tier payloads conform to the shipped shape
+        shell: pwsh
+        run: python -B .core-standards/plugins/base/hooks/check_tier_payload.py --root .
