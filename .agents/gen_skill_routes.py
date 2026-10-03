@@ -19,6 +19,14 @@ TOOLCHAINS = ("gpp", "msvc")
 APIS = ("win32",)
 LEGACY_KINDS = ("generic", "portable", "gcc", "gpp", "windows")
 LEGACY_LAYERS = ("gcc", "windows")
+# A route's `skills` block the write until loaded; `conditional` entries are advice the core router names
+# with their condition and never demands. Require only what governs every file a route matches.
+DOMAIN_DESIGN_WHEN = "designing records, invariant-bearing values, entities, typed errors or stateful boundaries"
+MIXINS_WHEN = "composing or changing mixins, CRTP behavior providers or policy-style composition"
+STRUCTURE_WHEN = "adding, moving or renaming files, targets or folders, or deciding where code lives"
+LIBRARIES_WHEN = "adding, removing or upgrading a dependency (find_package, FetchContent, a backport)"
+TOOLCHAIN_WHEN = "using compiler-specific flags, pragmas, intrinsics, warnings or ABI behavior, or diagnosing a build"
+WIN32_OVERVIEW_WHEN = "starting Win32 work, or deciding Unicode, WIL or Win32 project scope"
 
 
 def normalize(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> tuple[str | None, tuple[str, ...]]:
@@ -60,16 +68,40 @@ def compatibility_kind(toolchain: str | None, apis: tuple[str, ...]) -> str:
 def routes(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> dict:
     toolchain, apis = normalize(toolchain, apis)
     result = [
-        {"path": CPP_PATH, "skills": ["cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure"], "note": "C++ style, data and invariant design, behavior composition, and project structure."},
-        {"path": BUILD_PATH, "skills": ["cpp:build", "cpp:structure", "cpp:libraries"]},
+        {
+            "path": CPP_PATH,
+            "skills": ["cpp:style"],
+            "conditional": [
+                {"skill": "cpp:domain-design", "when": DOMAIN_DESIGN_WHEN},
+                {"skill": "cpp:mixins", "when": MIXINS_WHEN},
+                {"skill": "cpp:structure", "when": STRUCTURE_WHEN},
+            ],
+            "note": "C++ style governs every source; design, composition and layout apply when the change does.",
+        },
+        {
+            "path": BUILD_PATH,
+            "skills": ["cpp:build", "cpp:structure"],
+            "conditional": [{"skill": "cpp:libraries", "when": LIBRARIES_WHEN}],
+        },
         {"path": TEST_PATH, "skills": ["cpp:testing"]},
     ]
-    if toolchain == "gpp":
-        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}", "skills": ["gpp:toolchain"], "note": "Explicit G++ toolchain selection."})
-    if toolchain == "msvc":
-        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{MSVC_BUILD_PATH}", "skills": ["msvc:toolchain"], "note": "Explicit MSVC/clang-cl toolchain selection."})
+    if toolchain:
+        build_paths = rf"{BUILD_PATH}|{MSVC_BUILD_PATH}" if toolchain == "msvc" else BUILD_PATH
+        label = "MSVC/clang-cl" if toolchain == "msvc" else "G++"
+        result.append({"path": build_paths, "skills": [f"{toolchain}:toolchain"], "note": f"Explicit {label} toolchain selection."})
+        result.append({
+            "path": CPP_PATH,
+            "conditional": [{"skill": f"{toolchain}:toolchain", "when": TOOLCHAIN_WHEN}],
+            "note": f"Explicit {label} toolchain selection; sources need it only for compiler-specific work.",
+        })
     if "win32" in apis:
-        result.append({"path": rf"{CPP_PATH}|{BUILD_PATH}|{MSVC_BUILD_PATH}|{WINDOWS_RESOURCE_PATH}", "skills": ["win32:overview", "win32:style"], "note": "Explicit user-mode Win32 API selection; compiler remains independent."})
+        result.append({
+            "path": CPP_PATH,
+            "skills": ["win32:style"],
+            "conditional": [{"skill": "win32:overview", "when": WIN32_OVERVIEW_WHEN}],
+            "note": "Explicit user-mode Win32 API selection; compiler remains independent.",
+        })
+        result.append({"path": rf"{BUILD_PATH}|{MSVC_BUILD_PATH}|{WINDOWS_RESOURCE_PATH}", "skills": ["win32:overview", "win32:style"], "note": "Explicit user-mode Win32 API selection; compiler remains independent."})
     layers = ["cpp", *([toolchain] if toolchain else []), *apis]
     return {
         "_comment": [
@@ -98,11 +130,21 @@ def target_for(root: Path) -> Path:
 
 
 def skills_for(toolchain: str | None, apis: list[str] | tuple[str, ...], path: str) -> set[str]:
+    """The required skills a write to `path` must load."""
     matched: set[str] = set()
     for route in routes(toolchain, apis)["routes"]:
         if re.search(route["path"], path):
             matched.update(route.get("skills") or [])
     return matched
+
+
+def conditional_for(toolchain: str | None, apis: list[str] | tuple[str, ...], path: str) -> set[str]:
+    """The conditional skills named for `path` that no matching route already requires."""
+    matched: set[str] = set()
+    for route in routes(toolchain, apis)["routes"]:
+        if re.search(route["path"], path):
+            matched.update(entry["skill"] for entry in route.get("conditional") or [])
+    return matched - skills_for(toolchain, apis, path)
 
 
 def write_or_check(toolchain: str | None, apis: list[str], root: Path, check: bool) -> int:
@@ -131,23 +173,26 @@ def self_test() -> int:
     if legacy_selection("windows") != ("msvc", ("win32",)) or legacy_selection("gcc") != ("gpp", ()):
         print("legacy profile normalization failed")
         return 1
+    source = {"cpp:domain-design", "cpp:mixins", "cpp:structure"}
     cases = {
-        ((None, ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure"},
-        (("msvc", ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure", "msvc:toolchain"},
-        (("msvc", ()), "app/app.rc"): set(),
-        ((None, ("win32",)), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure", "win32:overview", "win32:style"},
-        ((None, ("win32",)), "app/app.vcxproj"): {"win32:overview", "win32:style"},
-        ((None, ("win32",)), "CMakeLists.txt"): {"cpp:build", "cpp:structure", "cpp:libraries", "win32:overview", "win32:style"},
-        (("gpp", ("win32",)), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure", "gpp:toolchain", "win32:overview", "win32:style"},
-        ((None, ()), "tests/core_test.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure", "cpp:testing"},
-        ((None, ()), "CMakeLists.txt"): {"cpp:build", "cpp:structure", "cpp:libraries"},
-        (("msvc", ()), "lib/lib.vcxproj"): {"msvc:toolchain"},
-        (("msvc", ("win32",)), "app/app.vcxproj"): {"msvc:toolchain", "win32:overview", "win32:style"},
+        ((None, ()), "src/main.cpp"): ({"cpp:style"}, source),
+        (("msvc", ()), "src/main.cpp"): ({"cpp:style"}, source | {"msvc:toolchain"}),
+        (("msvc", ()), "app/app.rc"): (set(), set()),
+        ((None, ("win32",)), "src/main.cpp"): ({"cpp:style", "win32:style"}, source | {"win32:overview"}),
+        ((None, ("win32",)), "app/app.vcxproj"): ({"win32:overview", "win32:style"}, set()),
+        ((None, ("win32",)), "CMakeLists.txt"): ({"cpp:build", "cpp:structure", "win32:overview", "win32:style"}, {"cpp:libraries"}),
+        (("gpp", ("win32",)), "src/main.cpp"): ({"cpp:style", "win32:style"}, source | {"gpp:toolchain", "win32:overview"}),
+        (("gpp", ()), "CMakeLists.txt"): ({"cpp:build", "cpp:structure", "gpp:toolchain"}, {"cpp:libraries"}),
+        ((None, ()), "tests/core_test.cpp"): ({"cpp:style", "cpp:testing"}, source),
+        ((None, ()), "CMakeLists.txt"): ({"cpp:build", "cpp:structure"}, {"cpp:libraries"}),
+        (("msvc", ()), "lib/lib.vcxproj"): ({"msvc:toolchain"}, set()),
+        (("msvc", ()), "CMakePresets.json"): ({"cpp:build", "cpp:structure", "msvc:toolchain"}, {"cpp:libraries"}),
+        (("msvc", ("win32",)), "app/app.vcxproj"): ({"msvc:toolchain", "win32:overview", "win32:style"}, set()),
     }
-    for ((toolchain, apis), path), expected in cases.items():
-        actual = skills_for(toolchain, apis, path)
-        if actual != expected:
-            print(f"unexpected skills for {toolchain}/{apis}:{path}: {sorted(actual)}")
+    for ((toolchain, apis), path), (required, conditional) in cases.items():
+        actual = (skills_for(toolchain, apis, path), conditional_for(toolchain, apis, path))
+        if actual != (required, conditional):
+            print(f"unexpected skills for {toolchain}/{apis}:{path}: {actual}")
             return 1
     print("skill-route generator self-test passed")
     return 0
