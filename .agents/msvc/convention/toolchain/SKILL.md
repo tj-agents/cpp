@@ -1,7 +1,7 @@
 ---
 name: toolchain
 description: Generic MSVC and clang-cl environment, SDK selection, build configuration, ABI, runtime linkage, and editor diagnostics for C++ applications and libraries.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

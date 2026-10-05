@@ -1,7 +1,7 @@
 ---
 name: win32-style
 description: Compatibility alias for win32:style; remove after 2027-03-31.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

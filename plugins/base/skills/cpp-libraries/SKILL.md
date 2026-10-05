@@ -1,7 +1,7 @@
 ---
 name: cpp-libraries
 description: Tommy's generic C++ dependency policy covering std-first choices, backports, ranges, FetchContent, and reactive extraction.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

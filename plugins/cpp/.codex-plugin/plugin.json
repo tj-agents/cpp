@@ -1,7 +1,7 @@
 {
   "name": "cpp",
-  "version": "0.4.6",
-  "description": "Platform-neutral modern C++ contracts and learning guidance.",
+  "version": "0.4.7",
+  "description": "Platform-neutral modern C++ conventions and learning guidance.",
   "author": {
     "name": "Tommy Seery",
     "url": "https://github.com/tomjseery"
@@ -17,7 +17,7 @@
   ],
   "interface": {
     "displayName": "cpp",
-    "shortDescription": "Platform-neutral modern C++ contracts and learning guidance.",
+    "shortDescription": "Platform-neutral modern C++ conventions and learning guidance.",
     "developerName": "Tommy Seery",
     "category": "Productivity",
     "capabilities": [

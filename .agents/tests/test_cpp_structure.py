@@ -18,7 +18,7 @@ def normalized(path: Path) -> str:
 
 class CppStructureTests(unittest.TestCase):
     def test_canonical_guidance_preserves_meaningful_product_boundaries(self) -> None:
-        canonical = normalized(ROOT / ".agents/base/contract/structure/SKILL.md")
+        canonical = normalized(ROOT / ".agents/base/convention/structure/SKILL.md")
         for guidance in REQUIRED_GUIDANCE:
             self.assertIn(guidance, canonical)
 

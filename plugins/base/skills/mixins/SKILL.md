@@ -1,7 +1,7 @@
 ---
 name: mixins
 description: Design, organize, and test C++ mixins, CRTP behavior providers, and policy-style composition. Use for inheritance-based behavior composition; this is a language and design-pattern capability, not domain-driven design.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

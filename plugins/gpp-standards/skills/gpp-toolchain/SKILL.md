@@ -1,7 +1,7 @@
 ---
 name: gpp-toolchain
 description: GCC, g++, GDB, and Linux-specific C++ toolchain conventions layered on cpp.
-kind: contract
+kind: convention
 domain: cpp
 ---
 
