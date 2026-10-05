@@ -1,7 +1,7 @@
 ---
 name: cpp-style
 description: Compatibility alias for cpp:style; remove after 2027-03-31.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

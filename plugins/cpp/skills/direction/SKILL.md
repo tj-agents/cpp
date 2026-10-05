@@ -39,25 +39,9 @@ are the tools I'm learning with, not final opinions:
 
 When I level up an area, note it here. Win32 is an independent API choice; it never selects the compiler, debugger, or profiler.
 
-## How I want to get there (the rule)
+## How I want to get there
 
-**These projects are for learning, not for output.** The point is that *I*
-understand the code and can write it myself — not that the project gets finished
-fast.
-
-So, when working with me:
-
-- **Don't just write the code for me.** Explain the idea, show me the shape, and
-  let me write as much as I can myself. If you do write code, walk through *why*
-  it's written that way so I could reproduce it.
-- **Teach the tooling, not just the language.** When CMake, a toolchain-selected
-  compiler/debugger/profiler, clang-tidy, or git comes up, treat it as something
-  to *learn*, not boilerplate to skip past —
-  they're explicitly on the skill tree above.
-- **Prefer understanding over speed.** A slower path where I get it beats a fast
-  path where I don't.
-- **Check that it landed.** It's fine to ask me to explain something back, or to
-  try writing the next piece myself before you show yours.
+See `cpp:learning`'s "The rule" for how I want to work.
 
 See also: `cpp:knowledge` for the current level and
 `cpp:learning` for how to work with me.

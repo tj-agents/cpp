@@ -1,7 +1,7 @@
 ---
 name: cpp-style
 description: Generic C++ naming, initialization, braces, API documentation, implementation comments, and clang-tidy conventions.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

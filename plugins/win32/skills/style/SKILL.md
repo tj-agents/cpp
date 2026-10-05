@@ -1,7 +1,7 @@
 ---
 name: style
 description: Native Win32 C++ design rules covering Unicode, WIL, RAII handles, callbacks, object lifetimes, errors, and thin OS glue across selected toolchains.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

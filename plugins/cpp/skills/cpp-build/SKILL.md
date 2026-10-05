@@ -1,7 +1,7 @@
 ---
 name: cpp-build
 description: Compatibility alias for cpp:build; remove after 2027-03-31.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

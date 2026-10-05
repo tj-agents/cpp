@@ -2,13 +2,13 @@
 
 Generated from canonical `.agents/` definitions.
 
-- `cpp:build` — contract — `.agents/base/contract/build/SKILL.md`
-- `cpp:domain-design` — contract — `.agents/base/contract/domain-design/SKILL.md`
-- `cpp:libraries` — contract — `.agents/base/contract/libraries/SKILL.md`
-- `cpp:mixins` — contract — `.agents/base/contract/mixins/SKILL.md`
-- `cpp:structure` — contract — `.agents/base/contract/structure/SKILL.md`
-- `cpp:style` — contract — `.agents/base/contract/style/SKILL.md`
-- `cpp:testing` — contract — `.agents/base/contract/testing/SKILL.md`
+- `cpp:build` — convention — `.agents/base/convention/build/SKILL.md`
+- `cpp:domain-design` — convention — `.agents/base/convention/domain-design/SKILL.md`
+- `cpp:libraries` — convention — `.agents/base/convention/libraries/SKILL.md`
+- `cpp:mixins` — convention — `.agents/base/convention/mixins/SKILL.md`
+- `cpp:structure` — convention — `.agents/base/convention/structure/SKILL.md`
+- `cpp:style` — convention — `.agents/base/convention/style/SKILL.md`
+- `cpp:testing` — convention — `.agents/base/convention/testing/SKILL.md`
 - `cpp:direction` — knowledge — `.agents/base/knowledge/direction/SKILL.md`
 - `cpp:knowledge` — knowledge — `.agents/base/knowledge/knowledge/SKILL.md`
-- `cpp:learning` — knowledge — `.agents/base/knowledge/learning/SKILL.md`
+- `cpp:learning` — policy — `.agents/base/policy/learning/SKILL.md`

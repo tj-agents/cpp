@@ -1,7 +1,7 @@
 ---
 name: msvc-toolchain
 description: Compatibility alias for msvc:toolchain; remove after 2027-03-31.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

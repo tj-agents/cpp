@@ -1,7 +1,7 @@
 ---
 name: cpp-structure
 description: Compatibility alias for cpp:structure; remove after 2027-03-31.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

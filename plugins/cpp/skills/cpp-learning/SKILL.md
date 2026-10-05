@@ -1,7 +1,7 @@
 ---
 name: cpp-learning
 description: Compatibility alias for cpp:learning; remove after 2027-03-31.
-kind: knowledge
+kind: policy
 domain: cpp
 ---
 
