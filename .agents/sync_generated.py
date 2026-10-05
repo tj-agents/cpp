@@ -14,6 +14,7 @@ import sys
 
 FRONTMATTER = re.compile(r"\A---\n(?P<header>.*?)\n---\n(?P<body>.*)\Z", re.DOTALL)
 NAME = re.compile(r"^[a-z][a-z0-9-]*$")
+KIND = re.compile(r"^[a-z]+$")
 IDENTIFIER = re.compile(r"(?<![-/\w])([a-z][a-z0-9-]*:[a-z][a-z0-9-]*)(?![-\w])")
 COMPATIBILITY_DEADLINE = "2027-03-31"
 RETIRED_DOC_REFERENCE = re.compile(r"(?<![A-Za-z0-9_.-])(?:BUILD|DIRECTION|KNOWLEDGE|LEARNING|LIBRARIES|MSVC|OVERVIEW|SCAFFOLD|STYLE|TESTING|TOOLCHAIN|WIN32)\.md(?![A-Za-z0-9_/\\-]|\.(?!$|[\s)\]}>,\"`*]))")
@@ -46,6 +47,8 @@ def metadata(body: str, source: Path) -> dict[str, str]:
             raise ValueError(f"{source}: missing {field}")
     if not NAME.fullmatch(values["name"]):
         raise ValueError(f"{source}: invalid skill name {values['name']}")
+    if not KIND.fullmatch(values["kind"]):
+        raise ValueError(f"{source}: kind must be one lowercase word")
     return values
 
 

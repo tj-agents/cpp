@@ -1,7 +1,7 @@
 ---
 name: domain-design
 description: Model C++ records, invariant-bearing values, entities, operations, typed errors, and stateful boundaries using DDD vocabulary without imposing an object-oriented architecture.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

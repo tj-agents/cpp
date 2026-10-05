@@ -1,7 +1,7 @@
 ---
 name: gpp-toolchain
 description: Compatibility alias for gpp:toolchain; remove after 2027-03-31.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

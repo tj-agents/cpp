@@ -11,10 +11,10 @@ This tier covers user-mode native Windows APIs. It owns Win32, Unicode boundarie
 Windows resources, callbacks, handles, and supported helper libraries. It does not choose
 a compiler. A consuming repository selects `gpp` or `msvc` separately when it needs one.
 
-Load `base` first, then `windows:windows-cpp-knowledge` for calibration and
-`windows:win32-style` when writing Windows API glue. Language-version defaults remain in
-`base`. This legacy combined package supplies `windows:msvc-toolchain`; migrate to the
-explicit `gpp` plus `win32` split before selecting G++ for Win32 work.
+`windows:win32-style` owns the API-glue requirements for this tier; language-version defaults remain in
+`base`. This legacy combined package already supplies `windows:msvc-toolchain`; migrate to the explicit
+`gpp` plus `win32` split before selecting G++ for Win32 work. Generic and platform calibration is
+`base:cpp-learning` reading `windows:windows-cpp-knowledge`.
 
 > **Calibration:** I have *not* learned Win32 — `windows:windows-cpp-knowledge` is at
 > ground zero. Teach each concept in chat before relying on it, and never promote a

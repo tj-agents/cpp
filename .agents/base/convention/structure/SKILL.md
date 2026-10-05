@@ -1,7 +1,7 @@
 ---
 name: structure
 description: Generic C++ project folder/file layout — where library, app, and test code lives, and how to extend it as a project grows.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

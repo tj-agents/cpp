@@ -1,7 +1,7 @@
 ---
 name: cpp-testing
 description: Compatibility alias for cpp:testing; remove after 2027-03-31.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

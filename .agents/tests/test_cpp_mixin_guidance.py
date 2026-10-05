@@ -5,7 +5,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CANONICAL = ROOT / ".agents/base/contract/mixins/SKILL.md"
+CANONICAL = ROOT / ".agents/base/convention/mixins/SKILL.md"
 GENERATED = (
     ROOT / "plugins/cpp/skills/mixins/SKILL.md",
     ROOT / "plugins/base/skills/mixins/SKILL.md",
@@ -73,7 +73,7 @@ class CppMixinGuidanceTests(unittest.TestCase):
                     for marker in FORBIDDEN_OWNERSHIP_MARKERS:
                         self.assertNotIn(marker, guidance)
 
-        win32_style = (ROOT / ".agents/win32/contract/style/SKILL.md").read_text(encoding="utf-8")
+        win32_style = (ROOT / ".agents/win32/convention/style/SKILL.md").read_text(encoding="utf-8")
         self.assertIn("Load `cpp:mixins`", win32_style)
         self.assertNotIn("historically CRTP", win32_style)
         self.assertNotIn("composed mixins", win32_style)

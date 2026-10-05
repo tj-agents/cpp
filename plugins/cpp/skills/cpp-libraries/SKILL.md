@@ -1,7 +1,7 @@
 ---
 name: cpp-libraries
 description: Compatibility alias for cpp:libraries; remove after 2027-03-31.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: testing
 description: Generic C++ test-tier, Catch2, CTest, test-target, naming, isolation, and regression-test conventions.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

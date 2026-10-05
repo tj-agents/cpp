@@ -3,4 +3,4 @@
 Generated from canonical `.agents/` definitions.
 
 - `scaffold` — utility — `.agents/msvc/utility/scaffold/SKILL.md`
-- `toolchain` — contract — `.agents/msvc/contract/toolchain/SKILL.md`
+- `toolchain` — convention — `.agents/msvc/convention/toolchain/SKILL.md`

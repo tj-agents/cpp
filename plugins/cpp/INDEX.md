@@ -2,13 +2,13 @@
 
 Generated from canonical `.agents/` definitions.
 
-- `build` — contract — `.agents/base/contract/build/SKILL.md`
+- `build` — convention — `.agents/base/convention/build/SKILL.md`
 - `direction` — knowledge — `.agents/base/knowledge/direction/SKILL.md`
-- `domain-design` — contract — `.agents/base/contract/domain-design/SKILL.md`
+- `domain-design` — convention — `.agents/base/convention/domain-design/SKILL.md`
 - `knowledge` — knowledge — `.agents/base/knowledge/knowledge/SKILL.md`
-- `learning` — knowledge — `.agents/base/knowledge/learning/SKILL.md`
-- `libraries` — contract — `.agents/base/contract/libraries/SKILL.md`
-- `mixins` — contract — `.agents/base/contract/mixins/SKILL.md`
-- `structure` — contract — `.agents/base/contract/structure/SKILL.md`
-- `style` — contract — `.agents/base/contract/style/SKILL.md`
-- `testing` — contract — `.agents/base/contract/testing/SKILL.md`
+- `learning` — policy — `.agents/base/policy/learning/SKILL.md`
+- `libraries` — convention — `.agents/base/convention/libraries/SKILL.md`
+- `mixins` — convention — `.agents/base/convention/mixins/SKILL.md`
+- `structure` — convention — `.agents/base/convention/structure/SKILL.md`
+- `style` — convention — `.agents/base/convention/style/SKILL.md`
+- `testing` — convention — `.agents/base/convention/testing/SKILL.md`

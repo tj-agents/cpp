@@ -1,7 +1,7 @@
 ---
 name: build
 description: Generic CMake target, preset, and dependency conventions for C++ projects.
-kind: contract
+kind: convention
 domain: cpp
 ---
 

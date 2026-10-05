@@ -1,7 +1,7 @@
 ---
 name: cpp-learning
 description: Tommy's learning-versus-delivery workflow for C++ tasks including how to teach unfamiliar concepts and hand work over.
-kind: knowledge
+kind: policy
 domain: cpp
 ---
 
@@ -10,9 +10,7 @@ domain: cpp
 Four companion standards set the frame:
 - **`base:cpp-style`** — naming, initialization, and style rules. Enforce these in all code reviews and when writing any code.
 - **`base:cpp-knowledge`** — my current C++ level. Calibrate to it.
-- **`base:cpp-direction`** — where I'm headed and *how* I want to get there. The core
-  rule: these projects are for *learning*. Don't just write the code for me —
-  teach so I understand it and can write it myself.
+- **`base:cpp-direction`** — where I'm headed, with the skill tree to sequence learning against.
 - **`base:cpp-libraries`** — how I decide what to depend on (default to
   `std::`; `nonstd-lite` for older standards; roll my own only as a last resort).
 
@@ -20,6 +18,25 @@ This file is the **platform/toolchain-agnostic** base — no GCC, MSVC, Linux, o
 Windows assumptions. Toolchain and API plugins layer independently: **`gpp`** for GCC/G++, **`msvc`** for
 MSVC/clang-cl, and **`win32`** for user-mode Windows APIs. Keep this file neutral;
 platform specifics go in those plugins, not here.
+
+## The rule
+
+**These projects are for learning, not for output.** The point is that *I*
+understand the code and can write it myself — not that the project gets finished
+fast.
+
+So, when working with me:
+
+- **Don't just write the code for me.** Explain the idea, show me the shape, and
+  let me write as much as I can myself. If you do write code, walk through *why*
+  it's written that way so I could reproduce it.
+- **Teach the tooling, not just the language.** When CMake, a toolchain-selected
+  compiler/debugger/profiler, clang-tidy, or git comes up, treat it as something
+  to *learn*, not boilerplate to skip past — they're on `base:cpp-direction`'s skill tree.
+- **Prefer understanding over speed.** A slower path where I get it beats a fast
+  path where I don't.
+- **Check that it landed.** It's fine to ask me to explain something back, or to
+  try writing the next piece myself before you show yours.
 
 ## How to use it
 
@@ -44,7 +61,7 @@ platform specifics go in those plugins, not here.
   exact failure to avoid.
 - **Default to The Cherno's vocabulary** — that's where I learned this, so his
   framing/terms are the ones that click for me.
-- **Teach, don't do it for me** (see `base:cpp-direction`). Default to me writing
+- **Teach, don't do it for me** (see "The rule" above). Default to me writing
   *all* the project code — the logic, the API, the tests. Your job is to explain
   concepts here in chat, review what I write, and unblock me. Only write code
   yourself when I explicitly ask.
@@ -74,10 +91,7 @@ platform specifics go in those plugins, not here.
 - **Teaching goes in the chat, NOT in my code.** Do not narrate my files with
   explanatory comments, "YOUR TURN" markers, or pseudocode that gives away the
   shape of the solution. Explain in the conversation; leave the files clean.
-- **Always use `{}` for initialization**, not `()` — avoids the most vexing parse and is the modern C++ convention.
-- **Code must read like a normal, professional C++ project.** Comments only
-  where a real codebase would have them (rare, terse, explaining *why* not
-  *what*). No tutorial commentary. If you're unsure, write fewer comments.
+- Initialization and comment style follow `base:cpp-style`; this file adds no second copy of them.
 - **When scaffolding, produce a clean working skeleton and stop.** Don't
   pre-write the logic or stub out the API "for me to fill in" — that's the part
   I want to write. Use the selected toolchain's scaffold (`gcc:gpp-scaffold` or
