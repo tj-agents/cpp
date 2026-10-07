@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "plugin": "cpp-agents/msvc",
+  "source_roots": [
+    ".agents/msvc",
+    ".agents/base/utility/scripts",
+    ".agents/gen_skill_routes.py",
+    ".agents/plugins/sources.json",
+    ".agents/plugins/payloads.json",
+    ".agents/plugins/manifests/codex/msvc.json",
+    ".agents/plugins/manifests/claude/msvc.json"
+  ],
+  "requires": {
+    "marketplaces": [
+      {
+        "id": "cpp-agents",
+        "repository": "tj-agents/cpp"
+      }
+    ],
+    "plugins": [
+      "cpp-agents/msvc",
+      "cpp-agents/cpp"
+    ],
+    "hooks": [],
+    "permissions": {
+      "claude_allow": [],
+      "codex_prefix_rules": []
+    }
+  }
+}
