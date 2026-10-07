@@ -45,7 +45,7 @@ def declared_profile(root: Path) -> tuple[str | None, frozenset[str]] | None:
     if isinstance(profile, dict):
         toolchain = profile.get("toolchain")
         apis = profile.get("apis", [])
-        if toolchain in (None, "gpp", "msvc") and isinstance(apis, list) and set(apis) <= {"win32"}:
+        if toolchain in (None, "gpp", "msvc") and isinstance(apis, list) and all(isinstance(api, str) for api in apis) and set(apis) <= {"win32"}:
             return toolchain, frozenset(apis)
         return None
     kind = declaration.get("kind")
@@ -56,7 +56,7 @@ def declared_profile(root: Path) -> tuple[str | None, frozenset[str]] | None:
     if kind == "windows":
         return "msvc", frozenset({"win32"})
     layers = declaration.get("layers")
-    if isinstance(layers, list):
+    if isinstance(layers, list) and all(isinstance(layer, str) for layer in layers):
         values = set(layers)
         if values <= {"base", "cpp", "gcc", "gpp", "windows", "msvc", "win32"}:
             toolchain = "gpp" if values & {"gcc", "gpp"} else ("msvc" if values & {"windows", "msvc"} else None)
