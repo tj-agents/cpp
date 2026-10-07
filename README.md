@@ -32,6 +32,11 @@ Canonical definitions live at:
 `.claude/skills/`, and self-contained `plugins/*` packages. `.agents/skills/` does not exist;
 `.agents/` remains the sole canonical shared tree.
 
+Each canonical package ships `harness.json` from
+`.agents/plugins/manifests/harness/<plugin>.json`. These declarations name the
+`cpp-agents` marketplace, existing package prerequisites, source inputs, and the
+cpp SessionStart hook for both hosts. They request no permanent permissions.
+
 Scaffolds compose the same way as the plugins:
 
 | Utility | Produces |

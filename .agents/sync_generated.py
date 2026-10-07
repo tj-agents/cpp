@@ -441,6 +441,11 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             if hook_source:
                 emit(f"{package_root}/{package}/hooks/{host}.json", read(root / hook_source))
 
+        harness = root / ".agents/plugins/manifests/harness" / f"{package}.json"
+        if harness.is_file():
+            load(harness)
+            emit(f"{package_root}/{package}/harness.json", read(harness))
+
         index = [f"# {package} capabilities", "", "Generated from canonical `.agents/` definitions.", ""]
         for skill in sorted(owned, key=lambda item: item["name"]):
             output_name = cfg.get("skillNames", {}).get(skill["identifier"], skill["name"])

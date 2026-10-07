@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "plugin": "cpp-agents/win32",
+  "source_roots": [
+    ".agents/win32",
+    ".agents/base/utility/scripts",
+    ".agents/gen_skill_routes.py",
+    ".agents/plugins/sources.json",
+    ".agents/plugins/payloads.json",
+    ".agents/plugins/manifests/codex/win32.json",
+    ".agents/plugins/manifests/claude/win32.json"
+  ],
+  "requires": {
+    "marketplaces": [
+      {
+        "id": "cpp-agents",
+        "repository": "tj-agents/cpp"
+      }
+    ],
+    "plugins": [
+      "cpp-agents/win32",
+      "cpp-agents/cpp"
+    ],
+    "hooks": [],
+    "permissions": {
+      "claude_allow": [],
+      "codex_prefix_rules": []
+    }
+  }
+}

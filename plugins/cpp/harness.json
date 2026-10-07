@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "plugin": "cpp-agents/cpp",
+  "source_roots": [
+    ".agents/base",
+    ".agents/hooks/session_context.py",
+    ".agents/plugins/sources.json",
+    ".agents/plugins/payloads.json",
+    ".agents/plugins/manifests/codex/cpp.json",
+    ".agents/plugins/manifests/claude/cpp.json",
+    ".agents/plugins/manifests/codex/hooks.json",
+    ".agents/plugins/manifests/claude/hooks.json"
+  ],
+  "requires": {
+    "marketplaces": [
+      {
+        "id": "cpp-agents",
+        "repository": "tj-agents/cpp"
+      }
+    ],
+    "plugins": [
+      "cpp-agents/cpp"
+    ],
+    "hooks": [
+      {
+        "path": "hooks/session_context.py",
+        "hosts": [
+          "claude",
+          "codex"
+        ]
+      }
+    ],
+    "permissions": {
+      "claude_allow": [],
+      "codex_prefix_rules": []
+    }
+  }
+}
