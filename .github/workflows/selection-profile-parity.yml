@@ -1,0 +1,25 @@
+name: Selection profile parity
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  selection-profile-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout pinned core selection reader
+        uses: actions/checkout@v4
+        with:
+          repository: tj-agents/core
+          ref: c9b0037c2db7b0944ade86dd40667c67c5b65b4f
+          path: .test-dependencies/core
+          persist-credentials: false
+      - name: Check source and shared-reader selection parity
+        run: python3 .agents/tests/check_selection_profile_parity.py --reader .test-dependencies/core/.agents/machine/utility/bootstrap-capabilities/scripts/selection_profiles.py
