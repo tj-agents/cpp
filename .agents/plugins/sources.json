@@ -515,5 +515,11 @@
       "apis": [],
       "destination": "resources/win32/utility/scripts/routes/console/msvc.json"
     }
-  ]
+  ],
+  "selection_profiles": {
+    "cpp": {
+      "source": ".agents/plugins/selection-profiles/cpp.json",
+      "destination": "selection-profile.json"
+    }
+  }
 }

@@ -9,7 +9,8 @@
     ".agents/plugins/manifests/codex/cpp.json",
     ".agents/plugins/manifests/claude/cpp.json",
     ".agents/plugins/manifests/codex/hooks.json",
-    ".agents/plugins/manifests/claude/hooks.json"
+    ".agents/plugins/manifests/claude/hooks.json",
+    ".agents/plugins/selection-profiles/cpp.json"
   ],
   "requires": {
     "marketplaces": [
