@@ -1,6 +1,6 @@
 {
   "name": "win32",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "User-mode Win32, Unicode, WIL, and Windows resource guidance layered on cpp.",
   "author": {
     "name": "Tommy Seery",
