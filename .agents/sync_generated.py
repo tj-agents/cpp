@@ -127,6 +127,7 @@ def validated_generated_roots(root: Path, config: dict) -> list[Path]:
         resolved_root / ".agents/hooks",
         resolved_root / ".agents/plugins/sources.json",
         resolved_root / ".agents/plugins/payloads.json",
+        resolved_root / ".agents/plugins/selection-profiles",
         *(resolved_root / resource["source"] for resource in config.get("resources", [])),
     ]
     result: list[Path] = []
@@ -246,6 +247,20 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
     if hook_packages != set(payloads["hooks"]):
         raise ValueError("Hook package declarations differ")
     return [*public, *(name for name in packages if name not in public)]
+
+
+def selection_profile_sources(root: Path, config: dict) -> dict[str, str]:
+    mappings = config.get("selection_profiles", {})
+    expected = {"cpp": {"source": ".agents/plugins/selection-profiles/cpp.json", "destination": "selection-profile.json"}}
+    if mappings != expected or "cpp" not in config["packages"]:
+        raise ValueError("Selection profile mapping must name only the canonical cpp owner")
+    sources = {}
+    for package, mapping in mappings.items():
+        document = load(root / mapping["source"])
+        if not isinstance(document, dict) or document.get("owner_package") != f"cpp-agents/{package}" or type(document.get("schema_version")) is not int or document["schema_version"] != 1:
+            raise ValueError("Selection profile JSON identity disagrees with its package")
+        sources[package] = read(root / mapping["source"])
+    return sources
 
 
 def adapter_body(skill: dict, root_name: str, adapter_name: str) -> str:
@@ -395,6 +410,7 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
     package_order = validate(root, config, payloads, skills)
     output: dict[str, bytes] = {}
     package_root = config["package_root"].rstrip("/")
+    profile_sources = selection_profile_sources(root, config)
 
     def emit(relative: str, data: str | bytes):
         relative = PurePosixPath(relative).as_posix()
@@ -440,6 +456,9 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             hook_source = config.get("host_hook_sources", {}).get(package, {}).get(host)
             if hook_source:
                 emit(f"{package_root}/{package}/hooks/{host}.json", read(root / hook_source))
+
+        if package in profile_sources:
+            emit(f"{package_root}/{package}/{config['selection_profiles'][package]['destination']}", profile_sources[package])
 
         harness = root / ".agents/plugins/manifests/harness" / f"{package}.json"
         if harness.is_file():

@@ -42,6 +42,9 @@ class CapabilityHarnessTests(unittest.TestCase):
                 for resource in config["resources"]:
                     if package in resource["plugins"]:
                         self.assertTrue(any(resource["source"] == item or resource["source"].startswith(item + "/") for item in roots))
+                for owner, mapping in config["selection_profiles"].items():
+                    if package == owner:
+                        self.assertIn(mapping["source"], roots)
                 if package != "cpp":
                     self.assertIn(".agents/gen_skill_routes.py", roots)
 
