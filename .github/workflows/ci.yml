@@ -36,9 +36,4 @@ jobs:
           done
           codex plugin list --json
       - name: Validate marketplace and plugins with Claude Code
-        shell: bash
-        run: |
-          claude plugin validate --strict .claude-plugin/marketplace.json
-          for plugin in cpp gpp msvc win32 base gcc windows cpp-standards gpp-standards; do
-            claude plugin validate --strict "plugins/$plugin"
-          done
+        run: python3 .github/scripts/validate_claude.py --root .
