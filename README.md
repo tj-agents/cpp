@@ -56,7 +56,6 @@ Generate and verify outputs with:
 pwsh .agents/sync-generated.ps1
 pwsh .agents/sync-generated.ps1 -Check
 python -B .agents/gen_skill_routes.py --self-test
-python -B .agents/sync_generated.py --record-package-versions   # after a version bump
 ```
 
 Generate a consuming repository profile explicitly:
