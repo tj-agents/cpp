@@ -4,6 +4,7 @@
   "source_roots": [
     ".agents/base",
     ".agents/hooks/session_context.py",
+    ".agents/gen_skill_routes.py",
     ".agents/plugins/sources.json",
     ".agents/plugins/payloads.json",
     ".agents/plugins/manifests/codex/cpp.json",
