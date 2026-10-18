@@ -177,13 +177,6 @@ class SkillMappingTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Duplicate public skill identifier: cpp:style"):
                 sync_generated.discover(root, config)
 
-    def test_identifier_rewrites_are_exact_and_do_not_cascade(self) -> None:
-        body = "cpp:style cpp:style-guide cpp:style_extra prefix-cpp:style docs/cpp:style cpp:build std::string"
-        rewrites = {"cpp:style": "cpp:build", "cpp:build": "base:cpp-build"}
-        self.assertEqual(
-            "cpp:build cpp:style-guide cpp:style_extra prefix-cpp:style docs/cpp:style base:cpp-build std::string",
-            sync_generated.rewrite_identifiers(body, rewrites),
-        )
 
     def test_packaged_scaffold_resource_paths_follow_the_source_map(self) -> None:
         config = sync_generated.load(ROOT / ".agents/plugins/sources.json")
@@ -194,7 +187,7 @@ class SkillMappingTests(unittest.TestCase):
                 "relative": f".agents/{plugin}/utility/scaffold/SKILL.md",
                 "body": f"---\nname: scaffold\n---\n[script](../scripts/{script})\n<skill-directory>/../scripts/{script}",
             }
-            name, body = sync_generated.package_body(skill, plugin, config["packages"][plugin], config["resources"])
+            name, body = sync_generated.package_body(skill, plugin, config["resources"])
             self.assertEqual("scaffold", name)
             self.assertIn(f"[script](../../resources/{plugin}/utility/scripts/{script})", body)
             self.assertIn(f"<skill-directory>/../../resources/{plugin}/utility/scripts/{script}", body)
@@ -220,9 +213,8 @@ class SkillMappingTests(unittest.TestCase):
         }
         mutations = (
             (lambda config: config["hostAdapterNames"].update({"gpp:toolchain": "msvc-toolchain"}), "unique valid flat"),
-            (lambda config: config["packages"]["windows"]["skillNames"].update({"msvc:toolchain": "win32-style"}), "duplicate emitted skill name"),
-            (lambda config: config["packages"]["cpp"]["compatibilitySkillAliases"]["cpp-style"].update({"source": "win32:style"}), "invalid compatibility skill alias"),
-            (lambda config: config["packages"]["cpp"]["compatibilitySkillAliases"]["cpp-style"].update({"removeAfter": "2026-01-01"}), "must retain 2027-03-31"),
+            (lambda config: config["packages"]["cpp"].update({"compatibilitySkillAliases": {}}), "unsupported package fields"),
+            (lambda config: config["packages"]["cpp"].update({"identifierRewrites": {}}), "unsupported package fields"),
         )
         for mutate, message in mutations:
             config = copy.deepcopy(source)

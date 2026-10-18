@@ -21,57 +21,24 @@ class CanonicalNameTests(unittest.TestCase):
         cls.payloads = read_json(PAYLOADS)
         cls.sources = read_json(SOURCES)
 
-    def test_short_canonical_names_and_published_legacy_identifiers_coexist(self) -> None:
+    def test_only_current_packages_and_skill_names_are_published(self) -> None:
         canonical = {
             "cpp": {"build", "style", "structure", "testing", "libraries", "direction", "knowledge", "learning", "domain-design", "mixins"},
-            "gpp": {"toolchain", "scaffold"},
-            "msvc": {"toolchain", "scaffold"},
+            "gpp": {"toolchain", "scaffold"}, "msvc": {"toolchain", "scaffold"},
             "win32": {"style", "knowledge", "overview", "scaffold"},
         }
-        legacy = {
-            "cpp": {"cpp-build", "cpp-style", "cpp-structure", "cpp-testing", "cpp-libraries", "cpp-direction", "cpp-knowledge", "cpp-learning"},
-            "gpp": {"gpp-toolchain", "gpp-scaffold"},
-            "msvc": {"msvc-toolchain", "msvc-scaffold"},
-            "win32": {"win32-style", "windows-cpp-knowledge", "windows-overview"},
-        }
+        self.assertEqual(set(canonical), set(self.sources["packages"]))
+        self.assertEqual(set(canonical), set(self.payloads["payloads"]))
         for scope in self.sources["scopes"]:
             plugin = scope["plugin"]
             authored = {path.parent.name for path in (ROOT / scope["root"]).glob("*/*/SKILL.md")}
-            self.assertEqual(canonical[plugin], authored)
             packaged = {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")}
-            self.assertEqual(canonical[plugin] | legacy[plugin], packaged)
-        expected_legacy_packages = {
-            "base": legacy["cpp"] | {"domain-design", "mixins"},
-            "cpp-standards": legacy["cpp"] | {"domain-design", "mixins"},
-            "gcc": {"gcc-toolchain", "gpp-scaffold"},
-            "gpp-standards": legacy["gpp"],
-            "windows": legacy["msvc"] | legacy["win32"] | {"win32-scaffold"},
-        }
-        for plugin, expected in expected_legacy_packages.items():
-            inventory = {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")}
-            self.assertEqual(expected, inventory, plugin)
-            self.assertEqual(expected, set(self.payloads["compatibilityAliases"][plugin]["skillAliases"]))
+            self.assertEqual(canonical[plugin], authored)
+            self.assertEqual(authored, packaged)
+            selection = read_json(ROOT / "plugins" / plugin / "selection.json")
+            self.assertNotIn("compatibilitySkillAliases", selection)
+        self.assertEqual(set(canonical), {p.name for p in (ROOT / "plugins").iterdir() if p.is_dir()})
 
-    def test_canonical_compatibility_aliases_are_dated_local_redirects(self) -> None:
-        for plugin in self.payloads["publicPlugins"]:
-            package = ROOT / "plugins" / plugin
-            selection = read_json(package / "selection.json")
-            aliases = self.sources["packages"][plugin]["compatibilitySkillAliases"]
-            self.assertEqual(set(aliases), set(selection["compatibilitySkillAliases"]))
-            for alias_name, alias in aliases.items():
-                alias_file = package / "skills" / alias_name / "SKILL.md"
-                body = alias_file.read_text(encoding="utf-8")
-                self.assertIn(f"name: {alias_name}\n", body)
-                self.assertEqual("2027-03-31", alias["removeAfter"])
-                self.assertIn(alias["removeAfter"], body)
-                self.assertIn(alias["source"], body)
-                link = re.search(r"\]\(([^)]+)\)", body)
-                self.assertIsNotNone(link)
-                target = (alias_file.parent / link.group(1)).resolve()
-                self.assertTrue(target.is_file(), target)
-                self.assertTrue(target.is_relative_to(package.resolve()))
-                self.assertEqual(alias["source"].split(":", 1)[1], target.parent.name)
-                self.assertEqual({"replacedBy": alias["source"], "removeAfter": "2027-03-31"}, selection["compatibilitySkillAliases"][alias_name])
 
     def test_flat_host_adapter_names_resolve_each_qualified_source(self) -> None:
         scope_roots = {scope["plugin"]: ROOT / scope["root"] for scope in self.sources["scopes"]}
@@ -93,12 +60,8 @@ class CanonicalNameTests(unittest.TestCase):
     def test_scaffold_links_resolve_inside_every_standalone_package(self) -> None:
         cases = [
             ("gpp", "scaffold", "gpp", "new-gpp-project.sh"),
-            ("gcc", "gpp-scaffold", "gpp", "new-gpp-project.sh"),
-            ("gpp-standards", "gpp-scaffold", "gpp", "new-gpp-project.sh"),
             ("msvc", "scaffold", "msvc", "New-MsvcProject.ps1"),
-            ("windows", "msvc-scaffold", "msvc", "New-MsvcProject.ps1"),
             ("win32", "scaffold", "win32", "Add-Win32App.ps1"),
-            ("windows", "win32-scaffold", "win32", "Add-Win32App.ps1"),
         ]
         for plugin, name, scope, script in cases:
             package = ROOT / "plugins" / plugin
@@ -138,16 +101,6 @@ class CanonicalNameTests(unittest.TestCase):
         )
         self.assertEqual("", ignored.stdout)
 
-    def test_compatibility_packages_never_name_canonical_identifiers(self) -> None:
-        canonical = re.compile(r"(?<![\w@-])(?:cpp|gpp|msvc|win32):[a-z][a-z0-9-]*")
-        compatibility = set(self.payloads["payloads"]) - set(self.payloads["publicPlugins"])
-        self.assertEqual({"base", "gcc", "windows", "cpp-standards", "gpp-standards"}, compatibility)
-        for plugin in sorted(compatibility):
-            for path in sorted((ROOT / "plugins" / plugin).rglob("*")):
-                if not path.is_file() or path.suffix not in {".md", ".json", ".py", ".sh", ".ps1", ".in"}:
-                    continue
-                leaked = canonical.findall(path.read_text(encoding="utf-8"))
-                self.assertEqual([], leaked, path.relative_to(ROOT).as_posix())
 
 
 if __name__ == "__main__":
