@@ -13,8 +13,6 @@ import test_msvc_scaffold as msvc
 
 ROOT = Path(__file__).resolve().parents[2]
 OVERLAY = ROOT / "plugins" / "win32" / "resources" / "win32" / "utility" / "scripts" / "Add-Win32App.ps1"
-LEGACY_OVERLAY = ROOT / "plugins" / "windows" / "resources" / "win32" / "utility" / "scripts" / "Add-Win32App.ps1"
-LEGACY_MSVC = ROOT / "plugins" / "windows" / "resources" / "msvc" / "utility" / "scripts" / "New-MsvcProject.ps1"
 GUI_SUBSYSTEM = 2
 
 
@@ -145,14 +143,6 @@ class Win32ScaffoldTests(unittest.TestCase):
             self.assertEqual({"toolchain": "gpp", "apis": ["win32"]}, routes["profile"])
             self.assertEqual(["cpp", "gpp", "win32"], routes["layers"])
 
-    def test_legacy_windows_package_converts_without_a_route_profile(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
-            project = self.msvc_project(Path(temporary), "legacy", LEGACY_MSVC)
-            self.assertFalse((project / ".agents").exists())
-            converted = self.convert(project, LEGACY_OVERLAY)
-            self.assertEqual(0, converted.returncode, converted.stdout + converted.stderr)
-            self.assertTrue((project / "app/app.manifest").is_file())
-            self.assertFalse((project / ".agents").exists())
 
     def test_gui_application_builds_with_real_msvc(self) -> None:
         if not msvc.VSWHERE.is_file() or not shutil.which("cmake") or not shutil.which("ninja"):

@@ -1,6 +1,0 @@
-#include <iostream>
-
-int main() {
-    std::cout << "hello from __PROJECT__" << '\n';
-    return 0;
-}
