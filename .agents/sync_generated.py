@@ -237,16 +237,11 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
     for package, dependencies in payloads.get("dependencies", {}).items():
         if package not in packages or set(dependencies) - set(packages):
             raise ValueError(f"{package}: invalid dependencies")
-    aliases = payloads["compatibilityAliases"]
-    if set(aliases) != {"base", "gcc", "windows", "cpp-standards", "gpp-standards"}:
-        raise ValueError("Compatibility package roster changed")
-    if any(alias["removeAfter"] != COMPATIBILITY_DEADLINE for alias in aliases.values()):
-        raise ValueError(f"Compatibility packages must retain {COMPATIBILITY_DEADLINE}")
-    if packages["windows"]["scopes"] != ["msvc", "win32"]:
-        raise ValueError("The compatibility windows package must retain both MSVC and Win32")
+    if "compatibilityAliases" in payloads:
+        raise ValueError("Compatibility aliases are retired; remove the declaration")
     if hook_packages != set(payloads["hooks"]):
         raise ValueError("Hook package declarations differ")
-    return [*public, *(name for name in packages if name not in public)]
+    return [*public]
 
 
 def adapter_body(skill: dict, root_name: str, adapter_name: str) -> str:

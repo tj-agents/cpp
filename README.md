@@ -66,12 +66,5 @@ python .agents/gen_skill_routes.py --toolchain gpp --api win32 --into C:/source/
 python .agents/gen_skill_routes.py --api win32 --into C:/source/project
 ```
 
-Legacy `--kind gcc` and `--kind windows` inputs remain accepted for migration. New profiles
-emit only `cpp`, `gpp`, `msvc`, and `win32` identities and contain no compulsory process-plugin
-route. Process workflows may be installed separately from their shared engineering owner.
-
-Compatibility packages `base`, `gcc`, `windows`, `cpp-standards`, and `gpp-standards` remain
-through 2027-03-31. The old `windows` package is a generated combined MSVC plus Win32 bundle;
-consumers must choose the explicit split when migrating.
-Old capability identifiers also remain as generated compatibility entries through that date.
-See [MIGRATION.md](MIGRATION.md) for the complete name mapping and flat host-adapter distinction.
+Profiles emit only cpp, gpp, msvc, and win32 identities and contain no compulsory process-plugin route. Process workflows may be installed separately from their shared engineering owner.
+See MIGRATION.md for canonical selection and flat host-adapter details.
