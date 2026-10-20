@@ -220,9 +220,6 @@ class SkillMappingTests(unittest.TestCase):
         }
         mutations = (
             (lambda config: config["hostAdapterNames"].update({"gpp:toolchain": "msvc-toolchain"}), "unique valid flat"),
-            (lambda config: config["packages"]["windows"]["skillNames"].update({"msvc:toolchain": "win32-style"}), "duplicate emitted skill name"),
-            (lambda config: config["packages"]["cpp"]["compatibilitySkillAliases"]["cpp-style"].update({"source": "win32:style"}), "invalid compatibility skill alias"),
-            (lambda config: config["packages"]["cpp"]["compatibilitySkillAliases"]["cpp-style"].update({"removeAfter": "2026-01-01"}), "must retain 2027-03-31"),
         )
         for mutate, message in mutations:
             config = copy.deepcopy(source)

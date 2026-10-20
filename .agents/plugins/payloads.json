@@ -1,5 +1,5 @@
 {
-  "$comment": "Canonical C++ scopes, package dependencies, hooks, and time-bounded compatibility packages.",
+  "$comment": "Canonical C++ scopes, package dependencies, and hooks.",
   "description": "Independent C++, G++, MSVC, and Win32 guidance for Claude Code and Codex.",
   "publicPlugins": [
     "cpp",
@@ -19,22 +19,6 @@
     ],
     "win32": [
       "win32"
-    ],
-    "base": [
-      "base"
-    ],
-    "gcc": [
-      "gpp"
-    ],
-    "windows": [
-      "msvc",
-      "win32"
-    ],
-    "cpp-standards": [
-      "base"
-    ],
-    "gpp-standards": [
-      "gpp"
     ]
   },
   "dependencies": {
@@ -46,89 +30,9 @@
     ],
     "win32": [
       "cpp"
-    ],
-    "gcc": [
-      "base"
-    ],
-    "windows": [
-      "base"
-    ],
-    "gpp-standards": [
-      "cpp-standards"
     ]
   },
   "hooks": [
-    "cpp",
-    "base",
-    "cpp-standards"
-  ],
-  "compatibilityAliases": {
-    "base": {
-      "replacedBy": "cpp",
-      "removeAfter": "2027-03-31",
-      "selectorAliases": {
-        "base@cpp-agents": "cpp@cpp-agents"
-      },
-      "skillAliases": {
-        "cpp-build": "cpp:build",
-        "cpp-style": "cpp:style",
-        "cpp-structure": "cpp:structure",
-        "cpp-testing": "cpp:testing",
-        "cpp-libraries": "cpp:libraries",
-        "cpp-direction": "cpp:direction",
-        "cpp-knowledge": "cpp:knowledge",
-        "cpp-learning": "cpp:learning",
-        "domain-design": "cpp:domain-design",
-        "mixins": "cpp:mixins"
-      }
-    },
-    "gcc": {
-      "replacedBy": "gpp",
-      "removeAfter": "2027-03-31",
-      "skillAliases": {
-        "gcc-toolchain": "gpp:toolchain",
-        "gpp-scaffold": "gpp:scaffold"
-      }
-    },
-    "windows": {
-      "replacedBy": [
-        "msvc",
-        "win32"
-      ],
-      "removeAfter": "2027-03-31",
-      "requiresExplicitSplit": true,
-      "skillAliases": {
-        "msvc-toolchain": "msvc:toolchain",
-        "msvc-scaffold": "msvc:scaffold",
-        "win32-style": "win32:style",
-        "windows-cpp-knowledge": "win32:knowledge",
-        "windows-overview": "win32:overview",
-        "win32-scaffold": "win32:scaffold"
-      }
-    },
-    "cpp-standards": {
-      "replacedBy": "cpp",
-      "removeAfter": "2027-03-31",
-      "skillAliases": {
-        "cpp-build": "cpp:build",
-        "cpp-style": "cpp:style",
-        "cpp-structure": "cpp:structure",
-        "cpp-testing": "cpp:testing",
-        "cpp-libraries": "cpp:libraries",
-        "cpp-direction": "cpp:direction",
-        "cpp-knowledge": "cpp:knowledge",
-        "cpp-learning": "cpp:learning",
-        "domain-design": "cpp:domain-design",
-        "mixins": "cpp:mixins"
-      }
-    },
-    "gpp-standards": {
-      "replacedBy": "gpp",
-      "removeAfter": "2027-03-31",
-      "skillAliases": {
-        "gpp-toolchain": "gpp:toolchain",
-        "gpp-scaffold": "gpp:scaffold"
-      }
-    }
-  }
+    "cpp"
+  ]
 }

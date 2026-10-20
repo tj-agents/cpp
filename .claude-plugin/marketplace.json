@@ -20,26 +20,6 @@
     {
       "name": "win32",
       "source": "./plugins/win32"
-    },
-    {
-      "name": "base",
-      "source": "./plugins/base"
-    },
-    {
-      "name": "gcc",
-      "source": "./plugins/gcc"
-    },
-    {
-      "name": "windows",
-      "source": "./plugins/windows"
-    },
-    {
-      "name": "cpp-standards",
-      "source": "./plugins/cpp-standards"
-    },
-    {
-      "name": "gpp-standards",
-      "source": "./plugins/gpp-standards"
     }
   ]
 }

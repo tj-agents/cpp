@@ -4,7 +4,6 @@
     "Toolchain and API selections are independent. Host OS never chooses a compiler.",
     "Every matching technical route fires; no process plugin is required."
   ],
-  "kind": "windows",
   "profile": {
     "toolchain": "msvc",
     "apis": [
