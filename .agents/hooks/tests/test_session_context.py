@@ -14,17 +14,15 @@ SPEC.loader.exec_module(session_context)
 
 
 class SessionContextTests(unittest.TestCase):
-    def context(self, platform: str, files: list[str], profile: dict | None = None, kind: str | None = None) -> list[str]:
+    def context(self, platform: str, files: list[str], profile: dict | None = None) -> list[str]:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            if profile is not None or kind is not None:
+            if profile is not None:
                 routes = root / ".agents" / "skill-routes.json"
                 routes.parent.mkdir(parents=True)
                 declaration = {"routes": []}
                 if profile is not None:
                     declaration["profile"] = profile
-                if kind is not None:
-                    declaration["kind"] = kind
                 routes.write_text(json.dumps(declaration), encoding="utf-8")
             with patch.object(session_context, "tracked_project", return_value=(root, files)):
                 return session_context.context_for(root / "nested", platform)
