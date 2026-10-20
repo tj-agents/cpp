@@ -25,8 +25,6 @@ resources it runs, so no package depends on another installation. Scaffold route
 rendered by `gen_skill_routes.py` during generation and ship only in the canonical packages,
 because they name canonical identifiers.
 
-`.agents/plugins/package-versions.json` records, append-only, the content digest of every
-published package version. Changing a package without a version bump fails the tests.
 
 Capability identity is the pair of plugin and name, such as `cpp:style` or `win32:style`.
 Authored directories and canonical plugin payloads use the short name. Flat host discovery

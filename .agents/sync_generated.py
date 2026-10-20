@@ -519,6 +519,7 @@ def existing_files(root: Path, generated_roots: list[str]) -> set[str]:
 
 
 def synchronize(root: Path, check: bool) -> int:
+    root = root.resolve()
     output, config = build(root)
     expected = set(output)
     actual = existing_files(root, config["generated_roots"])
