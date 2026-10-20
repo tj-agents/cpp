@@ -48,8 +48,7 @@ G++. A MinGW toolchain has no sanitizer runtimes, so use its `gdb` preset.
 ## Validation and publication
 
 Convert fresh MSVC and G++ scaffolds, build and run each with the real compiler, confirm
-the manifest is embedded, and exercise refusal on a modified `app`. Legacy
-`windows@cpp-agents` carries this overlay without route profiles.
+the manifest is embedded, and exercise refusal on a modified `app`.
 
 The skill, script and templates are authored once under `.agents/win32/utility/` and copied
 to plugin payloads by `sync-generated.ps1`; the shared application templates it verifies

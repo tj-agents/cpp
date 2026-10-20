@@ -52,11 +52,6 @@ def routes(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ())
     }
 
 
-def routes_from_legacy(kind: str | None = None, layers: list[str] | tuple[str, ...] = ()) -> dict:
-    toolchain, apis = legacy_selection(kind, layers)
-    return routes(toolchain, apis)
-
-
 def rendered(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> str:
     return json.dumps(routes(toolchain, apis), indent=2, ensure_ascii=False) + "\n"
 
