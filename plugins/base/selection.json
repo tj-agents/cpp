@@ -14,6 +14,7 @@
     "cpp-style",
     "cpp-testing",
     "domain-design",
+    "explanation",
     "mixins"
   ]
 }

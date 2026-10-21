@@ -5,6 +5,7 @@ Generated from canonical `.agents/` definitions.
 - `cpp-build` — contract — `.agents/base/contract/build/SKILL.md`
 - `cpp-direction` — knowledge — `.agents/base/knowledge/direction/SKILL.md`
 - `domain-design` — contract — `.agents/base/contract/domain-design/SKILL.md`
+- `explanation` — contract — `.agents/base/contract/explanation/SKILL.md`
 - `cpp-knowledge` — knowledge — `.agents/base/knowledge/knowledge/SKILL.md`
 - `cpp-learning` — knowledge — `.agents/base/knowledge/learning/SKILL.md`
 - `cpp-libraries` — contract — `.agents/base/contract/libraries/SKILL.md`
