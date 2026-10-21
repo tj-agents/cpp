@@ -23,7 +23,7 @@ class CanonicalNameTests(unittest.TestCase):
 
     def test_short_canonical_names_and_published_legacy_identifiers_coexist(self) -> None:
         canonical = {
-            "cpp": {"build", "style", "structure", "testing", "libraries", "direction", "knowledge", "learning", "domain-design", "mixins"},
+            "cpp": {"build", "style", "structure", "testing", "libraries", "direction", "knowledge", "learning", "domain-design", "mixins", "explanation"},
             "gpp": {"toolchain", "scaffold"},
             "msvc": {"toolchain", "scaffold"},
             "win32": {"style", "knowledge", "overview", "scaffold"},
@@ -41,8 +41,8 @@ class CanonicalNameTests(unittest.TestCase):
             packaged = {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")}
             self.assertEqual(canonical[plugin] | legacy[plugin], packaged)
         expected_legacy_packages = {
-            "base": legacy["cpp"] | {"domain-design", "mixins"},
-            "cpp-standards": legacy["cpp"] | {"domain-design", "mixins"},
+            "base": legacy["cpp"] | {"domain-design", "mixins", "explanation"},
+            "cpp-standards": legacy["cpp"] | {"domain-design", "mixins", "explanation"},
             "gcc": {"gcc-toolchain", "gpp-scaffold"},
             "gpp-standards": legacy["gpp"],
             "windows": legacy["msvc"] | legacy["win32"] | {"win32-scaffold"},
