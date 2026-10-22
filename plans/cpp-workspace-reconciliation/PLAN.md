@@ -96,7 +96,7 @@ Compatibility aliases therefore stay through 2027-03-31.
   pass), `cpp+msvc+win32` and `cpp+gpp+win32` GUI builds (PE subsystem GUI, manifest
   embedded), clang-tidy clean on console and Win32 sources. The G++ sanitizer `dev` preset
   is not yet built anywhere: CI has no Ninja and `ci.yml` is trust-pinned; Docker and WSL
-  compilers are unavailable here. Recorded in `TECH_DEBT.md`.
+  compilers are unavailable here. Recorded in [cpp#48](https://github.com/tj-agents/cpp/issues/48).
 - [x] CI run 1 on #17 failed: the repository `.gitignore` ignored every `.vscode/`, so the
   scaffold `.vscode` templates were never committed. Anchored the ignores to the root and
   added a test that no authored or generated file is git-ignored.
@@ -152,7 +152,7 @@ Compatibility aliases therefore stay through 2027-03-31.
   opened against `main`. The shared workflow owner (the future `tj-agents/core`) should gain a
   scripted stacked-PR workflow that creates, drafts, updates and retargets child PRs the same
   way every time.
-- The G++ sanitizer CI gap is in `TECH_DEBT.md`.
+- The G++ sanitizer CI gap is [cpp#48](https://github.com/tj-agents/cpp/issues/48).
 
 ## Progress
 
