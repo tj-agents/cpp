@@ -12,7 +12,7 @@ SPEC.loader.exec_module(SYNC)
 
 
 class VersionlessPackageTests(unittest.TestCase):
-    def test_every_current_and_compatibility_package_omits_release_versions(self):
+    def test_every_package_omits_release_versions(self):
         config = SYNC.load(ROOT / ".agents/plugins/sources.json")
         for package in config["packages"]:
             for host, source in config["host_manifest_roots"].items():

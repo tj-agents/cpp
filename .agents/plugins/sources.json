@@ -42,14 +42,6 @@
     "cpp": {
       "codex": ".agents/plugins/manifests/codex/hooks.json",
       "claude": ".agents/plugins/manifests/claude/hooks.json"
-    },
-    "base": {
-      "codex": ".agents/plugins/manifests/codex/hooks.json",
-      "claude": ".agents/plugins/manifests/claude/hooks.json"
-    },
-    "cpp-standards": {
-      "codex": ".agents/plugins/manifests/codex/hooks.json",
-      "claude": ".agents/plugins/manifests/claude/hooks.json"
     }
   },
   "generated_roots": [
@@ -67,336 +59,29 @@
     "cpp": {
       "scopes": [
         "base"
-      ],
-      "compatibilitySkillAliases": {
-        "cpp-build": {
-          "source": "cpp:build",
-          "removeAfter": "2027-03-31"
-        },
-        "cpp-style": {
-          "source": "cpp:style",
-          "removeAfter": "2027-03-31"
-        },
-        "cpp-structure": {
-          "source": "cpp:structure",
-          "removeAfter": "2027-03-31"
-        },
-        "cpp-testing": {
-          "source": "cpp:testing",
-          "removeAfter": "2027-03-31"
-        },
-        "cpp-libraries": {
-          "source": "cpp:libraries",
-          "removeAfter": "2027-03-31"
-        },
-        "cpp-direction": {
-          "source": "cpp:direction",
-          "removeAfter": "2027-03-31"
-        },
-        "cpp-knowledge": {
-          "source": "cpp:knowledge",
-          "removeAfter": "2027-03-31"
-        },
-        "cpp-learning": {
-          "source": "cpp:learning",
-          "removeAfter": "2027-03-31"
-        }
-      }
+      ]
     },
     "gpp": {
       "scopes": [
         "gpp"
-      ],
-      "compatibilitySkillAliases": {
-        "gpp-toolchain": {
-          "source": "gpp:toolchain",
-          "removeAfter": "2027-03-31"
-        },
-        "gpp-scaffold": {
-          "source": "gpp:scaffold",
-          "removeAfter": "2027-03-31"
-        }
-      }
+      ]
     },
     "msvc": {
       "scopes": [
         "msvc"
-      ],
-      "compatibilitySkillAliases": {
-        "msvc-toolchain": {
-          "source": "msvc:toolchain",
-          "removeAfter": "2027-03-31"
-        },
-        "msvc-scaffold": {
-          "source": "msvc:scaffold",
-          "removeAfter": "2027-03-31"
-        }
-      }
+      ]
     },
     "win32": {
       "scopes": [
         "win32"
-      ],
-      "compatibilitySkillAliases": {
-        "win32-style": {
-          "source": "win32:style",
-          "removeAfter": "2027-03-31"
-        },
-        "windows-cpp-knowledge": {
-          "source": "win32:knowledge",
-          "removeAfter": "2027-03-31"
-        },
-        "windows-overview": {
-          "source": "win32:overview",
-          "removeAfter": "2027-03-31"
-        }
-      }
-    },
-    "base": {
-      "scopes": [
-        "base"
-      ],
-      "hookRewrites": {
-        "cpp@cpp-agents": "base@cpp-agents",
-        "gpp@cpp-agents": "gcc@cpp-agents",
-        "msvc@cpp-agents": "windows@cpp-agents",
-        "win32@cpp-agents": "windows@cpp-agents"
-      },
-      "skillNames": {
-        "cpp:build": "cpp-build",
-        "cpp:style": "cpp-style",
-        "cpp:structure": "cpp-structure",
-        "cpp:testing": "cpp-testing",
-        "cpp:libraries": "cpp-libraries",
-        "cpp:direction": "cpp-direction",
-        "cpp:knowledge": "cpp-knowledge",
-        "cpp:learning": "cpp-learning",
-        "cpp:domain-design": "domain-design",
-        "cpp:mixins": "mixins"
-      },
-      "identifierRewrites": {
-        "cpp:build": "base:cpp-build",
-        "cpp:style": "base:cpp-style",
-        "cpp:structure": "base:cpp-structure",
-        "cpp:testing": "base:cpp-testing",
-        "cpp:libraries": "base:cpp-libraries",
-        "cpp:direction": "base:cpp-direction",
-        "cpp:knowledge": "base:cpp-knowledge",
-        "cpp:learning": "base:cpp-learning",
-        "cpp:domain-design": "base:domain-design",
-        "cpp:mixins": "base:mixins",
-        "gpp:toolchain": "gcc:gcc-toolchain",
-        "gpp:scaffold": "gcc:gpp-scaffold",
-        "msvc:toolchain": "windows:msvc-toolchain",
-        "msvc:scaffold": "windows:msvc-scaffold",
-        "win32:style": "windows:win32-style",
-        "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview",
-        "win32:scaffold": "windows:win32-scaffold"
-      },
-      "hookIdentifierRewrites": {
-        "cpp:build": "base:cpp-build",
-        "cpp:style": "base:cpp-style",
-        "cpp:structure": "base:cpp-structure",
-        "cpp:testing": "base:cpp-testing",
-        "cpp:libraries": "base:cpp-libraries",
-        "cpp:direction": "base:cpp-direction",
-        "cpp:knowledge": "base:cpp-knowledge",
-        "cpp:learning": "base:cpp-learning",
-        "gpp:toolchain": "gcc:gcc-toolchain",
-        "gpp:scaffold": "gcc:gpp-scaffold",
-        "msvc:toolchain": "windows:msvc-toolchain",
-        "msvc:scaffold": "windows:msvc-scaffold",
-        "win32:style": "windows:win32-style",
-        "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview",
-        "cpp:domain-design": "base:domain-design",
-        "cpp:mixins": "base:mixins",
-        "win32:scaffold": "windows:win32-scaffold"
-      }
-    },
-    "gcc": {
-      "scopes": [
-        "gpp"
-      ],
-      "contentRewrites": {
-        "gpp:toolchain": {
-          "`cpp` plugin": "`base` plugin",
-          "- `cpp` — the platform-neutral C++ base, which still applies here.\n- `msvc` — the alternative MSVC/clang-cl toolchain when a project selects it.\n- `win32` — an optional user-mode Windows API layer that does not choose a compiler.": "- `base` — the platform-neutral compatibility base, which still applies here.\n- The legacy `windows` package is the combined MSVC/Win32 compatibility layer; migrate to the explicit split before selecting a different compiler/API combination."
-        }
-      },
-      "skillNames": {
-        "gpp:toolchain": "gcc-toolchain",
-        "gpp:scaffold": "gpp-scaffold"
-      },
-      "identifierRewrites": {
-        "cpp:build": "base:cpp-build",
-        "cpp:style": "base:cpp-style",
-        "cpp:structure": "base:cpp-structure",
-        "cpp:testing": "base:cpp-testing",
-        "cpp:libraries": "base:cpp-libraries",
-        "cpp:direction": "base:cpp-direction",
-        "cpp:knowledge": "base:cpp-knowledge",
-        "cpp:learning": "base:cpp-learning",
-        "gpp:toolchain": "gcc:gcc-toolchain",
-        "gpp:scaffold": "gcc:gpp-scaffold",
-        "cpp:domain-design": "base:domain-design",
-        "msvc:toolchain": "windows:msvc-toolchain",
-        "msvc:scaffold": "windows:msvc-scaffold",
-        "win32:style": "windows:win32-style",
-        "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview",
-        "win32:scaffold": "windows:win32-scaffold"
-      }
-    },
-    "windows": {
-      "scopes": [
-        "msvc",
-        "win32"
-      ],
-      "contentRewrites": {
-        "win32:overview": {
-          "Load `cpp` first, then `win32:knowledge` for calibration and\n`win32:style` when writing Windows API glue. Language-version defaults remain in\n`cpp`. If the repository selects MSVC/clang-cl, also load `msvc:toolchain`; if it\nselects G++, load `gpp:toolchain` instead.": "Load `base` first, then `win32:knowledge` for calibration and\n`win32:style` when writing Windows API glue. Language-version defaults remain in\n`base`. This legacy combined package supplies `msvc:toolchain`; migrate to the\nexplicit `gpp` plus `win32` split before selecting G++ for Win32 work."
-        },
-        "win32:style": {
-          "- Compiler, ABI, runtime, build-system, and editor configuration belong to the selected\n  toolchain skill: `msvc:toolchain` or `gpp:toolchain`. The following settings\n  apply to the Win32 target independently of that choice.": "- This legacy combined package supplies `msvc:toolchain` for compiler, ABI, runtime,\n  build-system, and editor configuration. Migrate to the explicit split before pairing\n  Win32 with another toolchain. The following settings apply to the Win32 target."
-        }
-      },
-      "skillNames": {
-        "msvc:toolchain": "msvc-toolchain",
-        "msvc:scaffold": "msvc-scaffold",
-        "win32:style": "win32-style",
-        "win32:knowledge": "windows-cpp-knowledge",
-        "win32:overview": "windows-overview",
-        "win32:scaffold": "win32-scaffold"
-      },
-      "identifierRewrites": {
-        "cpp:build": "base:cpp-build",
-        "cpp:style": "base:cpp-style",
-        "cpp:structure": "base:cpp-structure",
-        "cpp:testing": "base:cpp-testing",
-        "cpp:libraries": "base:cpp-libraries",
-        "cpp:direction": "base:cpp-direction",
-        "cpp:knowledge": "base:cpp-knowledge",
-        "cpp:learning": "base:cpp-learning",
-        "msvc:toolchain": "windows:msvc-toolchain",
-        "msvc:scaffold": "windows:msvc-scaffold",
-        "win32:style": "windows:win32-style",
-        "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview",
-        "cpp:domain-design": "base:domain-design",
-        "cpp:mixins": "base:mixins",
-        "gpp:toolchain": "gcc:gcc-toolchain",
-        "gpp:scaffold": "gcc:gpp-scaffold",
-        "win32:scaffold": "windows:win32-scaffold"
-      }
-    },
-    "cpp-standards": {
-      "scopes": [
-        "base"
-      ],
-      "hookRewrites": {
-        "cpp@cpp-agents": "cpp-standards@cpp-agents",
-        "gpp@cpp-agents": "gpp-standards@cpp-agents",
-        "msvc@cpp-agents": "windows@cpp-agents",
-        "win32@cpp-agents": "windows@cpp-agents"
-      },
-      "skillNames": {
-        "cpp:build": "cpp-build",
-        "cpp:style": "cpp-style",
-        "cpp:structure": "cpp-structure",
-        "cpp:testing": "cpp-testing",
-        "cpp:libraries": "cpp-libraries",
-        "cpp:direction": "cpp-direction",
-        "cpp:knowledge": "cpp-knowledge",
-        "cpp:learning": "cpp-learning",
-        "cpp:domain-design": "domain-design",
-        "cpp:mixins": "mixins"
-      },
-      "identifierRewrites": {
-        "cpp:build": "cpp-standards:cpp-build",
-        "cpp:style": "cpp-standards:cpp-style",
-        "cpp:structure": "cpp-standards:cpp-structure",
-        "cpp:testing": "cpp-standards:cpp-testing",
-        "cpp:libraries": "cpp-standards:cpp-libraries",
-        "cpp:direction": "cpp-standards:cpp-direction",
-        "cpp:knowledge": "cpp-standards:cpp-knowledge",
-        "cpp:learning": "cpp-standards:cpp-learning",
-        "cpp:domain-design": "cpp-standards:domain-design",
-        "cpp:mixins": "cpp-standards:mixins",
-        "gpp:toolchain": "gpp-standards:gpp-toolchain",
-        "gpp:scaffold": "gpp-standards:gpp-scaffold",
-        "msvc:toolchain": "windows:msvc-toolchain",
-        "msvc:scaffold": "windows:msvc-scaffold",
-        "win32:style": "windows:win32-style",
-        "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview",
-        "win32:scaffold": "windows:win32-scaffold"
-      },
-      "hookIdentifierRewrites": {
-        "cpp:build": "cpp-standards:cpp-build",
-        "cpp:style": "cpp-standards:cpp-style",
-        "cpp:structure": "cpp-standards:cpp-structure",
-        "cpp:testing": "cpp-standards:cpp-testing",
-        "cpp:libraries": "cpp-standards:cpp-libraries",
-        "cpp:direction": "cpp-standards:cpp-direction",
-        "cpp:knowledge": "cpp-standards:cpp-knowledge",
-        "cpp:learning": "cpp-standards:cpp-learning",
-        "gpp:toolchain": "gpp-standards:gpp-toolchain",
-        "gpp:scaffold": "gpp-standards:gpp-scaffold",
-        "msvc:toolchain": "windows:msvc-toolchain",
-        "msvc:scaffold": "windows:msvc-scaffold",
-        "win32:style": "windows:win32-style",
-        "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview",
-        "cpp:domain-design": "cpp-standards:domain-design",
-        "cpp:mixins": "cpp-standards:mixins",
-        "win32:scaffold": "windows:win32-scaffold"
-      }
-    },
-    "gpp-standards": {
-      "scopes": [
-        "gpp"
-      ],
-      "contentRewrites": {
-        "gpp:toolchain": {
-          "`cpp` plugin": "`cpp-standards` plugin",
-          "- `cpp` — the platform-neutral C++ base, which still applies here.\n- `msvc` — the alternative MSVC/clang-cl toolchain when a project selects it.\n- `win32` — an optional user-mode Windows API layer that does not choose a compiler.": "- `cpp-standards` — the platform-neutral compatibility base, which still applies here.\n- This compatibility package does not select a Windows compiler or API layer; migrate to the explicit new identities for that composition."
-        }
-      },
-      "skillNames": {
-        "gpp:toolchain": "gpp-toolchain",
-        "gpp:scaffold": "gpp-scaffold"
-      },
-      "identifierRewrites": {
-        "cpp:build": "cpp-standards:cpp-build",
-        "cpp:style": "cpp-standards:cpp-style",
-        "cpp:structure": "cpp-standards:cpp-structure",
-        "cpp:testing": "cpp-standards:cpp-testing",
-        "cpp:libraries": "cpp-standards:cpp-libraries",
-        "cpp:direction": "cpp-standards:cpp-direction",
-        "cpp:knowledge": "cpp-standards:cpp-knowledge",
-        "cpp:learning": "cpp-standards:cpp-learning",
-        "gpp:toolchain": "gpp-standards:gpp-toolchain",
-        "gpp:scaffold": "gpp-standards:gpp-scaffold",
-        "cpp:domain-design": "cpp-standards:domain-design",
-        "msvc:toolchain": "windows:msvc-toolchain",
-        "msvc:scaffold": "windows:msvc-scaffold",
-        "win32:style": "windows:win32-style",
-        "win32:knowledge": "windows:windows-cpp-knowledge",
-        "win32:overview": "windows:windows-overview",
-        "win32:scaffold": "windows:win32-scaffold"
-      }
+      ]
     }
   },
   "resources": [
     {
       "plugins": [
         "gpp",
-        "gcc",
-        "gpp-standards",
         "msvc",
-        "windows",
         "win32"
       ],
       "source": ".agents/base/utility/scripts",
@@ -405,8 +90,7 @@
     },
     {
       "plugins": [
-        "msvc",
-        "windows"
+        "msvc"
       ],
       "source": ".agents/msvc/utility/scripts",
       "destination": "resources/msvc/utility/scripts",
@@ -414,9 +98,7 @@
     },
     {
       "plugins": [
-        "gpp",
-        "gcc",
-        "gpp-standards"
+        "gpp"
       ],
       "source": ".agents/gpp/utility/scripts",
       "destination": "resources/gpp/utility/scripts",
@@ -424,8 +106,7 @@
     },
     {
       "plugins": [
-        "win32",
-        "windows"
+        "win32"
       ],
       "source": ".agents/win32/utility/scripts",
       "destination": "resources/win32/utility/scripts",
@@ -433,9 +114,7 @@
     }
   ],
   "hook_packages": [
-    "cpp",
-    "base",
-    "cpp-standards"
+    "cpp"
   ],
   "package_root": "plugins",
   "marketplace_outputs": {

@@ -6,11 +6,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 CANONICAL = ROOT / ".agents/base/contract/mixins/SKILL.md"
-GENERATED = (
-    ROOT / "plugins/cpp/skills/mixins/SKILL.md",
-    ROOT / "plugins/base/skills/mixins/SKILL.md",
-    ROOT / "plugins/cpp-standards/skills/mixins/SKILL.md",
-)
+GENERATED = (ROOT / "plugins/cpp/skills/mixins/SKILL.md",)
 AUTHORED_SCOPE_ROOTS = (
     ROOT / ".agents/base",
     ROOT / ".agents/gpp",
@@ -85,15 +81,9 @@ class CppMixinGuidanceTests(unittest.TestCase):
         self.assertIn("belong to `cpp:mixins`, never `cpp:domain-design`", agents)
         self.assertEqual("@AGENTS.md", claude)
 
-    def test_discovery_and_compatibility_maps_expose_mixins(self) -> None:
+    def test_discovery_map_exposes_mixins(self) -> None:
         sources = json.loads((ROOT / ".agents/plugins/sources.json").read_text(encoding="utf-8"))
-        payloads = json.loads((ROOT / ".agents/plugins/payloads.json").read_text(encoding="utf-8"))
         self.assertEqual("cpp-mixins", sources["hostAdapterNames"]["cpp:mixins"])
-        for package, identifier in (("base", "base:mixins"), ("cpp-standards", "cpp-standards:mixins")):
-            with self.subTest(package=package):
-                self.assertEqual("mixins", sources["packages"][package]["skillNames"]["cpp:mixins"])
-                self.assertEqual(identifier, sources["packages"][package]["identifierRewrites"]["cpp:mixins"])
-                self.assertEqual("cpp:mixins", payloads["compatibilityAliases"][package]["skillAliases"]["mixins"])
 
     def test_examples_are_structurally_complete_everywhere(self) -> None:
         for path in (CANONICAL, *GENERATED):

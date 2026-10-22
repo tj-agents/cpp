@@ -1,14 +1,16 @@
 # cpp
 
 C++ guidance is authored once under `.agents/` and published as four independent plugins.
-The canonical repository is [`tj-agents/cpp`](https://github.com/tj-agents/cpp); the marketplace ID remains `cpp-agents`.
+The canonical repository is [`tj-agents/cpp`](https://github.com/tj-agents/cpp); the plugins are published by the
+`tj-agents` marketplace ([`tj-agents/marketplace`](https://github.com/tj-agents/marketplace)), so each identity is
+`tj-agents/<plugin>` (`<plugin>@tj-agents`).
 
 | Plugin | Owns | Requires |
 |---|---|---|
-| `cpp@cpp-agents` | Platform-neutral C++, CMake, testing, dependencies, learning, and knowledge | — |
-| `gpp@cpp-agents` | G++, GCC, GDB, and Linux toolchain details | `cpp` |
-| `msvc@cpp-agents` | MSVC/clang-cl toolchain details and the reusable console scaffold | `cpp` |
-| `win32@cpp-agents` | User-mode Win32, Unicode, WIL, callbacks, and native resources | `cpp` |
+| `cpp@tj-agents` | Platform-neutral C++, CMake, testing, dependencies, learning, and knowledge | — |
+| `gpp@tj-agents` | G++, GCC, GDB, and Linux toolchain details | `cpp` |
+| `msvc@tj-agents` | MSVC/clang-cl toolchain details and the reusable console scaffold | `cpp` |
+| `win32@tj-agents` | User-mode Win32, Unicode, WIL, callbacks, and native resources | `cpp` |
 
 Compiler and API choices are separate. A console library can select `cpp + msvc` without
 Win32 guidance. A Win32 project can select `cpp + win32 + gpp` or `cpp + win32 + msvc`.
@@ -34,8 +36,9 @@ Canonical definitions live at:
 
 Each canonical package ships `harness.json` from
 `.agents/plugins/manifests/harness/<plugin>.json`. These declarations name the
-`cpp-agents` marketplace, existing package prerequisites, source inputs, and the
-cpp SessionStart hook for both hosts. They request no permanent permissions.
+`tj-agents` marketplace, existing package prerequisites, source inputs, and the
+cpp SessionStart hook for both hosts. They request no permanent permissions. The generator
+and CI (`.github/scripts/check_identity.py`) reject any other marketplace or identity.
 
 Scaffolds compose the same way as the plugins:
 
@@ -70,8 +73,6 @@ Legacy `--kind gcc` and `--kind windows` inputs remain accepted for migration. N
 emit only `cpp`, `gpp`, `msvc`, and `win32` identities and contain no compulsory process-plugin
 route. Process workflows may be installed separately from their shared engineering owner.
 
-Compatibility packages `base`, `gcc`, `windows`, `cpp-standards`, and `gpp-standards` remain
-through 2027-03-31. The old `windows` package is a generated combined MSVC plus Win32 bundle;
-consumers must choose the explicit split when migrating.
-Old capability identifiers also remain as generated compatibility entries through that date.
+The retired `base`, `gcc`, `windows`, `cpp-standards`, and `gpp-standards` packages and the
+redirects for previously published capability names are no longer published.
 See [MIGRATION.md](MIGRATION.md) for the complete name mapping and flat host-adapter distinction.

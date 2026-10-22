@@ -15,12 +15,5 @@
         "skill-routes": "27639569387d2af18b6d76e38eb9d8a89c4b8ff94b5408c945c969699b76c1ac"
       }
     }
-  },
-  "legacyExternalPlugins": {
-    "windows-standards": {
-      "marketplace": "windows-agents",
-      "version": "0.1.0",
-      "skills": ["windows-overview", "win32-style", "windows-cpp-knowledge"]
-    }
   }
 }

@@ -36,11 +36,10 @@ mapped explicitly by `.agents/plugins/sources.json`: shared scaffold templates a
 Both host plugin manifests omit release versions. New sessions consume the current publisher main.
 Regenerate packages after changing authored source.
 
-`base`, `gcc`, `windows`, `cpp-standards`, and `gpp-standards` are generated compatibility
-packages only. Preserve their 2027-03-31 window and keep the old combined `windows` payload
-containing both MSVC and Win32; never map it silently to only one new scope.
+The only marketplace and identity is `tj-agents` (`tj-agents/<plugin>`, `<plugin>@tj-agents`).
+Do not reintroduce compatibility packages or alias skills.
 
-Required validation is the generator check, route self-test, hook tests, marketplace and
+Required validation is the generator check, route self-test, hook tests, marketplace, identity and
 attester tests, both host validators when available, and the
 G++, MSVC and Win32 scaffold acceptance tests (real builds where the toolchains exist).
 Keep historical signed provenance unchanged.
