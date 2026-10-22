@@ -177,14 +177,6 @@ class SkillMappingTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Duplicate public skill identifier: cpp:style"):
                 sync_generated.discover(root, config)
 
-    def test_identifier_rewrites_are_exact_and_do_not_cascade(self) -> None:
-        body = "cpp:style cpp:style-guide cpp:style_extra prefix-cpp:style docs/cpp:style cpp:build std::string"
-        rewrites = {"cpp:style": "cpp:build", "cpp:build": "base:cpp-build"}
-        self.assertEqual(
-            "cpp:build cpp:style-guide cpp:style_extra prefix-cpp:style docs/cpp:style base:cpp-build std::string",
-            sync_generated.rewrite_identifiers(body, rewrites),
-        )
-
     def test_packaged_scaffold_resource_paths_follow_the_source_map(self) -> None:
         config = sync_generated.load(ROOT / ".agents/plugins/sources.json")
         for plugin, script in (("gpp", "new-gpp-project.sh"), ("msvc", "New-MsvcProject.ps1")):
@@ -194,8 +186,7 @@ class SkillMappingTests(unittest.TestCase):
                 "relative": f".agents/{plugin}/utility/scaffold/SKILL.md",
                 "body": f"---\nname: scaffold\n---\n[script](../scripts/{script})\n<skill-directory>/../scripts/{script}",
             }
-            name, body = sync_generated.package_body(skill, plugin, config["packages"][plugin], config["resources"])
-            self.assertEqual("scaffold", name)
+            body = sync_generated.package_body(skill, plugin, config["resources"])
             self.assertIn(f"[script](../../resources/{plugin}/utility/scripts/{script})", body)
             self.assertIn(f"<skill-directory>/../../resources/{plugin}/utility/scripts/{script}", body)
             self.assertNotIn("../scripts/", body)
@@ -210,7 +201,7 @@ class SkillMappingTests(unittest.TestCase):
         self.assertIn("name: gpp-toolchain\n", body)
         self.assertIn("../../../.agents/gpp/contract/toolchain/SKILL.md", body)
 
-    def test_mapping_validation_rejects_ambiguous_or_cross_scope_names(self) -> None:
+    def test_mapping_validation_rejects_ambiguous_names_and_retired_package_machinery(self) -> None:
         source = sync_generated.load(ROOT / ".agents/plugins/sources.json")
         payloads = sync_generated.load(ROOT / ".agents/plugins/payloads.json")
         scopes = {scope["plugin"]: scope["name"] for scope in source["scopes"]}
@@ -219,16 +210,24 @@ class SkillMappingTests(unittest.TestCase):
             for identifier in source["hostAdapterNames"]
         }
         mutations = (
-            (lambda config: config["hostAdapterNames"].update({"gpp:toolchain": "msvc-toolchain"}), "unique valid flat"),
-            (lambda config: config["packages"]["windows"]["skillNames"].update({"msvc:toolchain": "win32-style"}), "duplicate emitted skill name"),
-            (lambda config: config["packages"]["cpp"]["compatibilitySkillAliases"]["cpp-style"].update({"source": "win32:style"}), "invalid compatibility skill alias"),
-            (lambda config: config["packages"]["cpp"]["compatibilitySkillAliases"]["cpp-style"].update({"removeAfter": "2026-01-01"}), "must retain 2027-03-31"),
+            (lambda config, _: config["hostAdapterNames"].update({"gpp:toolchain": "msvc-toolchain"}), "unique valid flat"),
+            (lambda config, _: config["packages"]["cpp"].update({"compatibilitySkillAliases": {"cpp-style": {"source": "cpp:style"}}}), "declares only its scopes"),
+            (lambda config, _: config["packages"]["cpp"].update({"skillNames": {"cpp:style": "cpp-style"}}), "declares only its scopes"),
+            (lambda config, payloads: (config["packages"].update({"base": {"scopes": ["base"]}}), payloads["payloads"].update({"base": ["base"]})), "exactly the public plugins"),
+            (lambda _, payloads: payloads.update({"compatibilityAliases": {}}), "unknown fields"),
         )
         for mutate, message in mutations:
             config = copy.deepcopy(source)
-            mutate(config)
+            mutated = copy.deepcopy(payloads)
+            mutate(config, mutated)
             with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
-                sync_generated.validate(ROOT, config, payloads, skills)
+                sync_generated.validate(ROOT, config, mutated, skills)
+
+    def test_generated_marketplaces_are_named_tj_agents(self) -> None:
+        output, config = sync_generated.build(ROOT)
+        for host, relative in config["marketplace_outputs"].items():
+            with self.subTest(host=host):
+                self.assertEqual("tj-agents", json.loads(output[relative])["name"])
 
 
 if __name__ == "__main__":

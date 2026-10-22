@@ -22,12 +22,10 @@ class CppStructureTests(unittest.TestCase):
         for guidance in REQUIRED_GUIDANCE:
             self.assertIn(guidance, canonical)
 
-    def test_generated_packages_preserve_meaningful_product_boundaries(self) -> None:
-        for package, capability in (("cpp", "structure"), ("base", "cpp-structure"), ("cpp-standards", "cpp-structure")):
-            generated = normalized(ROOT / f"plugins/{package}/skills/{capability}/SKILL.md")
-            with self.subTest(package=package):
-                for guidance in REQUIRED_GUIDANCE:
-                    self.assertIn(guidance, generated)
+    def test_generated_package_preserves_meaningful_product_boundaries(self) -> None:
+        generated = normalized(ROOT / "plugins/cpp/skills/structure/SKILL.md")
+        for guidance in REQUIRED_GUIDANCE:
+            self.assertIn(guidance, generated)
 
 
 if __name__ == "__main__":
