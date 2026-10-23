@@ -10,7 +10,7 @@ The check runs as `pull_request_target`, reads its workflow from the trusted def
 2. Add and review the attestation script on the default branch in a separate bootstrap PR. The script must inspect candidate Git objects as data; it must never execute candidate-owned code while the maintainer credential is available.
 3. From an exact, clean checkout of canonical `main`, run that trusted script against the producer migration's exact pushed SHA and pinned private checkout, then rerun the gate if its initial missing-status run failed.
 4. Confirm the gate succeeds from the default-branch workflow.
-5. Where the repository plan supports it, add `External contract provenance / repository-binding` to the `main` branch's required checks and require branches to be up to date before merging. Do not mark either bootstrap PR itself as protected retroactively. Until private-repository rulesets are available, a green gate is a mandatory maintainer merge precondition; [TECH_DEBT.md](TECH_DEBT.md) owns the objective enforcement follow-up.
+5. Where the repository plan supports it, add `External contract provenance / repository-binding` to the `main` branch's required checks and require branches to be up to date before merging. Do not mark either bootstrap PR itself as protected retroactively. Until private-repository rulesets are available, a green gate is a mandatory maintainer merge precondition; [cpp#45](https://github.com/tj-agents/cpp/issues/45) owns the objective enforcement follow-up.
 
 This repository must use direct, strictly up-to-date pull-request merges while this check is required. Do not enable GitHub's merge queue: queue entries are synthetic `merge_group` commits, while the security boundary depends on a trusted `pull_request_target` workflow and an attestation bound to the exact PR head. A merge-group workflow would execute a workflow tree that includes pull-request changes and would therefore weaken that boundary.
 
@@ -21,6 +21,25 @@ Future changes to the contract, evidence, verifier, or ordinary CI require a new
 The credential-free attester safety suite parses the trusted script and rejects uncaptured Git or GitHub CLI launches on Ubuntu and Windows. Its Windows leg additionally proves that candidate-owned executables on `PATH` are rejected and that executables placed only in the candidate current directory are not selected. The protected workflow invokes the exact pinned test file in Python isolated mode so candidate modules cannot shadow its standard-library imports. Both the test and its workflow are protected paths whose exact reviewed blobs are pinned by the trusted attester.
 
 Changing the attester, gate workflow, trusted producer identity, or approved object pins is a root-of-trust rotation, not an ordinary two-PR update. Use a dedicated first PR containing only the trust-root change and its documentation, freeze it, and complete independent security, contract, and failure-mode review. If branch protection is available, an administrator temporarily removes only this required check, merges that exact reviewed head after its remaining checks pass, and restores the requirement immediately; record both settings transitions in the PR. On plans without branch protection, the same reviewed bootstrap is the sole manual exception. The next protected PR must exercise the new attester and trusted workflow successfully before ordinary delivery resumes. Never use this procedure to bypass a red check on a non-root change.
+
+## Reviewing candidate-object pin updates
+
+Compare each old and proposed Git blob against the independently reviewed consumer candidate.
+Review the complete protected test and CI bodies: test entry points, signed-evidence verification,
+test discovery and native host validation must still work. Read the approved values from
+`$expectedCandidateObjects` in `.agents/attest-external-contract.ps1` and check them against that
+candidate, rather than the prerequisite branch's older test and CI files. For example, from a
+checkout containing the reviewed consumer commit, on Windows or Linux:
+
+```text
+git rev-parse <reviewed-consumer-sha>:.agents/tests/test_marketplace_contract.py
+git rev-parse <reviewed-consumer-sha>:.github/workflows/ci.yml
+```
+
+After the prerequisite lands, incorporate its trusted attester into the consumer branch and freeze
+the resulting head. Attest that new head from clean canonical `main`; an attestation for the earlier
+consumer head cannot satisfy the updated trust-tool equality check. A pin update alone does not
+prove producer identity, signed-commit verification or successful exact-head attestation.
 
 ## Trust and recovery
 

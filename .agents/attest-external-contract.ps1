@@ -28,9 +28,9 @@ $evidenceRoot = "contracts/concertable-0.1.6"
 $expectedCandidateObjects = [ordered]@{
     ".agents/plugins/skill-contract.json" = "cd5c16c7bffd9e48f21a42ada33ff03528288bfb"
     ".agents/tests/test_attester_safety.py" = "eb279a45b18d60888fe765c5fc8cf4b0d2251fbd"
-    ".agents/tests/test_marketplace_contract.py" = "004c73dc421ed64a71563140b62b4f624f5bec7e"
+    ".agents/tests/test_marketplace_contract.py" = "55c1f0d6493541fea2497d20e319f1604738be57"
     ".github/workflows/attester-safety.yml" = "42652f96cef2be751872cc376719b26d76dc3494"
-    ".github/workflows/ci.yml" = "0e15c93383f209a28dde4b034b5a7754ac74c560"
+    ".github/workflows/ci.yml" = "679d754f1011b5212fbaf998bcce97942febfa22"
     "contracts" = "158049858856c30eb91a37704512d9dcda4283c2"
 }
 
