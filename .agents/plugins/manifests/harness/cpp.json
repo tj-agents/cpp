@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "plugin": "cpp-agents/cpp",
+  "plugin": "tj-agents/cpp",
   "source_roots": [
     ".agents/base",
     ".agents/hooks/session_context.py",
@@ -14,12 +14,12 @@
   "requires": {
     "marketplaces": [
       {
-        "id": "cpp-agents",
-        "repository": "tj-agents/cpp"
+        "id": "tj-agents",
+        "repository": "tj-agents/marketplace"
       }
     ],
     "plugins": [
-      "cpp-agents/cpp"
+      "tj-agents/cpp"
     ],
     "hooks": [
       {

@@ -1,7 +1,6 @@
 import importlib.util
 import json
 import re
-import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,17 +14,15 @@ SPEC.loader.exec_module(session_context)
 
 
 class SessionContextTests(unittest.TestCase):
-    def context(self, platform: str, files: list[str], profile: dict | None = None, kind: str | None = None) -> list[str]:
+    def context(self, platform: str, files: list[str], profile: dict | None = None) -> list[str]:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            if profile is not None or kind is not None:
+            if profile is not None:
                 routes = root / ".agents" / "skill-routes.json"
                 routes.parent.mkdir(parents=True)
                 declaration = {"routes": []}
                 if profile is not None:
                     declaration["profile"] = profile
-                if kind is not None:
-                    declaration["kind"] = kind
                 routes.write_text(json.dumps(declaration), encoding="utf-8")
             with patch.object(session_context, "tracked_project", return_value=(root, files)):
                 return session_context.context_for(root / "nested", platform)
@@ -61,14 +58,14 @@ class SessionContextTests(unittest.TestCase):
     def test_gpp_and_win32_compose(self) -> None:
         context = self.context("win32", ["src/main.cpp"], {"toolchain": "gpp", "apis": ["win32"]})
         combined = "\n".join(context)
-        self.assertIn("cpp@cpp-agents", combined)
+        self.assertIn("cpp@tj-agents", combined)
         self.assertIn("gpp:toolchain", combined)
         self.assertIn("win32:style", combined)
 
     def test_host_os_never_selects_a_compiler(self) -> None:
         for platform in ("win32", "linux"):
             combined = "\n".join(self.context(platform, ["src/main.cpp"]))
-            self.assertIn("cpp@cpp-agents", combined)
+            self.assertIn("cpp@tj-agents", combined)
             self.assertNotIn("gpp:toolchain", combined)
             self.assertNotIn("msvc:toolchain", combined)
 
@@ -82,35 +79,10 @@ class SessionContextTests(unittest.TestCase):
                 context = session_context.context_for(root, "win32")
         combined = "\n".join(context)
         self.assertIn("Consider selecting win32 explicitly", combined)
-        self.assertNotIn("Apply win32@cpp-agents", combined)
+        self.assertNotIn("Apply win32@tj-agents", combined)
         self.assertNotIn("msvc:toolchain", combined)
 
-    def test_legacy_windows_kind_preserves_both_halves(self) -> None:
-        combined = "\n".join(self.context("linux", ["src/main.cpp"], kind="windows"))
-        self.assertIn("msvc:toolchain", combined)
-        self.assertIn("win32:style", combined)
 
-    def test_compatibility_hook_uses_compatibility_namespaces(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            installed = root / "plugins/base/hooks/session_context.py"
-            installed.parent.mkdir(parents=True)
-            shutil.copy2(ROOT / "plugins/base/hooks/session_context.py", installed)
-            spec = importlib.util.spec_from_file_location("compat_hook", installed)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            routes = root / ".agents/skill-routes.json"
-            routes.parent.mkdir(parents=True)
-            routes.write_text(json.dumps({"profile": {"toolchain": "gpp", "apis": ["win32"]}}), encoding="utf-8")
-            with patch.object(module, "tracked_project", return_value=(root, ["src/main.cpp"])):
-                combined = "\n".join(module.context_for(root, "win32"))
-        self.assertIn("base:cpp-style", combined)
-        self.assertIn("base:domain-design", combined)
-        self.assertIn("gcc:gcc-toolchain", combined)
-        self.assertIn("windows:win32-style", combined)
-        self.assertNotIn("cpp:style", combined)
-        self.assertNotIn("gpp:toolchain", combined)
-        self.assertNotIn("win32:style", combined)
 
     def test_windows_detection_uses_git_grep_without_opening_sources(self) -> None:
         completed = session_context.subprocess.CompletedProcess([], 0)

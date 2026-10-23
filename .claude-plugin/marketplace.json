@@ -1,5 +1,5 @@
 {
-  "name": "cpp-agents",
+  "name": "tj-agents",
   "description": "Independent C++, G++, MSVC, and Win32 guidance for Claude Code and Codex.",
   "owner": {
     "name": "Tommy Seery"
@@ -20,26 +20,6 @@
     {
       "name": "win32",
       "source": "./plugins/win32"
-    },
-    {
-      "name": "base",
-      "source": "./plugins/base"
-    },
-    {
-      "name": "gcc",
-      "source": "./plugins/gcc"
-    },
-    {
-      "name": "windows",
-      "source": "./plugins/windows"
-    },
-    {
-      "name": "cpp-standards",
-      "source": "./plugins/cpp-standards"
-    },
-    {
-      "name": "gpp-standards",
-      "source": "./plugins/gpp-standards"
     }
   ]
 }

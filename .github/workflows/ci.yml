@@ -31,8 +31,8 @@ jobs:
         shell: bash
         run: |
           codex plugin marketplace add .
-          for plugin in cpp gpp msvc win32 base gcc windows cpp-standards gpp-standards; do
-            codex plugin add "$plugin@cpp-agents"
+          for plugin in cpp gpp msvc win32; do
+            codex plugin add "$plugin@tj-agents"
           done
           codex plugin list --json
       - name: Validate marketplace and plugins with Claude Code

@@ -2,6 +2,7 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -11,6 +12,23 @@ SPEC.loader.exec_module(SYNC)
 
 
 class CapabilityHarnessTests(unittest.TestCase):
+    def test_both_host_catalogs_publish_the_shared_identity(self):
+        output, _ = SYNC.build(ROOT)
+        for relative in (".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json"):
+            self.assertEqual("tj-agents", json.loads(output[relative])["name"])
+
+    def test_generator_rejects_reintroduced_producer_requirements(self):
+        load = SYNC.load
+        for package in ("cpp", "gpp"):
+            def legacy(path):
+                value = load(path)
+                if path == ROOT / f".agents/plugins/manifests/harness/{package}.json":
+                    value["requires"]["plugins"][0] = f"cpp-agents/{package}"
+                return value
+            with self.subTest(package=package), mock.patch.object(SYNC, "load", side_effect=legacy):
+                with self.assertRaisesRegex(ValueError, "canonical tj-agents marketplace identities"):
+                    SYNC.build(ROOT)
+
     def test_canonical_harnesses_match_owned_package_contracts(self):
         payloads = json.loads((ROOT / ".agents/plugins/payloads.json").read_text(encoding="utf-8"))
         config = json.loads((ROOT / ".agents/plugins/sources.json").read_text(encoding="utf-8"))
@@ -19,11 +37,11 @@ class CapabilityHarnessTests(unittest.TestCase):
                 source = ROOT / f".agents/plugins/manifests/harness/{package}.json"
                 harness = json.loads(source.read_text(encoding="utf-8"))
                 self.assertEqual(harness["schema_version"], 1)
-                self.assertEqual(harness["plugin"], f"cpp-agents/{package}")
+                self.assertEqual(harness["plugin"], f"tj-agents/{package}")
                 requires = harness["requires"]
-                self.assertEqual(requires["marketplaces"], [{"id": "cpp-agents", "repository": "tj-agents/cpp"}])
+                self.assertEqual(requires["marketplaces"], [{"id": "tj-agents", "repository": "tj-agents/marketplace"}])
                 dependencies = payloads["dependencies"].get(package, [])
-                self.assertEqual(requires["plugins"], [f"cpp-agents/{name}" for name in [package, *dependencies]])
+                self.assertEqual(requires["plugins"], [f"tj-agents/{name}" for name in [package, *dependencies]])
                 self.assertEqual(requires["permissions"], {"claude_allow": [], "codex_prefix_rules": []})
                 expected_hooks = [{"path": "hooks/session_context.py", "hosts": ["claude", "codex"]}] if package in payloads["hooks"] else []
                 self.assertEqual(requires["hooks"], expected_hooks)
