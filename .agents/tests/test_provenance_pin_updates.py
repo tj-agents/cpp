@@ -306,6 +306,25 @@ class PinUpdateTests(unittest.TestCase):
         with self.assertRaises(updates.TrustRootChange):
             updates.proposal(self.api, 42)
 
+    def test_candidate_tool_removal_or_type_change_requires_manual_bootstrap(self):
+        for edit in ("remove", "symlink"):
+            with self.subTest(edit=edit):
+                api = FakeGitHub()
+                if edit == "remove":
+                    del api.candidate_objects[updates.GATE]
+                else:
+                    api.candidate_objects[updates.GATE]["mode"] = "120000"
+                with self.assertRaises(updates.TrustRootChange):
+                    updates.proposal(api, 42)
+                self.assertEqual([], api.writes)
+
+    def test_missing_trusted_main_tool_remains_a_hard_failure(self):
+        del self.api.base_objects[updates.GATE]
+        with self.assertRaises(updates.UpdateError) as result:
+            updates.proposal(self.api, 42)
+        self.assertNotIsInstance(result.exception, updates.TrustRootChange)
+        self.assertEqual([], self.api.writes)
+
 
 if __name__ == "__main__":
     unittest.main()
