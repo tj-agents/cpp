@@ -651,7 +651,7 @@ Primary references supporting the design:
   trusted attester on `main` (marketplace tests and CI). Missing attestation is therefore
   not resolved by simply rerunning the old script. The separate reviewed trust-pin update
   and objective completion condition are owned by
-  [the provenance debt entry](../../TECH_DEBT.md#review-provenance-pins-for-the-canonical-capability-migration).
+  the provenance debt entry, since retired from the deleted `TECH_DEBT.md`.
   Preserve this gate when updating PR #13; do not weaken it or post an unverified success.
 - 2026-09-23 correction resumed by the current Codex session at Tommy's request. The source
   checkout is clean at `f2f4ecd1082a2e7d7f71ac1e9abed062942ebb15`; PR #13 is open at that
