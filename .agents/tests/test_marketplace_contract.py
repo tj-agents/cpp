@@ -7,7 +7,6 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from datetime import date
 from pathlib import Path
 
 
@@ -107,8 +106,6 @@ class MarketplaceContractTests(unittest.TestCase):
         self.assertEqual(["cpp"], dependencies["gpp"])
         self.assertEqual(["cpp"], dependencies["msvc"])
         self.assertEqual(["cpp"], dependencies["win32"])
-        self.assertEqual(["base"], dependencies["windows"])
-        self.assertEqual(["base"], dependencies["gcc"])
         for plugin, required in dependencies.items():
             self.assertIn(plugin, names)
             self.assertNotIn(plugin, required)
@@ -129,17 +126,8 @@ class MarketplaceContractTests(unittest.TestCase):
         for name in names:
             visit(name, set(), complete)
 
-    def test_compatibility_aliases_are_time_bounded_and_not_public(self) -> None:
-        public = set(self.payloads["publicPlugins"])
-        aliases = self.payloads["compatibilityAliases"]
-        self.assertEqual({"base", "gcc", "windows", "cpp-standards", "gpp-standards"}, set(aliases))
-        for name, alias in aliases.items():
-            self.assertNotIn(name, public)
-            replacements = alias["replacedBy"] if isinstance(alias["replacedBy"], list) else [alias["replacedBy"]]
-            self.assertTrue(set(replacements) <= public)
-            self.assertGreaterEqual(date.fromisoformat(alias["removeAfter"]), date.today())
-        self.assertEqual(["msvc", "win32"], aliases["windows"]["replacedBy"])
-        self.assertTrue(aliases["windows"]["requiresExplicitSplit"])
+    def test_retired_aliases_are_absent(self) -> None:
+        self.assertNotIn("compatibilityAliases", self.payloads)
 
     def test_generated_routes_reference_real_skill_contracts(self) -> None:
         scope_plugins = {scope["name"]: scope["plugin"] for scope in self.sources["scopes"]}
@@ -353,36 +341,6 @@ class MarketplaceContractTests(unittest.TestCase):
         retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
         hooks = [ROOT / ".agents" / "hooks" / "session_context.py", ROOT / "plugins" / "cpp" / "hooks" / "session_context.py"]
         self.assertEqual([], [path.relative_to(ROOT).as_posix() for path in hooks if retired.search(path.read_text(encoding="utf-8"))])
-
-    def test_compatibility_skill_instructions_use_available_namespaces(self) -> None:
-        identifier = re.compile(r"(?<![-/\w])([a-z0-9-]+):(?!:)([a-z][a-z0-9-]+)")
-        directive = re.compile(r"(?i)\b(load|apply|follow|requires?|on top of|supplies)\b")
-        inventories = {plugin: {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")} for plugin in self.payloads["payloads"]}
-        offenders = []
-        for plugin in self.payloads["compatibilityAliases"]:
-            available = {plugin, *self.payloads["dependencies"].get(plugin, [])}
-            for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md"):
-                for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                    if not directive.search(line):
-                        continue
-                    for namespace, skill in identifier.findall(line):
-                        if namespace not in available or skill not in inventories.get(namespace, set()):
-                            offenders.append(f"{path.relative_to(ROOT).as_posix()}:{line_number}: {namespace}:{skill}")
-        self.assertEqual([], offenders)
-
-    def test_compatibility_payload_skill_identifiers_resolve(self) -> None:
-        identifier = re.compile(r"(?<![-/\w])([a-z0-9-]+):(?!:)([a-z][a-z0-9-]+)")
-        inventories = {plugin: {path.parent.name for path in (ROOT / "plugins" / plugin / "skills").glob("*/SKILL.md")} for plugin in self.payloads["payloads"]}
-        inventories.update({plugin: set(contract["skills"]) for plugin, contract in self.contract["legacyExternalPlugins"].items()})
-        offenders = []
-        for plugin in self.payloads["compatibilityAliases"]:
-            package_root = ROOT / "plugins" / plugin
-            for pattern in ("*.md", "*.py"):
-                for path in package_root.rglob(pattern):
-                    for namespace, skill in identifier.findall(path.read_text(encoding="utf-8")):
-                        if namespace not in inventories or skill not in inventories[namespace]:
-                            offenders.append(f"{path.relative_to(ROOT).as_posix()}: {namespace}:{skill}")
-        self.assertEqual([], offenders)
 
 
 if __name__ == "__main__":

@@ -17,10 +17,6 @@ WINDOWS_RESOURCE_PATH = r"(?i:\.(rc|manifest))$"
 MSVC_BUILD_PATH = r"(?i:\.(vcxproj|props|targets|sln|slnx))$"
 TOOLCHAINS = ("gpp", "msvc")
 APIS = ("win32",)
-LEGACY_KINDS = ("generic", "portable", "gcc", "gpp", "windows")
-LEGACY_LAYERS = ("gcc", "windows")
-
-
 def normalize(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> tuple[str | None, tuple[str, ...]]:
     if toolchain not in (None, *TOOLCHAINS):
         raise ValueError(f"unknown toolchain: {toolchain}")
@@ -28,33 +24,6 @@ def normalize(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = 
     if unknown:
         raise ValueError(f"unknown API selection(s): {', '.join(sorted(unknown))}")
     return toolchain, tuple(api for api in APIS if api in apis)
-
-
-def legacy_selection(kind: str | None = None, layers: list[str] | tuple[str, ...] = ()) -> tuple[str | None, tuple[str, ...]]:
-    if kind:
-        if kind not in LEGACY_KINDS:
-            raise ValueError(f"unknown legacy kind: {kind}")
-        if kind in ("generic", "portable"):
-            return normalize()
-        if kind in ("gcc", "gpp"):
-            return normalize("gpp")
-        return normalize("msvc", ["win32"])
-    unknown = set(layers) - set(LEGACY_LAYERS)
-    if unknown:
-        raise ValueError(f"unknown legacy layer(s): {', '.join(sorted(unknown))}")
-    toolchain = "gpp" if "gcc" in layers else ("msvc" if "windows" in layers else None)
-    apis = ["win32"] if "windows" in layers else []
-    return normalize(toolchain, apis)
-
-
-def compatibility_kind(toolchain: str | None, apis: tuple[str, ...]) -> str:
-    if toolchain is None and not apis:
-        return "generic"
-    if toolchain == "gpp" and not apis:
-        return "gpp"
-    if toolchain == "msvc" and apis == ("win32",):
-        return "windows"
-    return "composed"
 
 
 def routes(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> dict:
@@ -77,16 +46,10 @@ def routes(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ())
             "Toolchain and API selections are independent. Host OS never chooses a compiler.",
             "Every matching technical route fires; no process plugin is required.",
         ],
-        "kind": compatibility_kind(toolchain, apis),
         "profile": {"toolchain": toolchain, "apis": list(apis)},
         "layers": layers,
         "routes": result,
     }
-
-
-def routes_from_legacy(kind: str | None = None, layers: list[str] | tuple[str, ...] = ()) -> dict:
-    toolchain, apis = legacy_selection(kind, layers)
-    return routes(toolchain, apis)
 
 
 def rendered(toolchain: str | None = None, apis: list[str] | tuple[str, ...] = ()) -> str:
@@ -128,9 +91,6 @@ def self_test() -> int:
             root = Path(temporary) / str(index)
             if write_or_check(toolchain, apis, root, False) or write_or_check(toolchain, apis, root, True):
                 return 1
-    if legacy_selection("windows") != ("msvc", ("win32",)) or legacy_selection("gcc") != ("gpp", ()):
-        print("legacy profile normalization failed")
-        return 1
     cases = {
         ((None, ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure"},
         (("msvc", ()), "src/main.cpp"): {"cpp:style", "cpp:domain-design", "cpp:mixins", "cpp:structure", "msvc:toolchain"},
@@ -157,23 +117,17 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--toolchain", choices=TOOLCHAINS)
     parser.add_argument("--api", action="append", choices=APIS, default=[])
-    parser.add_argument("--kind", choices=LEGACY_KINDS)
-    parser.add_argument("--layer", action="append", choices=LEGACY_LAYERS, default=[])
     parser.add_argument("--into", type=Path)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
-        if any((args.toolchain, args.api, args.kind, args.layer, args.into, args.check)):
+        if any((args.toolchain, args.api, args.into, args.check)):
             parser.error("--self-test cannot be combined with generation arguments")
         return self_test()
-    if args.kind and args.layer:
-        parser.error("legacy --kind and --layer cannot be combined")
-    if (args.kind or args.layer) and (args.toolchain or args.api):
-        parser.error("legacy --kind/--layer cannot be combined with --toolchain/--api")
     if not args.into:
         parser.error("--into is required")
-    toolchain, apis = legacy_selection(args.kind, args.layer) if (args.kind or args.layer) else normalize(args.toolchain, args.api)
+    toolchain, apis = normalize(args.toolchain, args.api)
     return write_or_check(toolchain, list(apis), args.into.resolve(), args.check)
 
 

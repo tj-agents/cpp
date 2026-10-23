@@ -25,8 +25,6 @@ resources it runs, so no package depends on another installation. Scaffold route
 rendered by `gen_skill_routes.py` during generation and ship only in the canonical packages,
 because they name canonical identifiers.
 
-`.agents/plugins/package-versions.json` records, append-only, the content digest of every
-published package version. Changing a package without a version bump fails the tests.
 
 Capability identity is the pair of plugin and name, such as `cpp:style` or `win32:style`.
 Authored directories and canonical plugin payloads use the short name. Flat host discovery
@@ -45,15 +43,8 @@ Generated routes contain technical skills only. Engineering workflows are indepe
 installed; this repository retains immutable provenance evidence for the historical external
 contract without making it a compulsory new-route dependency.
 
-## Compatibility
+## Canonical selection
 
-`base -> cpp` and `gcc -> gpp` are explicit package/selector migrations. `cpp-standards` and
-`gpp-standards` remain aliases through 2027-03-31. Because old `windows` combined compiler and API
-assumptions, its compatibility package contains both `msvc` and `win32` payloads. It must never be
-mapped automatically to only one replacement.
-
-Canonical packages also retain generated redirects for their previously published redundant
-names until 2027-03-31. Compatibility packages keep their original capability names and
-rewritten internal references. All bodies originate in the same short-name authored source.
+Only cpp, gpp, msvc, and win32 are published. Select compiler and API layers explicitly; the generator does not retain aliases for superseded identifiers.
 
 WDK and kernel capabilities remain outside this user-mode architecture until separately validated.

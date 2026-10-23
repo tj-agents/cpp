@@ -237,16 +237,11 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
     for package, dependencies in payloads.get("dependencies", {}).items():
         if package not in packages or set(dependencies) - set(packages):
             raise ValueError(f"{package}: invalid dependencies")
-    aliases = payloads["compatibilityAliases"]
-    if set(aliases) != {"base", "gcc", "windows", "cpp-standards", "gpp-standards"}:
-        raise ValueError("Compatibility package roster changed")
-    if any(alias["removeAfter"] != COMPATIBILITY_DEADLINE for alias in aliases.values()):
-        raise ValueError(f"Compatibility packages must retain {COMPATIBILITY_DEADLINE}")
-    if packages["windows"]["scopes"] != ["msvc", "win32"]:
-        raise ValueError("The compatibility windows package must retain both MSVC and Win32")
+    if "compatibilityAliases" in payloads:
+        raise ValueError("Compatibility aliases are retired; remove the declaration")
     if hook_packages != set(payloads["hooks"]):
         raise ValueError("Hook package declarations differ")
-    return [*public, *(name for name in packages if name not in public)]
+    return [*public]
 
 
 def adapter_body(skill: dict, root_name: str, adapter_name: str) -> str:
@@ -444,7 +439,13 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
 
         harness = root / ".agents/plugins/manifests/harness" / f"{package}.json"
         if harness.is_file():
-            load(harness)
+            declaration = load(harness)
+            requires = declaration.get("requires", {})
+            expected = [f"tj-agents/{name}" for name in [package, *payloads["dependencies"].get(package, [])]]
+            if (declaration.get("plugin") != f"tj-agents/{package}"
+                    or requires.get("marketplaces") != [{"id": "tj-agents", "repository": "tj-agents/marketplace"}]
+                    or requires.get("plugins") != expected):
+                raise ValueError(f"{harness}: use canonical tj-agents marketplace identities")
             emit(f"{package_root}/{package}/harness.json", read(harness))
 
         index = [f"# {package} capabilities", "", "Generated from canonical `.agents/` definitions.", ""]
@@ -505,8 +506,8 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
             "category": "Productivity",
         })
         claude_plugins.append({"name": package, "source": f"./{package_root}/{package}"})
-    emit(config["marketplace_outputs"]["codex"], json.dumps({"name": "cpp-agents", "interface": {"displayName": "C++ Agents"}, "plugins": codex_plugins}, indent=2) + "\n")
-    emit(config["marketplace_outputs"]["claude"], json.dumps({"name": "cpp-agents", "description": payloads["description"], "owner": {"name": "Tommy Seery"}, "plugins": claude_plugins}, indent=2) + "\n")
+    emit(config["marketplace_outputs"]["codex"], json.dumps({"name": "tj-agents", "interface": {"displayName": "C++ Agents"}, "plugins": codex_plugins}, indent=2) + "\n")
+    emit(config["marketplace_outputs"]["claude"], json.dumps({"name": "tj-agents", "description": payloads["description"], "owner": {"name": "Tommy Seery"}, "plugins": claude_plugins}, indent=2) + "\n")
     return output, config
 
 
@@ -524,6 +525,7 @@ def existing_files(root: Path, generated_roots: list[str]) -> set[str]:
 
 
 def synchronize(root: Path, check: bool) -> int:
+    root = root.resolve()
     output, config = build(root)
     expected = set(output)
     actual = existing_files(root, config["generated_roots"])
