@@ -341,3 +341,7 @@ class MarketplaceContractTests(unittest.TestCase):
         retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
         hooks = [ROOT / ".agents" / "hooks" / "session_context.py", ROOT / "plugins" / "cpp" / "hooks" / "session_context.py"]
         self.assertEqual([], [path.relative_to(ROOT).as_posix() for path in hooks if retired.search(path.read_text(encoding="utf-8"))])
+
+
+if __name__ == "__main__":
+    unittest.main()
