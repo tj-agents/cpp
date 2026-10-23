@@ -35,6 +35,13 @@ class UpdateError(Exception):
     pass
 
 
+class TrustRootChange(UpdateError):
+    def __init__(self, number, head, main):
+        super().__init__("Consumer trust tools differ from main; synchronize an ordinary consumer or use the dedicated manual bootstrap for intentional root changes")
+        self.record = {"repository": REPOSITORY, "consumer_pr": number, "consumer_head": head,
+                       "base": main, "manual_bootstrap": True, "reason": str(self)}
+
+
 class GitHub:
     def __init__(self):
         self.executable = shutil.which("gh")
@@ -151,7 +158,7 @@ def proposal(api, number, expected_head=None, expected_main=None):
     _, candidate_objects = object_inventory(api, head)
     for path in TRUST_TOOLS:
         if object_sha(base_objects, path, "blob") != object_sha(candidate_objects, path, "blob"):
-            raise UpdateError("Consumer trust tools differ from main; synchronize the consumer first")
+            raise TrustRootChange(number, head, main)
     blob_id = object_sha(base_objects, ATTESTER, "blob")
     source = read_blob(api, blob_id)
     _, old = read_pins(source)
@@ -243,13 +250,17 @@ def main():
         if args.publish:
             print(publish(api, json.loads(args.publish.read_text(encoding="utf-8")), args.bot_login) or "No pin changes")
         else:
-            record, _, _ = proposal(api, args.pr, args.expected_head, args.trusted_main)
+            try:
+                record, _, _ = proposal(api, args.pr, args.expected_head, args.trusted_main)
+            except TrustRootChange as error:
+                record = error.record
             rendered = json.dumps(record, indent=2) + "\n"
             if args.output:
                 args.output.write_text(rendered, encoding="utf-8")
             print(rendered, end="")
             if os.environ.get("GITHUB_OUTPUT"):
-                needs_publish = bool(record["updates"]) or bool(open_proposals(api, record["branch"]))
+                needs_publish = (not record.get("manual_bootstrap") and
+                                 (bool(record["updates"]) or bool(open_proposals(api, record["branch"]))))
                 with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
                     output.write(f"needs_publish={str(needs_publish).lower()}\n")
     except (UpdateError, OSError, ValueError, KeyError, TypeError) as error:

@@ -288,6 +288,24 @@ class PinUpdateTests(unittest.TestCase):
             self.assertIn("needs_publish=true", output.read_text())
         self.assertEqual([], self.api.writes)
 
+    def test_root_change_cli_preserves_bootstrap_review_without_publishing(self):
+        self.api.candidate_objects[updates.GATE]["sha"] = "e" * 40
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "github-output"
+            artifact = Path(temporary) / "proposal.json"
+            with (mock.patch.object(updates, "GitHub", return_value=self.api),
+                  mock.patch.object(updates.sys, "argv", ["updater", "--pr", "42", "--output", str(artifact)]),
+                  mock.patch.dict(updates.os.environ, {"GITHUB_OUTPUT": str(output)}),
+                  redirect_stdout(io.StringIO())):
+                self.assertEqual(0, updates.main())
+            self.assertIn("needs_publish=false", output.read_text())
+            record = json.loads(artifact.read_text())
+            self.assertTrue(record["manual_bootstrap"])
+            self.assertEqual(self.api.head, record["consumer_head"])
+        self.assertEqual([], self.api.writes)
+        with self.assertRaises(updates.TrustRootChange):
+            updates.proposal(self.api, 42)
+
 
 if __name__ == "__main__":
     unittest.main()
