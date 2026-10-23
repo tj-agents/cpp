@@ -97,6 +97,42 @@ def replace_pins(source, objects):
     return source[:block.start("entries")] + entries + newline + source[block.end("entries"):]
 
 
+def read_blob(api, blob_id):
+    blob = api.api(f"git/blobs/{require_sha(blob_id)}")
+    if blob.get("encoding") != "base64":
+        raise UpdateError("Expected a base64 attester blob")
+    content = base64.b64decode(blob["content"])
+    actual = hashlib.sha1(b"blob " + str(len(content)).encode() + b"\0" + content).hexdigest()
+    if actual != blob_id:
+        raise UpdateError("Attester bytes do not match the trusted Git object")
+    return content.decode("utf-8")
+
+
+def open_proposals(api, branch):
+    query = urlencode({"state": "open", "base": "main", "head": f"tj-agents:{branch}"})
+    return api.api(f"pulls?{query}")
+
+
+def check_generated_branch(api, previous, commit, record, bot_login):
+    if (commit.get("author") or {}).get("login") != bot_login:
+        raise UpdateError("Update branch contains a head from another author; preserve it")
+    parent = require_sha(commit["parents"][0]["sha"])
+    reachable = api.api(f"compare/{parent}...{record['base']}")
+    if (reachable["base_commit"]["sha"] != parent or reachable["merge_base_commit"]["sha"] != parent
+            or reachable["status"] not in ("ahead", "identical")):
+        raise UpdateError("Update branch has an unrecognized base; preserve it")
+    comparison = api.api(f"compare/{parent}...{previous}")
+    files = comparison.get("files", [])
+    if (len(files) != 1 or files[0]["filename"] != ATTESTER or files[0]["status"] != "modified"):
+        raise UpdateError("Update branch contains unexpected file changes; preserve it")
+    baseline = api.api(f"contents/{ATTESTER}?ref={parent}")["sha"]
+    original = read_blob(api, baseline)
+    changed = read_blob(api, files[0]["sha"])
+    masked = {path: "0" * 40 for path in PIN_TYPES}
+    if replace_pins(original, masked) != replace_pins(changed, masked):
+        raise UpdateError("Update branch contains edits outside generated pin values; preserve it")
+
+
 def proposal(api, number, expected_head=None, expected_main=None):
     if type(number) is not int or number < 1:
         raise UpdateError("Consumer PR must be a positive integer")
@@ -117,14 +153,7 @@ def proposal(api, number, expected_head=None, expected_main=None):
         if object_sha(base_objects, path, "blob") != object_sha(candidate_objects, path, "blob"):
             raise UpdateError("Consumer trust tools differ from main; synchronize the consumer first")
     blob_id = object_sha(base_objects, ATTESTER, "blob")
-    blob = api.api(f"git/blobs/{blob_id}")
-    if blob.get("encoding") != "base64":
-        raise UpdateError("Expected a base64 attester blob")
-    content = base64.b64decode(blob["content"])
-    actual = hashlib.sha1(b"blob " + str(len(content)).encode() + b"\0" + content).hexdigest()
-    if actual != blob_id:
-        raise UpdateError("Attester bytes do not match the trusted Git object")
-    source = content.decode("utf-8")
+    source = read_blob(api, blob_id)
     _, old = read_pins(source)
     new = {path: object_sha(candidate_objects, path, kind) for path, kind in PIN_TYPES.items()}
     updates = {path: {"old": old[path], "new": new[path]} for path in PIN_TYPES if old[path] != new[path]}
@@ -157,19 +186,25 @@ def publish(api, saved, bot_login):
     record, source, base_tree = proposal(api, saved["consumer_pr"], saved["consumer_head"])
     if record != saved:
         raise UpdateError("Main or proposal changed; generate a fresh proposal")
-    if not record["updates"]:
-        return None
     branch = record["branch"]
-    existing = api.api(f"git/ref/heads/{branch}", missing_ok=True)
-    query = urlencode({"state": "open", "base": "main", "head": f"tj-agents:{branch}"})
-    pulls = api.api(f"pulls?{query}")
+    pulls = open_proposals(api, branch)
     if len(pulls) > 1 or any(pull["user"]["login"] != bot_login for pull in pulls):
         raise UpdateError("Update branch already has a different PR owner")
+    if pulls and pulls[0].get("draft") is not True:
+        raise UpdateError("Update PR is ready for review; preserve its frozen head and body")
+    if not record["updates"] and not pulls:
+        return None
+    existing = api.api(f"git/ref/heads/{branch}", missing_ok=True)
+    if pulls and existing is None:
+        raise UpdateError("Existing update PR has no branch; preserve it for reconciliation")
     if existing:
         previous = require_sha(existing["object"]["sha"])
         commit = api.api(f"commits/{previous}")
-        if (commit.get("author") or {}).get("login") != bot_login:
-            raise UpdateError("Update branch contains a head from another author; preserve it")
+        check_generated_branch(api, previous, commit, record, bot_login)
+    if not record["updates"]:
+        pull = api.api(f"pulls/{pulls[0]['number']}", method="PATCH", body={"state": "closed", "body":
+            pulls[0]["body"] + f"\n## Superseded\n\nConsumer {record['consumer_head']} now matches the approved pins; closed the obsolete draft.\n"})
+        return pull["html_url"]
     blob = api.api("git/blobs", method="POST", body={"content": source, "encoding": "utf-8"})
     tree = api.api("git/trees", method="POST", body={"base_tree": base_tree, "tree": [
         {"path": ATTESTER, "mode": "100644", "type": "blob", "sha": blob["sha"]}]})
@@ -214,8 +249,9 @@ def main():
                 args.output.write_text(rendered, encoding="utf-8")
             print(rendered, end="")
             if os.environ.get("GITHUB_OUTPUT"):
+                needs_publish = bool(record["updates"]) or bool(open_proposals(api, record["branch"]))
                 with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-                    output.write(f"changed={str(bool(record['updates'])).lower()}\n")
+                    output.write(f"needs_publish={str(needs_publish).lower()}\n")
     except (UpdateError, OSError, ValueError, KeyError, TypeError) as error:
         print(f"Provenance update failed: {error}", file=sys.stderr)
         return 1

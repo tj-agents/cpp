@@ -3,13 +3,6 @@ name: Update provenance pins
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - .agents/plugins/skill-contract.json
-      - .agents/tests/test_attester_safety.py
-      - .agents/tests/test_marketplace_contract.py
-      - .github/workflows/attester-safety.yml
-      - .github/workflows/ci.yml
-      - contracts/**
   workflow_dispatch:
     inputs:
       consumer_pr:
@@ -58,7 +51,7 @@ jobs:
           path: ${{ runner.temp }}/provenance-pins.json
           retention-days: 14
       - name: Require publishing identity
-        if: steps.proposal.outputs.changed == 'true'
+        if: steps.proposal.outputs.needs_publish == 'true'
         env:
           APP_ID: ${{ vars.TJ_AGENTS_APP_ID }}
           APP_KEY: ${{ secrets.TJ_AGENTS_APP_PRIVATE_KEY }}
@@ -68,7 +61,7 @@ jobs:
             exit 1
           fi
       - name: Create repository-scoped publishing token
-        if: steps.proposal.outputs.changed == 'true'
+        if: steps.proposal.outputs.needs_publish == 'true'
         id: app
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         with:
@@ -79,7 +72,7 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
       - name: Open or update the dedicated pin PR
-        if: steps.proposal.outputs.changed == 'true'
+        if: steps.proposal.outputs.needs_publish == 'true'
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           BOT_LOGIN: ${{ steps.app.outputs.app-slug }}[bot]

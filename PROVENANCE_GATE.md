@@ -49,6 +49,12 @@ and blobs as data, and creates or updates one draft `Chore/ProvenancePins-<consu
 Each proposal records the consumer SHA and every old/new object ID. Repeating an unchanged
 proposal reuses its branch and PR; a current consumer produces no update. Candidate trust tools
 must already match `main`, so synchronize the consumer after each trusted-tool change.
+If the consumer reverts its protected changes, the updater closes its obsolete owned draft.
+Wait for the updater run to finish before marking its proposal ready for review. Subsequent
+updater runs preserve that ready proposal's head and body for the frozen bootstrap review;
+reconcile further consumer changes explicitly. Before updating an existing
+branch, it verifies that the prior generated commit changes only pin values from an authenticated
+ancestor of `main`. Unexpected branch edits are preserved for their owner.
 
 Publishing uses the Personal GitHub App installed on this repository. Configure repository or
 organization variable `TJ_AGENTS_APP_ID` and secret `TJ_AGENTS_APP_PRIVATE_KEY`; the App needs
