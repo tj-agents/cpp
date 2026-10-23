@@ -1,5 +1,5 @@
 {
-  "name": "cpp-agents",
+  "name": "tj-agents",
   "description": "Independent C++, G++, MSVC, and Win32 guidance for Claude Code and Codex.",
   "owner": {
     "name": "Tommy Seery"
