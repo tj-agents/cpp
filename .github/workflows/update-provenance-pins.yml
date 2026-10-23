@@ -1,0 +1,88 @@
+name: Update provenance pins
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - .agents/plugins/skill-contract.json
+      - .agents/tests/test_attester_safety.py
+      - .agents/tests/test_marketplace_contract.py
+      - .github/workflows/attester-safety.yml
+      - .github/workflows/ci.yml
+      - contracts/**
+  workflow_dispatch:
+    inputs:
+      consumer_pr:
+        description: Canonical open consumer PR targeting main
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: provenance-pins-${{ github.event.pull_request.number || inputs.consumer_pr }}
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    if: >-
+      github.repository == 'tj-agents/cpp' &&
+      ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        !startsWith(github.event.pull_request.head.ref, 'Chore/ProvenancePins-')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Calculate consumer Git-object pins
+        id: proposal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.consumer_pr }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          python3 -I .github/scripts/update_provenance_pins.py
+          --pr "$PR_NUMBER" --expected-head "$EXPECTED_HEAD"
+          --trusted-main "$(git rev-parse HEAD)"
+          --output "$RUNNER_TEMP/provenance-pins.json"
+      - name: Preserve generated proposal
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: provenance-pins-${{ github.event.pull_request.number || inputs.consumer_pr }}
+          path: ${{ runner.temp }}/provenance-pins.json
+          retention-days: 14
+      - name: Require publishing identity
+        if: steps.proposal.outputs.changed == 'true'
+        env:
+          APP_ID: ${{ vars.TJ_AGENTS_APP_ID }}
+          APP_KEY: ${{ secrets.TJ_AGENTS_APP_PRIVATE_KEY }}
+        run: |
+          if [[ -z "$APP_ID" || -z "$APP_KEY" ]]; then
+            echo 'Configure TJ_AGENTS_APP_ID and TJ_AGENTS_APP_PRIVATE_KEY for the repository GitHub App. The calculated proposal is available in artifacts.' >&2
+            exit 1
+          fi
+      - name: Create repository-scoped publishing token
+        if: steps.proposal.outputs.changed == 'true'
+        id: app
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        with:
+          app-id: ${{ vars.TJ_AGENTS_APP_ID }}
+          private-key: ${{ secrets.TJ_AGENTS_APP_PRIVATE_KEY }}
+          owner: tj-agents
+          repositories: cpp
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Open or update the dedicated pin PR
+        if: steps.proposal.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          BOT_LOGIN: ${{ steps.app.outputs.app-slug }}[bot]
+        run: >-
+          python3 -I .github/scripts/update_provenance_pins.py
+          --publish "$RUNNER_TEMP/provenance-pins.json" --bot-login "$BOT_LOGIN"
