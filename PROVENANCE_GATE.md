@@ -41,6 +41,36 @@ the resulting head. Attest that new head from clean canonical `main`; an attesta
 consumer head cannot satisfy the updated trust-tool equality check. A pin update alone does not
 prove producer identity, signed-commit verification or successful exact-head attestation.
 
+## Automatic pin update proposals
+
+The `Update provenance pins` workflow calculates proposed pins when a canonical consumer PR
+changes a protected object. It runs the helper from `main`, reads the consumer's exact Git trees
+and blobs as data, and creates or updates one draft `Chore/ProvenancePins-<consumer-pr>` PR.
+Each proposal records the consumer SHA and every old/new object ID. Repeating an unchanged
+proposal reuses its branch and PR; a current consumer produces no update. Candidate trust tools
+must already match `main`, so synchronize the consumer after each trusted-tool change.
+
+Publishing uses the Personal GitHub App installed on this repository. Configure repository or
+organization variable `TJ_AGENTS_APP_ID` and secret `TJ_AGENTS_APP_PRIVATE_KEY`; the App needs
+Contents and Pull requests write permissions for `cpp`. The workflow mints a token scoped to
+this repository and revokes it afterward. These credentials stay in GitHub Actions. Repository
+Actions-token PR creation settings and workstation credentials do not need changing. Until the
+App is configured, a changed proposal is saved as an artifact and publishing fails with a named
+configuration diagnostic; the updater is not operationally complete.
+
+For an existing open consumer, run the same entry point from Windows or Linux:
+
+```text
+gh workflow run update-provenance-pins.yml --repo tj-agents/cpp --ref main -f consumer_pr=42
+```
+
+Use an open consumer PR number in place of the example. The generated PR has nonempty Why/What
+sections, the exact consumer identity, and a `human-gate` label. Review the complete protected
+objects using the bootstrap procedure above; proposal generation does not authenticate the
+private producer or issue provenance. The updater's own script and workflow are protected trust
+tools and require their own independently reviewed bootstrap when changed. Its initial rollout
+is such a bootstrap; verify artifact generation and an App-owned update PR after deployment.
+
 ## Trust and recovery
 
 This mechanism trusts the approved maintainer's GitHub identity and ability to create commit statuses. Anyone controlling that credential can forge an attestation. If the credential is compromised, revoke it in GitHub immediately, post a failing `agent-standards/provenance` status on affected heads, rotate the attester identity through a separately reviewed bootstrap change, and re-attest every open protected PR. If the login changes but the immutable user id does not, update the expected login in its own reviewed gate change before issuing further attestations.

@@ -173,12 +173,18 @@ if ($remoteCandidate -ne $CandidateSha) {
     throw "The candidate is not present in the canonical consumer repository."
 }
 
-$trustedAttesterBlob = (Invoke-CheckedGit -Repository $trustedRoot rev-parse "${trustedHead}:.agents/attest-external-contract.ps1").Trim()
-$trustedGateBlob = (Invoke-CheckedGit -Repository $trustedRoot rev-parse "${trustedHead}:.github/workflows/provenance-gate.yml").Trim()
-$candidateAttesterBlob = (Invoke-CheckedGit -Repository $consumerRoot rev-parse "${CandidateSha}:.agents/attest-external-contract.ps1").Trim()
-$candidateGateBlob = (Invoke-CheckedGit -Repository $consumerRoot rev-parse "${CandidateSha}:.github/workflows/provenance-gate.yml").Trim()
-if ($candidateAttesterBlob -ne $trustedAttesterBlob -or $candidateGateBlob -ne $trustedGateBlob) {
-    throw "The candidate trust tools do not match canonical main."
+$trustTools = @(
+    ".agents/attest-external-contract.ps1",
+    ".github/workflows/provenance-gate.yml",
+    ".github/scripts/update_provenance_pins.py",
+    ".github/workflows/update-provenance-pins.yml"
+)
+foreach ($path in $trustTools) {
+    $trustedBlob = (Invoke-CheckedGit -Repository $trustedRoot rev-parse "${trustedHead}:$path").Trim()
+    $candidateBlob = (Invoke-CheckedGit -Repository $consumerRoot rev-parse "${CandidateSha}:$path").Trim()
+    if ($candidateBlob -ne $trustedBlob) {
+        throw "The candidate trust tool $path does not match canonical main."
+    }
 }
 foreach ($entry in $expectedCandidateObjects.GetEnumerator()) {
     $actual = (Invoke-CheckedGit -Repository $consumerRoot rev-parse "${CandidateSha}:$($entry.Key)").Trim()

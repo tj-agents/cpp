@@ -68,7 +68,9 @@ jobs:
               .agents/plugins/skill-contract.json|\
               .agents/tests/test_attester_safety.py|\
               .agents/tests/test_marketplace_contract.py|\
-              .agents/attest-external-contract.ps1|\
+            .agents/attest-external-contract.ps1|\
+            .github/scripts/update_provenance_pins.py|\
+            .github/workflows/update-provenance-pins.yml|\
               contracts/*|\
               .github/workflows/attester-safety.yml|\
               .github/workflows/ci.yml|\
