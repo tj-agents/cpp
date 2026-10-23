@@ -4,6 +4,7 @@ Generated from canonical `.agents/` definitions.
 
 - `cpp:build` — contract — `.agents/base/contract/build/SKILL.md`
 - `cpp:domain-design` — contract — `.agents/base/contract/domain-design/SKILL.md`
+- `cpp:explanation` — contract — `.agents/base/contract/explanation/SKILL.md`
 - `cpp:libraries` — contract — `.agents/base/contract/libraries/SKILL.md`
 - `cpp:mixins` — contract — `.agents/base/contract/mixins/SKILL.md`
 - `cpp:structure` — contract — `.agents/base/contract/structure/SKILL.md`

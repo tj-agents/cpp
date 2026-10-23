@@ -139,6 +139,7 @@
     "win32:overview": "windows-overview",
     "cpp:domain-design": "cpp-domain-design",
     "cpp:mixins": "cpp-mixins",
+    "cpp:explanation": "cpp-explanation",
     "win32:scaffold": "win32-scaffold"
   },
   "routeProfiles": [
