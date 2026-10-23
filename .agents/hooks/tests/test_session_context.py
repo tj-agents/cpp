@@ -58,14 +58,14 @@ class SessionContextTests(unittest.TestCase):
     def test_gpp_and_win32_compose(self) -> None:
         context = self.context("win32", ["src/main.cpp"], {"toolchain": "gpp", "apis": ["win32"]})
         combined = "\n".join(context)
-        self.assertIn("cpp@cpp-agents", combined)
+        self.assertIn("cpp@tj-agents", combined)
         self.assertIn("gpp:toolchain", combined)
         self.assertIn("win32:style", combined)
 
     def test_host_os_never_selects_a_compiler(self) -> None:
         for platform in ("win32", "linux"):
             combined = "\n".join(self.context(platform, ["src/main.cpp"]))
-            self.assertIn("cpp@cpp-agents", combined)
+            self.assertIn("cpp@tj-agents", combined)
             self.assertNotIn("gpp:toolchain", combined)
             self.assertNotIn("msvc:toolchain", combined)
 
@@ -79,7 +79,7 @@ class SessionContextTests(unittest.TestCase):
                 context = session_context.context_for(root, "win32")
         combined = "\n".join(context)
         self.assertIn("Consider selecting win32 explicitly", combined)
-        self.assertNotIn("Apply win32@cpp-agents", combined)
+        self.assertNotIn("Apply win32@tj-agents", combined)
         self.assertNotIn("msvc:toolchain", combined)
 
 

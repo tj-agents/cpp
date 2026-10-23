@@ -38,6 +38,8 @@ Regenerate packages after changing authored source.
 
 Publish only the canonical cpp, gpp, msvc, and win32 packages. Do not add compatibility
 packages, aliases, or fallback selectors.
+Use the [shared catalog's identity policy](https://github.com/tj-agents/marketplace#readme)
+for both host catalogs, harness declarations, SessionStart guidance and scaffold callers.
 
 Required validation is the generator check, route self-test, hook tests, marketplace and
 attester tests, both host validators when available, and the

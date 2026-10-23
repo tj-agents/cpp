@@ -32,7 +32,7 @@ jobs:
         run: |
           codex plugin marketplace add .
           for plugin in cpp gpp msvc win32; do
-            codex plugin add "$plugin@cpp-agents"
+            codex plugin add "$plugin@tj-agents"
           done
           codex plugin list --json
       - name: Validate marketplace and plugins with Claude Code
