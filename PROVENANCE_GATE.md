@@ -55,6 +55,9 @@ updater runs preserve that ready proposal's head and body for the frozen bootstr
 reconcile further consumer changes explicitly. Before updating an existing
 branch, it verifies that the prior generated commit changes only pin values from an authenticated
 ancestor of `main`. Unexpected branch edits are preserved for their owner.
+An intentional trust-root change produces a successful read-only diagnostic artifact requiring
+manual bootstrap review, with automatic publishing skipped. The provenance gate still applies;
+an ordinary consumer with stale trust tools must synchronize with `main` before retrying.
 
 Publishing uses the Personal GitHub App installed on this repository. Configure repository or
 organization variable `TJ_AGENTS_APP_ID` and secret `TJ_AGENTS_APP_PRIVATE_KEY`; the App needs
