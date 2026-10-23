@@ -157,7 +157,12 @@ def proposal(api, number, expected_head=None, expected_main=None):
     base_tree, base_objects = object_inventory(api, main)
     _, candidate_objects = object_inventory(api, head)
     for path in TRUST_TOOLS:
-        if object_sha(base_objects, path, "blob") != object_sha(candidate_objects, path, "blob"):
+        trusted = object_sha(base_objects, path, "blob")
+        try:
+            candidate = object_sha(candidate_objects, path, "blob")
+        except UpdateError as error:
+            raise TrustRootChange(number, head, main) from error
+        if trusted != candidate:
             raise TrustRootChange(number, head, main)
     blob_id = object_sha(base_objects, ATTESTER, "blob")
     source = read_blob(api, blob_id)
