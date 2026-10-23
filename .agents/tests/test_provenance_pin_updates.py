@@ -1,10 +1,14 @@
 import base64
+from contextlib import redirect_stdout
 from copy import deepcopy
 import hashlib
 import importlib.util
+import io
 import json
 from pathlib import Path
+import tempfile
 import unittest
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -44,6 +48,9 @@ class FakeGitHub:
         self.ref = None
         self.branch_author = BOT
         self.commits = {}
+        self.blobs = {git_blob(self.source): self.source}
+        self.trees = {}
+        self.extra_file = False
         self.pulls = []
         self.writes = []
 
@@ -61,17 +68,37 @@ class FakeGitHub:
         if endpoint in (f"git/trees/{'c' * 40}?recursive=1", f"git/trees/{'d' * 40}?recursive=1"):
             inventory = self.base_objects if "/" + "c" * 40 in endpoint else self.candidate_objects
             return {"truncated": self.truncated, "tree": list(deepcopy(inventory).values())}
-        if endpoint == f"git/blobs/{git_blob(self.source)}":
-            return {"encoding": "base64", "content": base64.b64encode(self.source).decode()}
+        if endpoint.startswith("git/blobs/"):
+            return {"encoding": "base64", "content": base64.b64encode(self.blobs[endpoint.split('/')[-1]]).decode()}
         if endpoint.startswith("git/ref/heads/Chore/"):
             return {"object": {"sha": self.ref}} if self.ref else None
         if endpoint.startswith("pulls?"):
-            return deepcopy(self.pulls)
+            return deepcopy([pull for pull in self.pulls if pull["state"] == "open"])
         if endpoint.startswith("commits/"):
             return {"author": {"login": self.branch_author},
+                    "parents": [{"sha": parent} for parent in self.commits[self.ref]["parents"]],
                     "commit": {"tree": {"sha": self.commits[self.ref]["tree"]}}}
-        if endpoint in ("git/blobs", "git/trees"):
-            return {"sha": git_blob(json.dumps(body, sort_keys=True).encode())}
+        if endpoint.startswith("contents/"):
+            return {"sha": git_blob(self.source)}
+        if endpoint.startswith("compare/"):
+            parent, head = endpoint.removeprefix("compare/").split("...")
+            if head == self.main:
+                return {"base_commit": {"sha": parent}, "merge_base_commit": {"sha": parent},
+                        "status": "identical" if parent == head else "ahead"}
+            tree = self.trees[self.commits[head]["tree"]]
+            files = [{"filename": updates.ATTESTER, "status": "modified", "sha": tree["tree"][0]["sha"]}]
+            if self.extra_file:
+                files.append({"filename": "someone-elses-work.txt", "status": "added"})
+            return {"files": files}
+        if endpoint == "git/blobs":
+            content = body["content"].encode()
+            sha = git_blob(content)
+            self.blobs[sha] = content
+            return {"sha": sha}
+        if endpoint == "git/trees":
+            sha = git_blob(json.dumps(body, sort_keys=True).encode())
+            self.trees[sha] = deepcopy(body)
+            return {"sha": sha}
         if endpoint == "git/commits":
             sha = git_blob(json.dumps(body, sort_keys=True).encode())
             self.commits[sha] = deepcopy(body)
@@ -82,7 +109,7 @@ class FakeGitHub:
             self.ref = body["sha"]
             return {}
         if endpoint == "pulls":
-            self.pulls = [{**deepcopy(body), "number": 51, "user": {"login": BOT}, "labels": [],
+            self.pulls = [{**deepcopy(body), "state": "open", "number": 51, "user": {"login": BOT}, "labels": [],
                            "html_url": "https://github.com/tj-agents/cpp/pull/51"}]
             return deepcopy(self.pulls[0])
         if endpoint == "pulls/51":
@@ -197,6 +224,68 @@ class PinUpdateTests(unittest.TestCase):
         self.api.writes.clear()
         with self.assertRaisesRegex(updates.UpdateError, "another author"):
             updates.publish(self.api, saved, BOT)
+        self.assertEqual([], self.api.writes)
+
+    def test_ready_proposal_is_frozen_for_review(self):
+        saved, _, _ = updates.proposal(self.api, 42)
+        updates.publish(self.api, saved, BOT)
+        self.api.pulls[0]["draft"] = False
+        self.api.writes.clear()
+        frozen_head = self.api.ref
+        frozen_body = self.api.pulls[0]["body"]
+        self.api.candidate_objects[".github/workflows/ci.yml"]["sha"] = "e" * 40
+        changed, _, _ = updates.proposal(self.api, 42)
+        with self.assertRaisesRegex(updates.UpdateError, "ready for review"):
+            updates.publish(self.api, changed, BOT)
+        self.assertEqual([], self.api.writes)
+        self.assertEqual(frozen_head, self.api.ref)
+        self.assertEqual(frozen_body, self.api.pulls[0]["body"])
+
+    def test_consumer_revert_closes_obsolete_owned_draft_without_new_commit(self):
+        saved, _, _ = updates.proposal(self.api, 42)
+        updates.publish(self.api, saved, BOT)
+        self.api.candidate_objects = deepcopy(self.api.base_objects)
+        reverted, _, _ = updates.proposal(self.api, 42)
+        self.api.writes.clear()
+        updates.publish(self.api, reverted, BOT)
+        self.assertEqual("closed", self.api.pulls[0]["state"])
+        self.assertIn("Superseded", self.api.pulls[0]["body"])
+        self.assertEqual(1, len(self.api.commits))
+        self.assertEqual([("PATCH", "pulls/51")], [(method, endpoint) for method, endpoint, _ in self.api.writes])
+
+    def test_bot_author_does_not_allow_unexpected_file_or_attester_changes(self):
+        for edit in ("file", "attester"):
+            with self.subTest(edit=edit):
+                api = FakeGitHub()
+                saved, _, _ = updates.proposal(api, 42)
+                updates.publish(api, saved, BOT)
+                if edit == "file":
+                    api.extra_file = True
+                else:
+                    tree = api.trees[api.commits[api.ref]["tree"]]
+                    blob = tree["tree"][0]["sha"]
+                    changed = api.blobs[blob] + b"\nWrite-Output 'unexpected edit'\n"
+                    changed_id = git_blob(changed)
+                    api.blobs[changed_id] = changed
+                    tree["tree"][0]["sha"] = changed_id
+                api.writes.clear()
+                with self.assertRaisesRegex(updates.UpdateError, "preserve it"):
+                    updates.publish(api, saved, BOT)
+                self.assertEqual([], api.writes)
+
+    def test_cli_requests_cleanup_even_when_all_pin_changes_are_reverted(self):
+        saved, _, _ = updates.proposal(self.api, 42)
+        updates.publish(self.api, saved, BOT)
+        self.api.candidate_objects = deepcopy(self.api.base_objects)
+        self.api.writes.clear()
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "github-output"
+            with (mock.patch.object(updates, "GitHub", return_value=self.api),
+                  mock.patch.object(updates.sys, "argv", ["updater", "--pr", "42"]),
+                  mock.patch.dict(updates.os.environ, {"GITHUB_OUTPUT": str(output)}),
+                  redirect_stdout(io.StringIO())):
+                self.assertEqual(0, updates.main())
+            self.assertIn("needs_publish=true", output.read_text())
         self.assertEqual([], self.api.writes)
 
 
