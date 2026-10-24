@@ -1,0 +1,9 @@
+{
+  "agents_may_merge": false,
+  "required_checks": [
+    "generated",
+    "isolated-resolution (ubuntu-latest)",
+    "isolated-resolution (windows-latest)",
+    "repository-binding"
+  ]
+}
