@@ -1,0 +1,27 @@
+{
+  "schema_version": 3,
+  "tier": "cpp",
+  "stack": "C++",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "any": [
+      {"glob": "*.c"},
+      {"glob": "*.cc"},
+      {"glob": "*.cpp"},
+      {"glob": "*.cxx"},
+      {"glob": "*.h"},
+      {"glob": "*.hh"},
+      {"glob": "*.hpp"},
+      {"glob": "*.hxx"},
+      {"glob": "*.ixx"},
+      {"glob": "CMakeLists.txt"},
+      {"glob": "CMakePresets.json"},
+      {"glob": ".clang-format"},
+      {"glob": ".clang-tidy"}
+    ]
+  },
+  "session_context": "Load cpp:style and cpp:libraries before code changes, cpp:domain-design when designing records, invariants, operations, or component boundaries, and cpp:learning plus cpp:knowledge before teaching or implementing unfamiliar logic."
+}

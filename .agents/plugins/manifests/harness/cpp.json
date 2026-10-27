@@ -3,13 +3,11 @@
   "plugin": "tj-agents/cpp",
   "source_roots": [
     ".agents/base",
-    ".agents/hooks/session_context.py",
+    ".agents/tiers/cpp.json",
     ".agents/plugins/sources.json",
     ".agents/plugins/payloads.json",
     ".agents/plugins/manifests/codex/cpp.json",
-    ".agents/plugins/manifests/claude/cpp.json",
-    ".agents/plugins/manifests/codex/hooks.json",
-    ".agents/plugins/manifests/claude/hooks.json"
+    ".agents/plugins/manifests/claude/cpp.json"
   ],
   "requires": {
     "marketplaces": [
@@ -21,15 +19,7 @@
     "plugins": [
       "tj-agents/cpp"
     ],
-    "hooks": [
-      {
-        "path": "hooks/session_context.py",
-        "hosts": [
-          "claude",
-          "codex"
-        ]
-      }
-    ],
+    "hooks": [],
     "permissions": {
       "claude_allow": [],
       "codex_prefix_rules": []

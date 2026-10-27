@@ -32,7 +32,5 @@
       "cpp"
     ]
   },
-  "hooks": [
-    "cpp"
-  ]
+  "hooks": []
 }
