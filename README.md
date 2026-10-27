@@ -34,8 +34,9 @@ Canonical definitions live at:
 
 Each canonical package ships `harness.json` from
 `.agents/plugins/manifests/harness/<plugin>.json`. These declarations name the
-`tj-agents` marketplace, existing package prerequisites, source inputs, and the
-cpp SessionStart hook for both hosts. They request no permanent permissions.
+`tj-agents` marketplace, existing package prerequisites, and source inputs. They
+request no permanent permissions and register no hooks; `cpp` and `win32` instead
+ship `tier.json` so core's tier gate detects them.
 
 Scaffolds compose the same way as the plugins:
 

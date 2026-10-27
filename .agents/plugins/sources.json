@@ -38,11 +38,10 @@
     "codex": ".agents/plugins/manifests/codex",
     "claude": ".agents/plugins/manifests/claude"
   },
-  "host_hook_sources": {
-    "cpp": {
-      "codex": ".agents/plugins/manifests/codex/hooks.json",
-      "claude": ".agents/plugins/manifests/claude/hooks.json"
-    }
+  "host_hook_sources": {},
+  "tier_sources": {
+    "cpp": ".agents/tiers/cpp.json",
+    "win32": ".agents/tiers/win32.json"
   },
   "generated_roots": [
     ".codex/skills",
@@ -113,9 +112,7 @@
       "text": true
     }
   ],
-  "hook_packages": [
-    "cpp"
-  ],
+  "hook_packages": [],
   "package_root": "plugins",
   "marketplace_outputs": {
     "codex": ".agents/plugins/marketplace.json",

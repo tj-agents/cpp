@@ -7,7 +7,6 @@
   },
   "repository": "https://github.com/tj-agents/cpp",
   "skills": "./skills/",
-  "hooks": "./hooks/claude.json",
   "keywords": [
     "cpp",
     "cmake",
