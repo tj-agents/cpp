@@ -123,7 +123,7 @@ def validated_generated_roots(root: Path, config: dict) -> list[Path]:
     authored = [
         *(resolved_root / scope["root"] for scope in config["scopes"]),
         *(resolved_root / value for value in config["host_manifest_roots"].values()),
-        resolved_root / ".agents/hooks",
+        resolved_root / ".agents/tiers",
         resolved_root / ".agents/plugins/sources.json",
         resolved_root / ".agents/plugins/payloads.json",
         *(resolved_root / resource["source"] for resource in config.get("resources", [])),
@@ -200,6 +200,25 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
                 raise ValueError(f"{package}/{host}: invalid hook source {source}")
             if not root.joinpath(*relative.parts).is_file():
                 raise ValueError(f"{package}/{host}: missing hook source {source}")
+    tier_sources = config.get("tier_sources", {})
+    if set(tier_sources) - set(packages):
+        raise ValueError("tier_sources names an unknown package")
+    for package, source in tier_sources.items():
+        relative = PurePosixPath(source)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError(f"{package}: invalid tier source {source}")
+        path = root.joinpath(*relative.parts)
+        if not path.is_file():
+            raise ValueError(f"{package}: missing tier source {source}")
+        declaration = load(path)
+        if not isinstance(declaration, dict) or declaration.get("tier") != package:
+            raise ValueError(f"{package}: tier.json tier must be {package}")
+        if declaration.get("schema_version") not in (1, 2, 3):
+            raise ValueError(f"{package}: tier.json schema_version must be 1, 2 or 3")
+        if declaration.get("applies") not in ("always", "stack-present"):
+            raise ValueError(f"{package}: tier.json applies must be always or stack-present")
+        if declaration.get("applies") == "stack-present" and not isinstance(declaration.get("detect"), dict):
+            raise ValueError(f"{package}: tier.json applies=stack-present requires a detect object")
     for package, cfg in packages.items():
         if set(cfg["scopes"]) - scopes:
             raise ValueError(f"{package}: unknown scope")
@@ -447,6 +466,10 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
                     or requires.get("plugins") != expected):
                 raise ValueError(f"{harness}: use canonical tj-agents marketplace identities")
             emit(f"{package_root}/{package}/harness.json", read(harness))
+
+        tier_source = config.get("tier_sources", {}).get(package)
+        if tier_source:
+            emit(f"{package_root}/{package}/tier.json", read(root / tier_source))
 
         index = [f"# {package} capabilities", "", "Generated from canonical `.agents/` definitions.", ""]
         for skill in sorted(owned, key=lambda item: item["name"]):
