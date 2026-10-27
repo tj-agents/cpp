@@ -47,24 +47,13 @@ Scaffolds compose the same way as the plugins:
 
 The platform-neutral templates they share (formatter, analysis and editor configuration and the
 `libs/core`, `app` and `tests` sources) are owned by `.agents/base/utility/scripts/templates/` and
-copied into every package that uses them. Each generated project carries the route profile for its
-exact composition, rendered by the route generator at sync time.
+copied into every package that uses them.
 
 Generate and verify outputs with:
 
 ```powershell
 pwsh .agents/sync-generated.ps1
 pwsh .agents/sync-generated.ps1 -Check
-python -B .agents/gen_skill_routes.py --self-test
 ```
 
-Generate a consuming repository profile explicitly:
-
-```powershell
-python .agents/gen_skill_routes.py --toolchain msvc --into C:/source/project
-python .agents/gen_skill_routes.py --toolchain gpp --api win32 --into C:/source/project
-python .agents/gen_skill_routes.py --api win32 --into C:/source/project
-```
-
-Profiles emit only cpp, gpp, msvc, and win32 identities and contain no compulsory process-plugin route. Process workflows may be installed separately from their shared engineering owner.
 See MIGRATION.md for canonical selection and flat host-adapter details.

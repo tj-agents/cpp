@@ -39,11 +39,10 @@ The project receives the canonical `cpp` formatter, analysis and editor configur
 (`.clang-format`, `.clang-tidy`, `.editorconfig`, `.vscode/settings.json` for clangd), the
 shared `libs/core` + `app` + `tests` sources, and MSVC-specific files: presets, PowerShell
 helpers, a `.clangd` that strips sanitizer flags clang rejects with the debug CRT, a
-Visual Studio debugger (`cppvsdbg`) `.vscode/launch.json`, `AGENTS.md`/`CLAUDE.md` project
-facts and the `cpp` + `msvc` route profile in `.agents/skill-routes.json`. Pass
-`-FormatConfig <existing-.clang-format>` and `-TidyConfig <existing-.clang-tidy>` to copy a
-project's own configurations byte for byte instead. The generator does not search the
-machine or download tools and dependencies.
+Visual Studio debugger (`cppvsdbg`) `.vscode/launch.json`, and `AGENTS.md`/`CLAUDE.md` project
+facts. Pass `-FormatConfig <existing-.clang-format>` and `-TidyConfig <existing-.clang-tidy>`
+to copy a project's own configurations byte for byte instead. The generator does not search
+the machine or download tools and dependencies.
 
 The scaffold's `.clangd` maps only its CMake-owned `app`, `libs`, and `tests` directories
 to `build/dev/compile_commands.json`. If the repository adds a source root built by another
@@ -90,8 +89,7 @@ and run with real MSVC, and exercise rejection of existing destinations. Check C
 C++23 separately if both are offered. Report missing tools as prerequisites.
 
 The skill, script and MSVC templates are authored once under `.agents/msvc/utility/`; the
-shared templates belong to `.agents/base/utility/scripts/` and the route profile is rendered
-by the route generator. `sync-generated.ps1` copies all of them into the plugin payloads;
-never edit the generated copies. Future WinWrap guidance belongs in
+shared templates belong to `.agents/base/utility/scripts/`. `sync-generated.ps1` copies all
+of them into the plugin payloads; never edit the generated copies. Future WinWrap guidance belongs in
 the Win32 scope once a tested library API and consumption contract are ready. It must
 describe its supported native operations rather than make every MSVC project depend on it.
