@@ -1,6 +1,4 @@
 import importlib.util
-import json
-import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,53 +12,11 @@ SPEC.loader.exec_module(session_context)
 
 
 class SessionContextTests(unittest.TestCase):
-    def context(self, platform: str, files: list[str], profile: dict | None = None) -> list[str]:
+    def context(self, platform: str, files: list[str]) -> list[str]:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            if profile is not None:
-                routes = root / ".agents" / "skill-routes.json"
-                routes.parent.mkdir(parents=True)
-                declaration = {"routes": []}
-                if profile is not None:
-                    declaration["profile"] = profile
-                routes.write_text(json.dumps(declaration), encoding="utf-8")
             with patch.object(session_context, "tracked_project", return_value=(root, files)):
                 return session_context.context_for(root / "nested", platform)
-
-    def test_context_uses_canonical_capability_names(self) -> None:
-        combined = "\n".join(self.context("win32", ["src/main.cpp"], {"toolchain": "msvc", "apis": ["win32"]}))
-        identifiers = set(re.findall(r"\b(?:cpp|gpp|msvc|win32):[a-z-]+", combined))
-        self.assertEqual({
-            "cpp:style", "cpp:libraries", "cpp:domain-design", "cpp:learning", "cpp:knowledge",
-            "msvc:toolchain", "win32:overview", "win32:style", "win32:knowledge",
-        }, identifiers)
-
-    def test_gpp_selection_does_not_follow_windows_host(self) -> None:
-        context = self.context("win32", ["src/main.cpp"], {"toolchain": "gpp", "apis": []})
-        combined = "\n".join(context)
-        self.assertIn("gpp:toolchain", combined)
-        self.assertNotIn("msvc:", combined)
-        self.assertNotIn("win32:", combined)
-
-    def test_msvc_alone_does_not_select_win32(self) -> None:
-        context = self.context("win32", ["src/main.cpp"], {"toolchain": "msvc", "apis": []})
-        combined = "\n".join(context)
-        self.assertIn("msvc:toolchain", combined)
-        self.assertNotIn("win32:style", combined)
-
-    def test_win32_does_not_require_a_toolchain(self) -> None:
-        context = self.context("linux", ["src/main.cpp"], {"toolchain": None, "apis": ["win32"]})
-        combined = "\n".join(context)
-        self.assertIn("win32:style", combined)
-        self.assertNotIn("gpp:", combined)
-        self.assertNotIn("msvc:", combined)
-
-    def test_gpp_and_win32_compose(self) -> None:
-        context = self.context("win32", ["src/main.cpp"], {"toolchain": "gpp", "apis": ["win32"]})
-        combined = "\n".join(context)
-        self.assertIn("cpp@tj-agents", combined)
-        self.assertIn("gpp:toolchain", combined)
-        self.assertIn("win32:style", combined)
 
     def test_host_os_never_selects_a_compiler(self) -> None:
         for platform in ("win32", "linux"):
@@ -81,8 +37,6 @@ class SessionContextTests(unittest.TestCase):
         self.assertIn("Consider selecting win32 explicitly", combined)
         self.assertNotIn("Apply win32@tj-agents", combined)
         self.assertNotIn("msvc:toolchain", combined)
-
-
 
     def test_windows_detection_uses_git_grep_without_opening_sources(self) -> None:
         completed = session_context.subprocess.CompletedProcess([], 0)

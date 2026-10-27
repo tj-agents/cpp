@@ -1,4 +1,3 @@
-import json
 import os
 import shutil
 import struct
@@ -63,7 +62,7 @@ class Win32ScaffoldTests(unittest.TestCase):
             self.assertEqual(
                 {
                     "app/CMakeLists.txt", "app/src/main.cpp", "app/app.manifest", "app/app.rc",
-                    ".clang-tidy", ".clang-format", "AGENTS.md", "README.md", ".agents/skill-routes.json",
+                    ".clang-tidy", ".clang-format", "AGENTS.md", "README.md",
                 },
                 changed,
             )
@@ -84,8 +83,6 @@ class Win32ScaffoldTests(unittest.TestCase):
             fmt = after[".clang-format"].decode()
             self.assertTrue(fmt.endswith("    Priority: 4\n...\n"), fmt)
             self.assertIn("'^<windows\\.h>$'", fmt)
-            routes = json.loads(after[".agents/skill-routes.json"])
-            self.assertEqual({"toolchain": "msvc", "apis": ["win32"]}, routes["profile"])
 
             if shutil.which("clang-format"):
                 formatted = subprocess.run(
@@ -121,28 +118,7 @@ class Win32ScaffoldTests(unittest.TestCase):
             converted = self.convert(custom)
             self.assertEqual(0, converted.returncode, converted.stdout + converted.stderr)
             self.assertIn("Manual step: .clang-tidy", converted.stdout)
-
-            routed = self.msvc_project(parent, "routed")
-            routes_path = routed / ".agents/skill-routes.json"
-            routes = json.loads(routes_path.read_text(encoding="utf-8"))
-            routes["routes"].append({"path": "docs/.*", "skills": ["cpp:learning"]})
-            routes_path.write_text(json.dumps(routes, indent=2), encoding="utf-8")
-            customized = routes_path.read_bytes()
-            rerouted = self.convert(routed)
-            self.assertEqual(0, rerouted.returncode, rerouted.stdout + rerouted.stderr)
-            self.assertIn("Manual step: .agents/skill-routes.json", rerouted.stdout)
-            self.assertEqual(customized, routes_path.read_bytes())
             self.assertEqual("Checks: '-*,modernize-*'\n", (custom / ".clang-tidy").read_text(encoding="utf-8"))
-
-    def test_gpp_projects_receive_the_gpp_win32_route_profile(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
-            project = self.gpp_project(Path(temporary), "mingw-gui")
-            converted = self.convert(project)
-            self.assertEqual(0, converted.returncode, converted.stdout + converted.stderr)
-            routes = json.loads((project / ".agents/skill-routes.json").read_text(encoding="utf-8"))
-            self.assertEqual({"toolchain": "gpp", "apis": ["win32"]}, routes["profile"])
-            self.assertEqual(["cpp", "gpp", "win32"], routes["layers"])
-
 
     def test_gui_application_builds_with_real_msvc(self) -> None:
         if not msvc.VSWHERE.is_file() or not shutil.which("cmake") or not shutil.which("ninja"):
