@@ -116,20 +116,6 @@ if (Test-Path -LiteralPath $readmePath) {
     ) -join "`n") + "`n"
 }
 
-# Replace an unmodified console route profile with the same toolchain's Win32 profile.
-$routesPath = Join-Path $root '.agents/skill-routes.json'
-if (Test-Path -LiteralPath $routesPath) {
-    $routes = Read-Normalized $routesPath
-    $toolchain = ($routes | ConvertFrom-Json).profile.toolchain
-    $consolePath = if ($toolchain) { Join-Path $PSScriptRoot "routes/console/$toolchain.json" } else { $null }
-    $profilePath = if ($toolchain) { Join-Path $PSScriptRoot "routes/$toolchain.json" } else { $null }
-    if ($consolePath -and (Test-Path -LiteralPath $consolePath -PathType Leaf) -and (Test-Path -LiteralPath $profilePath -PathType Leaf) -and $routes -eq (Read-Normalized $consolePath)) {
-        $writes['.agents/skill-routes.json'] = Read-Normalized $profilePath
-    } else {
-        $manual.Add('.agents/skill-routes.json: regenerate the route profile with the Win32 API selected.')
-    }
-}
-
 if (!$PSCmdlet.ShouldProcess($root, 'Convert the app target to a Win32 GUI application')) { return }
 foreach ($relative in $writes.Keys) {
     $target = Join-Path $root $relative

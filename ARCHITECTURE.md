@@ -21,9 +21,7 @@ and layer the platform-neutral templates owned by `.agents/base/utility/scripts/
 underneath; a toolchain template at the same path wins. `win32:scaffold` is an overlay that
 converts either result's `app` target into a Win32 GUI application without choosing a
 compiler. Package resource mapping is explicit in `sources.json`: every package receives the
-resources it runs, so no package depends on another installation. Scaffold route profiles are
-rendered by `gen_skill_routes.py` during generation and ship only in the canonical packages,
-because they name canonical identifiers.
+resources it runs, so no package depends on another installation.
 
 
 Capability identity is the pair of plugin and name, such as `cpp:style` or `win32:style`.
@@ -35,13 +33,9 @@ plugin-qualified identifiers. Package compatibility names are mapped separately.
 ## Selection model
 
 Every project receives `cpp`. It may select one toolchain (`gpp` or `msvc`) and zero or more API
-layers (`win32`). The route profile records these dimensions separately. Win32 markers may produce
-a suggestion when no profile exists, but detection never applies an API or compiler. MSVC alone
-does not select Win32, a Windows host does not select MSVC, and Win32 does not require MSVC.
-
-Generated routes contain technical skills only. Engineering workflows are independently owned and
-installed; this repository retains immutable provenance evidence for the historical external
-contract without making it a compulsory new-route dependency.
+layers (`win32`) by installing the corresponding plugin. Win32 markers may produce a suggestion,
+but detection never applies an API or compiler. MSVC alone does not select Win32, a Windows host
+does not select MSVC, and Win32 does not require MSVC.
 
 ## Canonical selection
 

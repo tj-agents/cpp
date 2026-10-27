@@ -60,8 +60,6 @@ class CapabilityHarnessTests(unittest.TestCase):
                 for resource in config["resources"]:
                     if package in resource["plugins"]:
                         self.assertTrue(any(resource["source"] == item or resource["source"].startswith(item + "/") for item in roots))
-                if package != "cpp":
-                    self.assertIn(".agents/gen_skill_routes.py", roots)
 
     def test_generator_ships_authored_harnesses_only_when_present(self):
         output, _ = SYNC.build(ROOT)
