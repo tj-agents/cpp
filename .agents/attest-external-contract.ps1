@@ -30,7 +30,7 @@ $expectedCandidateObjects = [ordered]@{
     ".agents/tests/test_attester_safety.py" = "eb279a45b18d60888fe765c5fc8cf4b0d2251fbd"
     ".agents/tests/test_marketplace_contract.py" = "55c1f0d6493541fea2497d20e319f1604738be57"
     ".github/workflows/attester-safety.yml" = "42652f96cef2be751872cc376719b26d76dc3494"
-    ".github/workflows/ci.yml" = "679d754f1011b5212fbaf998bcce97942febfa22"
+    ".github/workflows/ci.yml" = "901546d8bd3c0d1ac067191006f523930ac11a9e"
     "contracts" = "158049858856c30eb91a37704512d9dcda4283c2"
 }
 
