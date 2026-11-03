@@ -59,13 +59,18 @@ An intentional trust-root change produces a successful read-only diagnostic arti
 manual bootstrap review, with automatic publishing skipped. The provenance gate still applies;
 an ordinary consumer with stale trust tools must synchronize with `main` before retrying.
 
-Publishing uses the Personal GitHub App installed on this repository. Configure repository or
-organization variable `TJ_AGENTS_APP_ID` and secret `TJ_AGENTS_APP_PRIVATE_KEY`; the App needs
-Contents and Pull requests write permissions for `cpp`. The workflow mints a token scoped to
-this repository and revokes it afterward. These credentials stay in GitHub Actions. Repository
-Actions-token PR creation settings and workstation credentials do not need changing. Until the
-App is configured, a changed proposal is saved as an artifact and publishing fails with a named
-configuration diagnostic; the updater is not operationally complete.
+Publishing uses the protected updater App enrolled by the shared GitHub Actions owner setup. The
+`UPDATE_APP_CLIENT_ID` variable identifies that App; `UPDATE_APP_PRIVATE_KEY` is a secret in the exact-
+default-branch `update-pins` environment. The trusted workflow reads consumer Git objects as data and
+mints a token scoped to `cpp` with Contents and Pull requests write, then revokes it. Controller keys
+never reach this repository. Workstation credentials and Actions-token PR creation settings are unchanged.
+Before enrollment, a changed proposal remains available as an artifact with a named configuration
+failure. Verify artifact generation and an App-owned proposal after deployment.
+
+This bootstrap also proposes approved object pins for the independently reviewed generation pipeline
+in consumer `4edd7eff0ae18e62243f3c3e78135bbd0284f812`. It does not authenticate the private producer or
+issue provenance. Land this frozen trust-root change through the dedicated maintainer procedure above,
+then synchronize and attest the final consumer head from clean canonical main.
 
 For an existing open consumer, run the same entry point from Windows or Linux:
 
