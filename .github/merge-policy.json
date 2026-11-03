@@ -5,6 +5,5 @@
     "isolated-resolution (windows-latest)",
     "repository-binding"
   ],
-  "requires_approval": true,
-  "ci_pushes_default_branch": true
+  "requires_approval": true
 }
