@@ -26,7 +26,6 @@ jobs:
        (github.event_name == 'pull_request_target' &&
         github.event.pull_request.head.repo.full_name == github.repository &&
         !startsWith(github.event.pull_request.head.ref, 'Chore/ProvenancePins-')))
-    environment: update-pins
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -54,20 +53,20 @@ jobs:
       - name: Require publishing identity
         if: steps.proposal.outputs.needs_publish == 'true'
         env:
-          APP_ID: ${{ vars.UPDATE_APP_CLIENT_ID }}
-          APP_KEY: ${{ secrets.UPDATE_APP_PRIVATE_KEY }}
+          APP_ID: ${{ vars.TJ_AGENTS_APP_ID }}
+          APP_KEY: ${{ secrets.TJ_AGENTS_APP_PRIVATE_KEY }}
         run: |
           if [[ -z "$APP_ID" || -z "$APP_KEY" ]]; then
-            echo 'Configure the protected update-pins updater identity through owner setup. The calculated proposal is available in artifacts.' >&2
+            echo 'Configure TJ_AGENTS_APP_ID and TJ_AGENTS_APP_PRIVATE_KEY for the repository GitHub App. The calculated proposal is available in artifacts.' >&2
             exit 1
           fi
       - name: Create repository-scoped publishing token
         if: steps.proposal.outputs.needs_publish == 'true'
         id: app
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         with:
-          client-id: ${{ vars.UPDATE_APP_CLIENT_ID }}
-          private-key: ${{ secrets.UPDATE_APP_PRIVATE_KEY }}
+          app-id: ${{ vars.TJ_AGENTS_APP_ID }}
+          private-key: ${{ secrets.TJ_AGENTS_APP_PRIVATE_KEY }}
           owner: tj-agents
           repositories: cpp
           permission-contents: write
