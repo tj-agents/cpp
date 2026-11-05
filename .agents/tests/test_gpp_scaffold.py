@@ -100,14 +100,13 @@ class GppScaffoldTests(unittest.TestCase):
                 )
                 self.assertEqual(0, simple_compiled.returncode, simple_compiled.stdout + simple_compiled.stderr)
 
-    def test_project_layout_configuration_and_route_profile(self) -> None:
+    def test_project_layout_and_configuration(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary)
             created = self.run_scaffold("--name", "my-tool", "--destination", str(parent))
             self.assertEqual(0, created.returncode, created.stdout + created.stderr)
             project = parent / "my-tool"
             expected = {
-                ".agents/skill-routes.json",
                 ".clang-format",
                 ".clang-tidy",
                 ".clangd",
@@ -132,9 +131,6 @@ class GppScaffoldTests(unittest.TestCase):
             self.assertEqual(expected, actual)
             for name in (".clang-format", ".clang-tidy", ".editorconfig"):
                 self.assertEqual((SHARED / f"{name}.in").read_bytes(), (project / name).read_bytes())
-            routes = json.loads((project / ".agents/skill-routes.json").read_text(encoding="utf-8"))
-            self.assertEqual({"toolchain": "gpp", "apis": []}, routes["profile"])
-            self.assertEqual(["cpp", "gpp"], routes["layers"])
             presets = json.loads((project / "CMakePresets.json").read_text(encoding="utf-8"))
             configure = {preset["name"]: preset for preset in presets["configurePresets"]}
             self.assertEqual({"dev", "release", "gdb"}, set(configure))

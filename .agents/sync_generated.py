@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -292,14 +291,6 @@ def compatibility_alias_body(skill: dict, alias_name: str, target_name: str, rem
     )
 
 
-def route_generator(root: Path):
-    # Scaffold route profiles are rendered by the same generator consumers run.
-    spec = importlib.util.spec_from_file_location("gen_skill_routes", root / ".agents/gen_skill_routes.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 def resource_bytes(path: Path, text: bool) -> bytes:
     if text:
         return read(path).encode("utf-8")
@@ -483,16 +474,6 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
                         f"{package_root}/{package}/{resource['destination']}/{suffix}",
                         resource_bytes(path, resource.get("text", False)),
                     )
-
-    route_profiles = config.get("routeProfiles", [])
-    if route_profiles:
-        routes = route_generator(root)
-        for profile in route_profiles:
-            rendered = routes.rendered(profile["toolchain"], profile.get("apis", []))
-            for package in profile["plugins"]:
-                if package not in payloads["publicPlugins"]:
-                    raise ValueError(f"Route profiles name canonical skills; {package} is not a canonical package")
-                emit(f"{package_root}/{package}/{profile['destination']}", rendered)
 
     validate_hook_outputs(output, config, package_order)
 

@@ -1,4 +1,3 @@
-import importlib.util
 import hashlib
 import json
 import os
@@ -15,7 +14,6 @@ MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 PAYLOADS = ROOT / ".agents" / "plugins" / "payloads.json"
 SKILL_CONTRACT = ROOT / ".agents" / "plugins" / "skill-contract.json"
 SOURCES = ROOT / ".agents" / "plugins" / "sources.json"
-GENERATOR = ROOT / ".agents" / "gen_skill_routes.py"
 
 
 def read_json(path: Path) -> dict:
@@ -24,13 +22,6 @@ def read_json(path: Path) -> dict:
 
 def canonical_text_bytes(path: Path) -> bytes:
     return path.read_bytes().replace(b"\r\n", b"\n")
-
-
-def load_generator():
-    spec = importlib.util.spec_from_file_location("gen_skill_routes", GENERATOR)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 def git_object_id(kind: str, data: bytes) -> str:
@@ -85,7 +76,6 @@ class MarketplaceContractTests(unittest.TestCase):
         cls.payloads = read_json(PAYLOADS)
         cls.contract = read_json(SKILL_CONTRACT)
         cls.sources = read_json(SOURCES)
-        cls.generator = load_generator()
 
     def test_public_plugins_are_the_four_independent_scopes_in_order(self) -> None:
         self.assertEqual(["cpp", "gpp", "msvc", "win32"], self.payloads["publicPlugins"])
@@ -128,22 +118,6 @@ class MarketplaceContractTests(unittest.TestCase):
 
     def test_retired_aliases_are_absent(self) -> None:
         self.assertNotIn("compatibilityAliases", self.payloads)
-
-    def test_generated_routes_reference_real_skill_contracts(self) -> None:
-        scope_plugins = {scope["name"]: scope["plugin"] for scope in self.sources["scopes"]}
-        inventory = {}
-        for scope in self.sources["scopes"]:
-            for skill_file in (ROOT / scope["root"]).glob("*/*/SKILL.md"):
-                inventory[(scope_plugins[scope["name"]], skill_file.parent.name)] = skill_file
-        profiles = [(None, []), ("gpp", []), ("msvc", []), (None, ["win32"]), ("gpp", ["win32"]), ("msvc", ["win32"])]
-        for toolchain, apis in profiles:
-            for route in self.generator.routes(toolchain, apis)["routes"]:
-                for identifier in route.get("skills", []):
-                    plugin, skill = identifier.split(":", 1)
-                    self.assertIn((plugin, skill), inventory, identifier)
-                    self.assertIn(plugin, self.payloads["publicPlugins"])
-        all_routes = json.dumps([self.generator.routes(toolchain, apis) for toolchain, apis in profiles])
-        self.assertNotIn("concertable:", all_routes)
 
     def test_external_skill_contract_matches_pinned_agent_standards_source(self) -> None:
         source_value = os.environ.get("AGENT_STANDARDS_SOURCE")
@@ -331,7 +305,7 @@ class MarketplaceContractTests(unittest.TestCase):
 
     def test_canonical_sources_contain_no_retired_plugin_identifiers(self) -> None:
         retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
-        files = [ROOT / ".agents" / "gen_skill_routes.py"]
+        files: list[Path] = []
         for scope in self.sources["scopes"]:
             files.extend((ROOT / scope["root"]).rglob("*.md"))
         offenders = [path.relative_to(ROOT).as_posix() for path in files if retired.search(path.read_text(encoding="utf-8"))]

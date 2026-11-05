@@ -39,8 +39,8 @@ beyond a single implicit build directory.
 The project receives the canonical `cpp` formatter, analysis and editor configuration
 (`.clang-format`, `.clang-tidy`, `.editorconfig`, `.vscode/settings.json` for clangd), the
 shared `libs/core` + `app` + `tests` sources, and G++-specific files: presets, a `.clangd`
-that reads the `dev` compile database, a GDB `.vscode/launch.json`, `AGENTS.md`/
-`CLAUDE.md` project facts and the `cpp` + `gpp` route profile in `.agents/skill-routes.json`.
+that reads the `dev` compile database, a GDB `.vscode/launch.json`, and `AGENTS.md`/
+`CLAUDE.md` project facts.
 Edit the generated copies afterward if a specific project needs to diverge. Add the
 user-mode Win32 application layer separately with `win32:scaffold`.
 
@@ -85,6 +85,5 @@ and the script itself (`bash -n`), build and run with real G++, and exercise
 rejection of existing destinations. Check C++20 and C++23 separately.
 
 The skill, script and G++ templates are authored once under `.agents/gpp/utility/`; the
-shared templates belong to `.agents/base/utility/scripts/` and the route profile is rendered
-by the route generator. `sync-generated.ps1` copies all of them into the plugin payloads;
-never edit the generated copies.
+shared templates belong to `.agents/base/utility/scripts/`. `sync-generated.ps1` copies all
+of them into the plugin payloads; never edit the generated copies.

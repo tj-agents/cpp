@@ -107,7 +107,6 @@ class MsvcScaffoldTests(unittest.TestCase):
                 ".vscode/launch.json",
                 "AGENTS.md",
                 "CLAUDE.md",
-                ".agents/skill-routes.json",
             }
             actual = {str(p.relative_to(project)).replace("\\", "/") for p in project.rglob("*") if p.is_file()}
             self.assertEqual(expected, actual)
@@ -123,9 +122,6 @@ class MsvcScaffoldTests(unittest.TestCase):
             test_source = (project / "tests/core/core_test.cpp").read_text(encoding="utf-8")
             self.assertIn('my_tool::greeting() == "hello from my-tool"', test_source)
 
-            routes = json.loads((project / ".agents/skill-routes.json").read_text(encoding="utf-8"))
-            self.assertEqual({"toolchain": "msvc", "apis": []}, routes["profile"])
-            self.assertEqual(["cpp", "msvc"], routes["layers"])
             cmake = (project / "CMakeLists.txt").read_text(encoding="utf-8")
             self.assertIn("add_library(my_tool_sanitize INTERFACE)", cmake)
             self.assertIn("/fsanitize=address", cmake)
