@@ -1,0 +1,25 @@
+{
+  "schema_version": 3,
+  "tier": "win32",
+  "stack": "Win32",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "any": [
+      {"glob": "*.rc"},
+      {"glob": "*.manifest"},
+      {"content": {"glob": "*.c", "pattern": "(?i)#include <windows\\.h>|#include <wil/|winmain\\(|wwinmain\\(|createwindowex|defwindowproc"}},
+      {"content": {"glob": "*.cc", "pattern": "(?i)#include <windows\\.h>|#include <wil/|winmain\\(|wwinmain\\(|createwindowex|defwindowproc"}},
+      {"content": {"glob": "*.cpp", "pattern": "(?i)#include <windows\\.h>|#include <wil/|winmain\\(|wwinmain\\(|createwindowex|defwindowproc"}},
+      {"content": {"glob": "*.cxx", "pattern": "(?i)#include <windows\\.h>|#include <wil/|winmain\\(|wwinmain\\(|createwindowex|defwindowproc"}},
+      {"content": {"glob": "*.h", "pattern": "(?i)#include <windows\\.h>|#include <wil/|winmain\\(|wwinmain\\(|createwindowex|defwindowproc"}},
+      {"content": {"glob": "*.hh", "pattern": "(?i)#include <windows\\.h>|#include <wil/|winmain\\(|wwinmain\\(|createwindowex|defwindowproc"}},
+      {"content": {"glob": "*.hpp", "pattern": "(?i)#include <windows\\.h>|#include <wil/|winmain\\(|wwinmain\\(|createwindowex|defwindowproc"}},
+      {"content": {"glob": "*.hxx", "pattern": "(?i)#include <windows\\.h>|#include <wil/|winmain\\(|wwinmain\\(|createwindowex|defwindowproc"}},
+      {"content": {"glob": "*.ixx", "pattern": "(?i)#include <windows\\.h>|#include <wil/|winmain\\(|wwinmain\\(|createwindowex|defwindowproc"}}
+    ]
+  },
+  "session_context": "Win32 source markers were detected. Consider selecting win32 explicitly; detection does not apply it or choose MSVC."
+}
