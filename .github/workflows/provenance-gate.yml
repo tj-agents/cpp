@@ -10,8 +10,13 @@ permissions:
   statuses: read
   checks: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request_target' }}
+
 jobs:
   repository-binding:
+    name: repository-binding
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -49,7 +54,7 @@ jobs:
           fi
 
       - name: Check out trusted base and Git object graph
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 0
