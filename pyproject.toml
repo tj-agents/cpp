@@ -36,6 +36,7 @@ enable_error_code = ["ignore-without-code", "exhaustive-match"]
 files = [".agents", ".github"]
 
 [tool.pytest]
+pythonpath = [".agents/tests"]
 strict = true
 testpaths = [".agents/hooks/tests", ".agents/tests"]
 addopts = ["--import-mode=importlib", "--disable-socket", "-ra"]
