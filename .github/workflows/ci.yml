@@ -5,10 +5,17 @@ on:
   pull_request:
 
 jobs:
+  python-standards:
+    uses: tj-agents/template/.github/workflows/python-standards.yml@7a06ba176a7245248fee3270842e0c4ed3030653
+
   generated:
+    needs: python-standards
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
+      - name: sync the locked Python tooling environment
+        run: uv sync --locked
       - name: Install provenance verifier
         run: |
           sudo apt-get update
@@ -20,9 +27,9 @@ jobs:
       - name: Check hook syntax
         run: python3 -m py_compile .agents/hooks/session_context.py
       - name: Test session routing
-        run: python3 -m unittest discover -s .agents/hooks/tests
+        run: uv run --locked pytest .agents/hooks/tests
       - name: Test marketplace and dependency contracts
-        run: python3 -m unittest discover -s .agents/tests
+        run: uv run --locked pytest .agents/tests
       - name: Check skill-route generator
         run: python3 .agents/gen_skill_routes.py --self-test
       - name: Install pinned marketplace harnesses

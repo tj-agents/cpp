@@ -1,0 +1,154 @@
+[project]
+name = "tj-agents-cpp"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = ["mypy>=2.4.1", "pytest>=9.1.1", "pytest-socket>=0.7.0", "ruff>=0.17.4"]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+extend-exclude = [".agents/sync_generated.py", ".agents/dependencies", ".codex/skills", ".claude/skills", ".codex/hooks/snapshot.py", ".codex/hooks/bootstrap.py", ".worktrees", ".template", "plugins"]
+include = ["*.py", "*.pyi"]
+
+[tool.ruff.lint]
+preview = true
+explicit-preview-rules = true
+select = ["E", "W", "F", "I", "N", "UP", "B", "A", "BLE", "C4", "SIM", "PTH", "PIE", "RET", "RUF", "PGH004", "ANN401", "G004", "PLW1514", "LOG002", "LOG015", "PLC2701", "ICN001", "TID251", "TRY300", "PT009", "PT011", "PT006", "PLR6301"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"sys.path" = { "msg" = "Install the declared dependency; do not modify the import search path." }
+"importlib.util.spec_from_file_location" = { "msg" = "Import the installed public API; do not load another checkout by path." }
+"unittest.TestCase" = { "msg" = "Use plain pytest functions and bare assertions." }
+
+[tool.ruff.lint.flake8-pytest-style]
+raises-require-match-for = ["*"]
+
+[tool.mypy]
+exclude = ["(^|/)(?:\\.agents/sync_generated\\.py|\\.agents/dependencies/|\\.codex/skills/|\\.claude/skills/|\\.codex/hooks/(?:snapshot|bootstrap)\\.py|\\.worktrees/|\\.template/)", "^plugins/"]
+explicit_package_bases = true
+strict = true
+warn_unreachable = true
+enable_error_code = ["ignore-without-code", "exhaustive-match"]
+files = [".agents", ".github"]
+
+[tool.pytest]
+pythonpath = [".agents/tests"]
+strict = true
+testpaths = [".agents/hooks/tests", ".agents/tests"]
+addopts = ["--import-mode=importlib", "--disable-socket", "-ra"]
+filterwarnings = ["error"]
+
+[tool.ruff.lint.per-file-ignores]
+".github/scripts/validate_claude.py" = ["E501", "I001"]
+".github/scripts/update_provenance_pins.py" = ["C420", "E501", "I001", "N818", "PTH123"]
+".agents/tests/test_win32_scaffold.py" = ["E501", "I001", "PLR6301", "PT009", "TID251"]
+".agents/tests/test_versionless_packages.py" = ["B023", "E501", "F401", "I001", "PT009", "SIM117", "TID251"]
+".agents/tests/test_validate_claude.py" = ["E501", "I001", "PT009", "TID251"]
+".agents/tests/test_sync_generated_safety.py" = ["E501", "I001", "PLR6301", "PT009", "SIM117", "TID251"]
+".agents/tests/test_route_cli.py" = ["E701", "I001", "PT009", "TID251"]
+".agents/tests/test_provenance_pin_updates.py" = ["E501", "I001", "PT009", "SIM117", "TID251"]
+".agents/tests/test_msvc_scaffold.py" = ["E501", "I001", "PLR6301", "PT009", "SIM112", "TID251"]
+".agents/tests/test_marketplace_contract.py" = ["E501", "I001", "PT009", "TID251"]
+".agents/tests/test_hook_contract.py" = ["E501", "I001", "PT009", "TID251"]
+".agents/tests/test_gpp_scaffold.py" = ["E501", "I001", "PT009", "TID251"]
+".agents/tests/test_cpp_structure.py" = ["E501", "I001", "PT009", "TID251"]
+".agents/tests/test_cpp_mixin_guidance.py" = ["E501", "I001", "PT009", "TID251"]
+".agents/tests/test_capability_harness.py" = ["B023", "E501", "I001", "PT009", "SIM117", "TID251"]
+".agents/tests/test_canonical_names.py" = ["E501", "I001", "PT009", "TID251"]
+".agents/tests/test_attester_safety.py" = ["E501", "I001", "PLR6301", "PT009", "SIM112", "TID251"]
+".agents/hooks/tests/test_session_context.py" = ["E501", "PLR6301", "PT009", "SIM117", "TID251"]
+".agents/hooks/session_context.py" = ["E501", "I001", "PTH109"]
+".agents/gen_skill_routes.py" = ["E501", "I001"]
+
+[tool.ruff.format]
+exclude = [".agents/gen_skill_routes.py", ".agents/hooks/session_context.py", ".agents/hooks/tests/test_session_context.py", ".agents/tests/test_attester_safety.py", ".agents/tests/test_canonical_names.py", ".agents/tests/test_capability_harness.py", ".agents/tests/test_cpp_mixin_guidance.py", ".agents/tests/test_cpp_structure.py", ".agents/tests/test_gpp_scaffold.py", ".agents/tests/test_hook_contract.py", ".agents/tests/test_marketplace_contract.py", ".agents/tests/test_msvc_scaffold.py", ".agents/tests/test_provenance_pin_updates.py", ".agents/tests/test_route_cli.py", ".agents/tests/test_sync_generated_safety.py", ".agents/tests/test_validate_claude.py", ".agents/tests/test_versionless_packages.py", ".agents/tests/test_win32_scaffold.py", ".github/scripts/update_provenance_pins.py", ".github/scripts/validate_claude.py"]
+
+[[tool.mypy.overrides]]
+module = "gen_skill_routes"
+disable_error_code = ["assignment", "type-arg"]
+
+[[tool.mypy.overrides]]
+module = "test_canonical_names"
+disable_error_code = ["attr-defined", "no-any-return", "type-arg", "union-attr"]
+
+[[tool.mypy.overrides]]
+module = "test_capability_harness"
+disable_error_code = ["arg-type", "no-untyped-def", "union-attr"]
+
+[[tool.mypy.overrides]]
+module = "test_hook_contract"
+disable_error_code = ["arg-type", "assignment", "attr-defined", "operator", "union-attr"]
+
+[[tool.mypy.overrides]]
+module = "test_marketplace_contract"
+disable_error_code = ["arg-type", "attr-defined", "no-any-return", "no-untyped-call", "no-untyped-def", "type-arg", "union-attr"]
+
+[[tool.mypy.overrides]]
+module = "test_provenance_pin_updates"
+disable_error_code = ["arg-type", "index", "no-untyped-call", "no-untyped-def", "union-attr"]
+
+[[tool.mypy.overrides]]
+module = "test_route_cli"
+disable_error_code = ["no-untyped-def"]
+
+[[tool.mypy.overrides]]
+module = "test_session_context"
+disable_error_code = ["arg-type", "assignment", "no-any-return", "type-arg", "union-attr", "var-annotated"]
+
+[[tool.mypy.overrides]]
+module = "test_sync_generated_safety"
+disable_error_code = ["arg-type", "no-untyped-call", "type-arg", "union-attr"]
+
+[[tool.mypy.overrides]]
+module = "test_validate_claude"
+disable_error_code = ["arg-type", "index", "no-untyped-def", "union-attr", "var-annotated"]
+
+[[tool.mypy.overrides]]
+module = "test_versionless_packages"
+disable_error_code = ["arg-type", "no-untyped-def", "union-attr"]
+
+[[tool.mypy.overrides]]
+module = "test_win32_scaffold"
+disable_error_code = ["no-any-return"]
+
+[[tool.mypy.overrides]]
+module = "update_provenance_pins"
+disable_error_code = ["index", "no-untyped-call", "no-untyped-def"]
+
+[[tool.mypy.overrides]]
+module = "validate_claude"
+disable_error_code = ["no-untyped-call", "no-untyped-def", "var-annotated"]
+
+[[tool.python-standards.exceptions]]
+path = ".agents/tests/test_attester_safety.py"
+rule = "PY016"
+reason = "Existing test reads or replaces process state at a command boundary."
+
+[[tool.python-standards.exceptions]]
+path = ".agents/tests/test_canonical_names.py"
+rule = "PY001"
+reason = "Existing test flattens nested fixture data for assertions."
+
+[[tool.python-standards.exceptions]]
+path = ".agents/tests/test_hook_contract.py"
+rule = "PY016"
+reason = "Existing test reads or replaces process state at a command boundary."
+
+[[tool.python-standards.exceptions]]
+path = ".agents/tests/test_marketplace_contract.py"
+rule = "PY001"
+reason = "Existing test flattens nested fixture data for assertions."
+
+[[tool.python-standards.exceptions]]
+path = ".agents/tests/test_marketplace_contract.py"
+rule = "PY016"
+reason = "Existing test reads or replaces process state at a command boundary."
+
+[[tool.python-standards.exceptions]]
+path = ".agents/tests/test_msvc_scaffold.py"
+rule = "PY016"
+reason = "Existing test reads or replaces process state at a command boundary."
