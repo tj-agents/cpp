@@ -1,0 +1,16 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        tj-agents/template/.github/workflows/plugin-ci.yml: ref-pin
+  adhoc-packages:
+    ignore:
+    - ci.yml:40:14
+  dangerous-triggers:
+    ignore:
+    - provenance-gate.yml:4:3
+    - update-provenance-pins.yml:4:3
+  undocumented-permissions:
+    ignore:
+    - provenance-gate.yml:9:3
+    - update-provenance-pins.yml:15:3

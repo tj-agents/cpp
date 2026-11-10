@@ -20,6 +20,7 @@ concurrency:
 
 jobs:
   propose:
+    name: propose
     if: >-
       github.repository == 'tj-agents/cpp' &&
       ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
@@ -56,6 +57,7 @@ jobs:
           APP_ID: ${{ vars.TJ_AGENTS_APP_ID }}
           APP_KEY: ${{ secrets.TJ_AGENTS_APP_PRIVATE_KEY }}
         run: |
+          set -euo pipefail
           if [[ -z "$APP_ID" || -z "$APP_KEY" ]]; then
             echo 'Configure TJ_AGENTS_APP_ID and TJ_AGENTS_APP_PRIVATE_KEY for the repository GitHub App. The calculated proposal is available in artifacts.' >&2
             exit 1
