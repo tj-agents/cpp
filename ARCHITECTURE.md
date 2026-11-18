@@ -2,49 +2,46 @@
 
 ## Source ownership
 
-`.agents/` is the sole host-neutral source. A capability's complete frontmatter and guidance
-live together at `.agents/<scope>/<kind>/<name>/SKILL.md`. The four scopes are:
+`.agents/` is the host-neutral source. Each skill's complete frontmatter and guidance lives
+at `.agents/<namespace>/skills/<subject>/SKILL.md`. The four namespaces are:
 
-- `base`: platform-neutral C++ contracts and knowledge, published as `cpp`;
-- `gpp`: the G++/GCC toolchain, published as `gpp`;
-- `msvc`: the MSVC/clang-cl toolchain and scaffold utility, published as `msvc`;
-- `win32`: user-mode Windows API contracts, knowledge and the GUI application overlay, published as `win32`.
+- `cpp`: platform-neutral C++ standards, learning guidance and learner data;
+- `gpp`: the G++/GCC toolchain and scaffold;
+- `msvc`: the MSVC/clang-cl toolchain and scaffold;
+- `win32`: user-mode Windows API guidance, learner data and the GUI application overlay.
 
-This layout supersedes the physical `standards/*` paths recorded in
-`CPP_AGENTS_STRUCTURE_HANDOFF.md` while retaining its useful logical separation and scaffold.
-`.codex/` and `.claude/` contain generated host discovery entries only. `plugins/*` is generated
-distribution output. `.agents/plugins/manifests/` is the authored host-manifest source.
+Kind describes a skill's role independently of its directory. Learner facts and progress are
+plain data under `learning/`. `.agents/plugins/payloads.json` declares package sources and
+resources; `.agents/plugins/manifests/` owns authored host manifests. The vendored Template
+generator produces host discovery entries, the shared index, marketplace files and plugin packages.
 
-Each scope has `utility/` and `utility/scripts/`. Empty groups say that no utility exists. The
-G++ and MSVC scaffolds own their toolchain templates under `.agents/<scope>/utility/scripts/`
-and layer the platform-neutral templates owned by `.agents/base/utility/scripts/templates/`
-underneath; a toolchain template at the same path wins. `win32:scaffold` is an overlay that
-converts either result's `app` target into a Win32 GUI application without choosing a
-compiler. Package resource mapping is explicit in `sources.json`: every package receives the
-resources it runs, so no package depends on another installation. Scaffold route profiles are
-rendered by `gen_skill_routes.py` during generation and ship only in the canonical packages,
-because they name canonical identifiers.
+Shared scaffold templates have one authored home: `.agents/cpp/assets/scaffold/templates/`.
+Toolchain templates and the Win32 overlay live in their scaffold skill's `assets/templates/`.
+The repository's `scripts/gen_skill_routes.py --scaffold-assets` materializes shared templates
+under each scaffold skill's `assets/shared/templates/` and renders its route profiles. Generic
+package generation then copies these complete skill resources into each host package.
 
+A scaffold uses its own adjacent resources in source, native discovery and standalone plugin
+layouts. A toolchain template at a matching path wins over the shared template. `win32:scaffold`
+converts either toolchain's `app` target into a GUI application without selecting a compiler.
+The scaffold asset check verifies materialized resources against their authored source.
 
-Capability identity is the pair of plugin and name, such as `cpp:style` or `win32:style`.
-Authored directories and canonical plugin payloads use the short name. Flat host discovery
-roots need globally distinct directory names, so `sources.json` explicitly maps them to
-names such as `cpp-style` and `win32-style`. Those adapter filenames are not redundant
-plugin-qualified identifiers. Package compatibility names are mapped separately.
+Capability identity is plugin plus subject, such as `cpp:style` or `win32:style`. Canonical
+packages retain subject paths. Flat host discovery directories use distinct generated names
+such as `cpp-style` and `win32-style`.
 
 ## Selection model
 
-Every project receives `cpp`. It may select one toolchain (`gpp` or `msvc`) and zero or more API
-layers (`win32`). The route profile records these dimensions separately. Win32 markers may produce
-a suggestion when no profile exists, but detection never applies an API or compiler. MSVC alone
-does not select Win32, a Windows host does not select MSVC, and Win32 does not require MSVC.
+Every C++ project receives `cpp`. It may select one toolchain (`gpp` or `msvc`) and API
+layers such as `win32`. Route profiles record these dimensions independently. Win32 markers
+may suggest an API when no profile exists, but detection never applies an API or compiler.
+MSVC alone does not select Win32; the host operating system does not select a toolchain.
 
-Generated routes contain technical skills only. Engineering workflows are independently owned and
-installed; this repository retains immutable provenance evidence for the historical external
-contract without making it a compulsory new-route dependency.
+Generated routes contain technical skills only. Engineering workflows are independently owned
+and installed. Historical signed contract evidence remains immutable and does not add a new
+route dependency.
 
 ## Canonical selection
 
-Only cpp, gpp, msvc, and win32 are published. Select compiler and API layers explicitly; the generator does not retain aliases for superseded identifiers.
-
+Only cpp, gpp, msvc and win32 are published. Select compiler and API layers explicitly.
 WDK and kernel capabilities remain outside this user-mode architecture until separately validated.

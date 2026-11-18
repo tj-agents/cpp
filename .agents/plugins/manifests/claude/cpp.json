@@ -13,5 +13,6 @@
     "cmake",
     "testing",
     "learning"
-  ]
+  ],
+  "displayName": "cpp"
 }

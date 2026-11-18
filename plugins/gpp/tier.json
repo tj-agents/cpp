@@ -1,0 +1,15 @@
+{
+  "schema_version": 3,
+  "tier": "gpp",
+  "stack": "G++ repositories",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "content": {
+      "glob": ".agents/skill-routes.json",
+      "pattern": "\"toolchain\"\\s*:\\s*\"gpp\""
+    }
+  }
+}

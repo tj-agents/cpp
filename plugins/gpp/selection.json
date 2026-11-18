@@ -1,13 +1,47 @@
 {
   "plugin": "gpp",
-  "scopes": [
-    "gpp"
-  ],
-  "prerequisites": [
+  "dependencies": [
+    "tj-agents/base",
+    "tj-agents/engineering",
     "cpp"
   ],
+  "profiles": {
+    "core": [
+      "toolchain"
+    ],
+    "scaffold": [
+      "scaffold"
+    ]
+  },
+  "compatibilitySkillAliases": {},
   "skills": [
-    "scaffold",
-    "toolchain"
+    {
+      "name": "scaffold",
+      "kind": "operation",
+      "profile": "scaffold",
+      "applicability": [
+        "new G++ C++ projects or compatible existing project helpers"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "toolchain",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "Projects explicitly selecting gpp"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    }
   ]
 }

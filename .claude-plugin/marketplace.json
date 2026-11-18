@@ -7,19 +7,52 @@
   "plugins": [
     {
       "name": "cpp",
-      "source": "./plugins/cpp"
+      "source": "./plugins/cpp",
+      "description": "Platform-neutral modern C++ contracts and learning guidance.",
+      "category": "Productivity",
+      "keywords": [
+        "cpp",
+        "cmake",
+        "testing",
+        "learning"
+      ]
     },
     {
       "name": "gpp",
-      "source": "./plugins/gpp"
+      "source": "./plugins/gpp",
+      "description": "G++, GCC, GDB, and Linux guidance layered on cpp.",
+      "category": "Productivity",
+      "keywords": [
+        "cpp",
+        "gpp",
+        "gcc",
+        "gdb",
+        "linux"
+      ]
     },
     {
       "name": "msvc",
-      "source": "./plugins/msvc"
+      "source": "./plugins/msvc",
+      "description": "MSVC and clang-cl toolchain guidance and project scaffold layered on cpp.",
+      "category": "Productivity",
+      "keywords": [
+        "cpp",
+        "msvc",
+        "clang-cl",
+        "cmake"
+      ]
     },
     {
       "name": "win32",
-      "source": "./plugins/win32"
+      "source": "./plugins/win32",
+      "description": "User-mode Win32, Unicode, WIL, and Windows resource guidance layered on cpp.",
+      "category": "Productivity",
+      "keywords": [
+        "cpp",
+        "win32",
+        "wil",
+        "windows"
+      ]
     }
   ]
 }

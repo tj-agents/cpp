@@ -1,0 +1,9 @@
+#pragma once
+
+#include <string>
+
+namespace __NAMESPACE__ {
+
+std::string greeting();
+
+}  // namespace __NAMESPACE__

@@ -1,0 +1,15 @@
+{
+  "schema_version": 3,
+  "tier": "win32",
+  "stack": "user-mode Win32 repositories",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "content": {
+      "glob": ".agents/skill-routes.json",
+      "pattern": "\"apis\"\\s*:\\s*\\[[^\\]]*\"win32\""
+    }
+  }
+}

@@ -1,20 +1,166 @@
 {
   "plugin": "cpp",
-  "scopes": [
-    "base"
+  "dependencies": [
+    "tj-agents/base",
+    "tj-agents/engineering"
   ],
-  "prerequisites": [],
+  "profiles": {
+    "core": [
+      "build",
+      "domain-design",
+      "explanation",
+      "libraries",
+      "mixins",
+      "structure",
+      "style",
+      "testing"
+    ],
+    "knowledge": [
+      "direction",
+      "learning"
+    ]
+  },
+  "compatibilitySkillAliases": {},
   "skills": [
-    "build",
-    "direction",
-    "domain-design",
-    "explanation",
-    "knowledge",
-    "learning",
-    "libraries",
-    "mixins",
-    "structure",
-    "style",
-    "testing"
+    {
+      "name": "build",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "direction",
+      "kind": "reference",
+      "profile": "knowledge",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "domain-design",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "explanation",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "learning",
+      "kind": "learning",
+      "profile": "knowledge",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "libraries",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "mixins",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "structure",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "style",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "testing",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "C++ projects"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    }
   ]
 }

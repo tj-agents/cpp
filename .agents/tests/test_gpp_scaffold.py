@@ -6,10 +6,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = ROOT / "plugins" / "gpp" / "resources" / "gpp" / "utility" / "scripts" / "new-gpp-project.sh"
-SHARED = ROOT / "plugins" / "gpp" / "resources" / "base" / "utility" / "scripts" / "templates"
+SCRIPT = (
+    ROOT / "plugins" / "gpp" / "skills" / "scaffold" / "scripts" / "new-gpp-project.sh"
+)
+SHARED = (
+    ROOT / "plugins" / "gpp" / "skills" / "scaffold" / "assets" / "shared" / "templates"
+)
 # Resolve PATH explicitly: Windows CreateProcess otherwise checks system32 first.
 BASH = shutil.which("bash") or "bash"
 
@@ -30,7 +33,9 @@ class GppScaffoldTests(unittest.TestCase):
             raise RuntimeError("Bash exposes neither WSL nor Git Bash drive mounts")
         return f"{prefix}{resolved[0].lower()}{resolved[2:]}"
 
-    def run_scaffold(self, *arguments: str, script: Path = SCRIPT) -> subprocess.CompletedProcess[str]:
+    def run_scaffold(
+        self, *arguments: str, script: Path = SCRIPT
+    ) -> subprocess.CompletedProcess[str]:
         converted = list(arguments)
         if "--destination" in converted:
             index = converted.index("--destination") + 1
@@ -48,13 +53,33 @@ class GppScaffoldTests(unittest.TestCase):
             parent = Path(temporary) / "parent with spaces"
             parent.mkdir()
 
-            cpp20 = self.run_scaffold("--name", "cpp20_app", "--destination", str(parent), "--cpp-standard", "20")
+            cpp20 = self.run_scaffold(
+                "--name",
+                "cpp20_app",
+                "--destination",
+                str(parent),
+                "--cpp-standard",
+                "20",
+            )
             self.assertEqual(0, cpp20.returncode, cpp20.stdout + cpp20.stderr)
-            cpp23 = self.run_scaffold("--name", "cpp23_app", "--destination", str(parent), "--cpp-standard", "23")
+            cpp23 = self.run_scaffold(
+                "--name",
+                "cpp23_app",
+                "--destination",
+                str(parent),
+                "--cpp-standard",
+                "23",
+            )
             self.assertEqual(0, cpp23.returncode, cpp23.stdout + cpp23.stderr)
 
-            self.assertIn("CMAKE_CXX_STANDARD 20", (parent / "cpp20_app/CMakeLists.txt").read_text(encoding="utf-8"))
-            self.assertIn("CMAKE_CXX_STANDARD 23", (parent / "cpp23_app/CMakeLists.txt").read_text(encoding="utf-8"))
+            self.assertIn(
+                "CMAKE_CXX_STANDARD 20",
+                (parent / "cpp20_app/CMakeLists.txt").read_text(encoding="utf-8"),
+            )
+            self.assertIn(
+                "CMAKE_CXX_STANDARD 23",
+                (parent / "cpp23_app/CMakeLists.txt").read_text(encoding="utf-8"),
+            )
 
             for project in (parent / "cpp20_app", parent / "cpp23_app"):
                 json.loads((project / "CMakePresets.json").read_text(encoding="utf-8"))
@@ -69,41 +94,73 @@ class GppScaffoldTests(unittest.TestCase):
             parent = Path(temporary)
             for standard in ("20", "23"):
                 name = f"compile_check_{standard}"
-                created = self.run_scaffold("--name", name, "--destination", str(parent), "--cpp-standard", standard)
+                created = self.run_scaffold(
+                    "--name",
+                    name,
+                    "--destination",
+                    str(parent),
+                    "--cpp-standard",
+                    standard,
+                )
                 self.assertEqual(0, created.returncode, created.stdout + created.stderr)
                 project = parent / name
                 binary = parent / f"{name}.bin"
                 compiled = subprocess.run(
                     [
-                        gxx, f"-std=c++{standard}",
-                        "-I", str(project / "libs/core/include"),
+                        gxx,
+                        f"-std=c++{standard}",
+                        "-I",
+                        str(project / "libs/core/include"),
                         str(project / "app/src/main.cpp"),
                         str(project / "libs/core/src/core.cpp"),
-                        "-o", str(binary),
+                        "-o",
+                        str(binary),
                     ],
                     capture_output=True,
                     text=True,
                 )
-                self.assertEqual(0, compiled.returncode, compiled.stdout + compiled.stderr)
+                self.assertEqual(
+                    0, compiled.returncode, compiled.stdout + compiled.stderr
+                )
                 run = subprocess.run([str(binary)], capture_output=True, text=True)
                 self.assertEqual(0, run.returncode)
                 self.assertIn(name, run.stdout)
 
                 simple_name = f"{name}_simple"
-                simple = self.run_scaffold("--name", simple_name, "--destination", str(parent), "--cpp-standard", standard, "--simple")
+                simple = self.run_scaffold(
+                    "--name",
+                    simple_name,
+                    "--destination",
+                    str(parent),
+                    "--cpp-standard",
+                    standard,
+                    "--simple",
+                )
                 self.assertEqual(0, simple.returncode, simple.stdout + simple.stderr)
                 simple_binary = parent / f"{simple_name}.bin"
                 simple_compiled = subprocess.run(
-                    [gxx, f"-std=c++{standard}", str(parent / simple_name / "main.cpp"), "-o", str(simple_binary)],
+                    [
+                        gxx,
+                        f"-std=c++{standard}",
+                        str(parent / simple_name / "main.cpp"),
+                        "-o",
+                        str(simple_binary),
+                    ],
                     capture_output=True,
                     text=True,
                 )
-                self.assertEqual(0, simple_compiled.returncode, simple_compiled.stdout + simple_compiled.stderr)
+                self.assertEqual(
+                    0,
+                    simple_compiled.returncode,
+                    simple_compiled.stdout + simple_compiled.stderr,
+                )
 
     def test_project_layout_configuration_and_route_profile(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary)
-            created = self.run_scaffold("--name", "my-tool", "--destination", str(parent))
+            created = self.run_scaffold(
+                "--name", "my-tool", "--destination", str(parent)
+            )
             self.assertEqual(0, created.returncode, created.stdout + created.stderr)
             project = parent / "my-tool"
             expected = {
@@ -128,21 +185,40 @@ class GppScaffoldTests(unittest.TestCase):
                 "tests/CMakeLists.txt",
                 "tests/core/core_test.cpp",
             }
-            actual = {p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file()}
+            actual = {
+                p.relative_to(project).as_posix()
+                for p in project.rglob("*")
+                if p.is_file()
+            }
             self.assertEqual(expected, actual)
             for name in (".clang-format", ".clang-tidy", ".editorconfig"):
-                self.assertEqual((SHARED / f"{name}.in").read_bytes(), (project / name).read_bytes())
-            routes = json.loads((project / ".agents/skill-routes.json").read_text(encoding="utf-8"))
+                self.assertEqual(
+                    (SHARED / f"{name}.in").read_bytes(), (project / name).read_bytes()
+                )
+            routes = json.loads(
+                (project / ".agents/skill-routes.json").read_text(encoding="utf-8")
+            )
             self.assertEqual({"toolchain": "gpp", "apis": []}, routes["profile"])
             self.assertEqual(["cpp", "gpp"], routes["layers"])
-            presets = json.loads((project / "CMakePresets.json").read_text(encoding="utf-8"))
-            configure = {preset["name"]: preset for preset in presets["configurePresets"]}
+            presets = json.loads(
+                (project / "CMakePresets.json").read_text(encoding="utf-8")
+            )
+            configure = {
+                preset["name"]: preset for preset in presets["configurePresets"]
+            }
             self.assertEqual({"dev", "release", "gdb"}, set(configure))
-            self.assertEqual("ON", configure["dev"]["cacheVariables"]["MY_TOOL_SANITIZE"])
+            self.assertEqual(
+                "ON", configure["dev"]["cacheVariables"]["MY_TOOL_SANITIZE"]
+            )
             self.assertNotIn("CMAKE_CXX_FLAGS", configure["dev"]["cacheVariables"])
             self.assertNotIn("MY_TOOL_SANITIZE", configure["gdb"]["cacheVariables"])
-            self.assertIn("set(CMAKE_CXX_SCAN_FOR_MODULES OFF)", (project / "CMakeLists.txt").read_text(encoding="utf-8"))
-            launch = json.loads((project / ".vscode/launch.json").read_text(encoding="utf-8"))
+            self.assertIn(
+                "set(CMAKE_CXX_SCAN_FOR_MODULES OFF)",
+                (project / "CMakeLists.txt").read_text(encoding="utf-8"),
+            )
+            launch = json.loads(
+                (project / ".vscode/launch.json").read_text(encoding="utf-8")
+            )
             self.assertEqual("gdb", launch["configurations"][0]["MIMode"])
 
     def test_project_builds_and_runs_with_cmake_presets(self) -> None:
@@ -157,15 +233,36 @@ class GppScaffoldTests(unittest.TestCase):
             self.assertEqual(0, created.returncode, created.stdout + created.stderr)
             project = parent / "built"
             for preset in presets:
-                # Tests are not built: Catch2 would be downloaded. Every owned target is.
                 configured = subprocess.run(
-                    ["cmake", "--preset", preset, f"-DCMAKE_CXX_COMPILER={gxx}", "-DBUILD_TESTING=OFF", "-DBUILT_WARNINGS_AS_ERRORS=ON"],
-                    cwd=project, capture_output=True, text=True,
+                    [
+                        "cmake",
+                        "--preset",
+                        preset,
+                        f"-DCMAKE_CXX_COMPILER={gxx}",
+                        "-DBUILD_TESTING=OFF",
+                        "-DBUILT_WARNINGS_AS_ERRORS=ON",
+                    ],
+                    cwd=project,
+                    capture_output=True,
+                    text=True,
                 )
-                self.assertEqual(0, configured.returncode, configured.stdout + configured.stderr)
-                built = subprocess.run(["cmake", "--build", "--preset", preset], cwd=project, capture_output=True, text=True)
+                self.assertEqual(
+                    0, configured.returncode, configured.stdout + configured.stderr
+                )
+                built = subprocess.run(
+                    ["cmake", "--build", "--preset", preset],
+                    cwd=project,
+                    capture_output=True,
+                    text=True,
+                )
                 self.assertEqual(0, built.returncode, built.stdout + built.stderr)
-                binary = project / "build" / preset / "bin" / ("built.exe" if os.name == "nt" else "built")
+                binary = (
+                    project
+                    / "build"
+                    / preset
+                    / "bin"
+                    / ("built.exe" if os.name == "nt" else "built")
+                )
                 run = subprocess.run([str(binary)], capture_output=True, text=True)
                 self.assertEqual(0, run.returncode, run.stderr)
                 self.assertIn("hello from built", run.stdout)
@@ -174,7 +271,9 @@ class GppScaffoldTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary) / "destination"
             parent.mkdir()
-            simple = self.run_scaffold("--name", "leetcode_thing", "--destination", str(parent), "--simple")
+            simple = self.run_scaffold(
+                "--name", "leetcode_thing", "--destination", str(parent), "--simple"
+            )
             self.assertEqual(0, simple.returncode, simple.stdout + simple.stderr)
             created = {p.name for p in (parent / "leetcode_thing").iterdir()}
             self.assertEqual({"CMakeLists.txt", "main.cpp"}, created)
@@ -183,27 +282,35 @@ class GppScaffoldTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary) / "destination"
             parent.mkdir()
-            preview = self.run_scaffold("--name", "preview", "--destination", str(parent), "--dry-run")
+            preview = self.run_scaffold(
+                "--name", "preview", "--destination", str(parent), "--dry-run"
+            )
             self.assertEqual(0, preview.returncode, preview.stdout + preview.stderr)
             self.assertFalse((parent / "preview").exists())
 
             existing = parent / "existing"
             existing.mkdir()
-            refused = self.run_scaffold("--name", "existing", "--destination", str(parent))
+            refused = self.run_scaffold(
+                "--name", "existing", "--destination", str(parent)
+            )
             self.assertNotEqual(0, refused.returncode)
             self.assertIn("Destination already exists", refused.stdout + refused.stderr)
 
             isolated = Path(temporary) / "isolated" / "new-gpp-project.sh"
             isolated.parent.mkdir()
             shutil.copy2(SCRIPT, isolated)
-            missing = self.run_scaffold("--name", "missing", "--destination", str(parent), script=isolated)
+            missing = self.run_scaffold(
+                "--name", "missing", "--destination", str(parent), script=isolated
+            )
             self.assertNotEqual(0, missing.returncode)
             self.assertIn("templates are missing", missing.stdout + missing.stderr)
 
     def test_invalid_name_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary)
-            invalid = self.run_scaffold("--name", "../escape", "--destination", str(parent))
+            invalid = self.run_scaffold(
+                "--name", "../escape", "--destination", str(parent)
+            )
             self.assertNotEqual(0, invalid.returncode)
             self.assertFalse((parent.parent / "escape").exists())
 

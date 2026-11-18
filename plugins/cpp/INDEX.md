@@ -1,15 +1,12 @@
-# cpp capabilities
+# cpp package capabilities
 
-Generated from canonical `.agents/` definitions.
-
-- `build` — contract — `.agents/base/contract/build/SKILL.md`
-- `direction` — knowledge — `.agents/base/knowledge/direction/SKILL.md`
-- `domain-design` — contract — `.agents/base/contract/domain-design/SKILL.md`
-- `explanation` — contract — `.agents/base/contract/explanation/SKILL.md`
-- `knowledge` — knowledge — `.agents/base/knowledge/knowledge/SKILL.md`
-- `learning` — knowledge — `.agents/base/knowledge/learning/SKILL.md`
-- `libraries` — contract — `.agents/base/contract/libraries/SKILL.md`
-- `mixins` — contract — `.agents/base/contract/mixins/SKILL.md`
-- `structure` — contract — `.agents/base/contract/structure/SKILL.md`
-- `style` — contract — `.agents/base/contract/style/SKILL.md`
-- `testing` — contract — `.agents/base/contract/testing/SKILL.md`
+- `learning` — learning — knowledge
+- `direction` — reference — knowledge
+- `build` — standard — core
+- `domain-design` — standard — core
+- `explanation` — standard — core
+- `libraries` — standard — core
+- `mixins` — standard — core
+- `structure` — standard — core
+- `style` — standard — core
+- `testing` — standard — core

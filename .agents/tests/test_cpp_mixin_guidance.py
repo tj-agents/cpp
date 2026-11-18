@@ -1,16 +1,13 @@
 import json
-from pathlib import Path
 import re
 import unittest
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CANONICAL = ROOT / ".agents/base/contract/mixins/SKILL.md"
-GENERATED = (
-    ROOT / "plugins/cpp/skills/mixins/SKILL.md",
-        )
+CANONICAL = ROOT / ".agents/cpp/skills/mixins/SKILL.md"
+GENERATED = (ROOT / "plugins/cpp/.agents/cpp/skills/mixins/SKILL.md",)
 AUTHORED_SCOPE_ROOTS = (
-    ROOT / ".agents/base",
+    ROOT / ".agents/cpp",
     ROOT / ".agents/gpp",
     ROOT / ".agents/msvc",
     ROOT / ".agents/win32",
@@ -71,7 +68,9 @@ class CppMixinGuidanceTests(unittest.TestCase):
                     for marker in FORBIDDEN_OWNERSHIP_MARKERS:
                         self.assertNotIn(marker, guidance)
 
-        win32_style = (ROOT / ".agents/win32/contract/style/SKILL.md").read_text(encoding="utf-8")
+        win32_style = (ROOT / ".agents/win32/skills/style/SKILL.md").read_text(
+            encoding="utf-8"
+        )
         self.assertIn("Load `cpp:mixins`", win32_style)
         self.assertNotIn("historically CRTP", win32_style)
         self.assertNotIn("composed mixins", win32_style)
@@ -83,13 +82,15 @@ class CppMixinGuidanceTests(unittest.TestCase):
         self.assertIn("belong to `cpp:mixins`, never `cpp:domain-design`", agents)
         self.assertEqual("@AGENTS.md", claude)
 
-    def test_discovery_and_compatibility_maps_expose_mixins(self) -> None:
-        sources = json.loads((ROOT / ".agents/plugins/sources.json").read_text(encoding="utf-8"))
-        payloads = json.loads((ROOT / ".agents/plugins/payloads.json").read_text(encoding="utf-8"))
-        self.assertEqual("cpp-mixins", sources["hostAdapterNames"]["cpp:mixins"])
-        self.assertEqual(["cpp", "gpp", "msvc", "win32"], payloads["publicPlugins"])
-        self.assertEqual(["base"], sources["packages"]["cpp"]["scopes"])
-        self.assertNotIn("compatibilityAliases", payloads)
+    def test_discovery_exposes_the_canonical_mixin_identity(self) -> None:
+        payloads = json.loads(
+            (ROOT / ".agents/plugins/payloads.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(["cpp", "gpp", "msvc", "win32"], list(payloads["payloads"]))
+        self.assertEqual(["cpp"], payloads["payloads"]["cpp"])
+        self.assertNotIn("compatibilitySkillAliases", payloads)
+        for host in ("codex", "claude"):
+            self.assertTrue((ROOT / f".{host}/skills/cpp-mixins/SKILL.md").is_file())
 
     def test_examples_are_structurally_complete_everywhere(self) -> None:
         for path in (CANONICAL, *GENERATED):
@@ -97,25 +98,43 @@ class CppMixinGuidanceTests(unittest.TestCase):
                 guidance = path.read_text(encoding="utf-8")
                 blocks = re.findall(r"```(?:cpp|text)\n(.*?)```", guidance, re.DOTALL)
 
-                provider = next(block for block in blocks if "struct FileDroppable" in block)
-                self.assertIn("static_cast<Host&>(*this).on_file_drop(drop->path)", provider)
+                provider = next(
+                    block for block in blocks if "struct FileDroppable" in block
+                )
+                self.assertIn(
+                    "static_cast<Host&>(*this).on_file_drop(drop->path)", provider
+                )
 
                 dispatch = next(block for block in blocks if "class Editor" in block)
-                self.assertIn("return FileDroppable<Editor>::try_handle(event) ||", dispatch)
+                self.assertIn(
+                    "return FileDroppable<Editor>::try_handle(event) ||", dispatch
+                )
                 self.assertIn("CommandRouter<Editor>::try_handle(event)", dispatch)
 
-                fragment = next(block for block in blocks if "#ifndef ACME_DETAIL_EVENT" in block)
-                self.assertIn('#error "Define ACME_DETAIL_EVENT before including this internal fragment"', fragment)
+                fragment = next(
+                    block for block in blocks if "#ifndef ACME_DETAIL_EVENT" in block
+                )
+                self.assertIn(
+                    (
+                        '#error "Define ACME_DETAIL_EVENT before including this '
+                        'internal fragment"'
+                    ),
+                    fragment,
+                )
                 self.assertIn("ACME_DETAIL_EVENT(file_drop)", fragment)
                 self.assertIn("ACME_DETAIL_EVENT(command)", fragment)
 
-                public_header = next(block for block in blocks if "enum class EventKind" in block)
+                public_header = next(
+                    block for block in blocks if "enum class EventKind" in block
+                )
                 self.assertEqual(2, public_header.count(DETAIL_INCLUDE))
                 normalized_header = " ".join(public_header.split())
                 for expansion in MACRO_EXPANSIONS:
                     self.assertIn(expansion, normalized_header)
 
-                leakage = next(block for block in blocks if "event_kind.hpp leaked" in block)
+                leakage = next(
+                    block for block in blocks if "event_kind.hpp leaked" in block
+                )
                 self.assertIn("#include <acme/event_kind.hpp>", leakage)
                 self.assertIn("#if defined(ACME_DETAIL_EVENT)", leakage)
                 self.assertIn("int main() {}", leakage)

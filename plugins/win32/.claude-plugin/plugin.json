@@ -12,5 +12,11 @@
     "win32",
     "wil",
     "windows"
+  ],
+  "displayName": "win32",
+  "dependencies": [
+    "base@tj-agents",
+    "engineering@tj-agents",
+    "cpp"
   ]
 }

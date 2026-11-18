@@ -1,81 +1,48 @@
-import importlib.util
 import json
-from pathlib import Path
 import unittest
-from unittest import mock
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location("sync_generated_harness", ROOT / ".agents/sync_generated.py")
-SYNC = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(SYNC)
 
 
 class CapabilityHarnessTests(unittest.TestCase):
-    def test_both_host_catalogs_publish_the_shared_identity(self):
-        output, _ = SYNC.build(ROOT)
-        for relative in (".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json"):
-            self.assertEqual("tj-agents", json.loads(output[relative])["name"])
+    def test_both_catalogs_publish_shared_identity(self) -> None:
+        for relative in (
+            ".claude-plugin/marketplace.json",
+            ".agents/plugins/marketplace.json",
+        ):
+            self.assertEqual(
+                "tj-agents", json.loads((ROOT / relative).read_text())["name"]
+            )
 
-    def test_generator_rejects_reintroduced_producer_requirements(self):
-        load = SYNC.load
-        for package in ("cpp", "gpp"):
-            def legacy(path):
-                value = load(path)
-                if path == ROOT / f".agents/plugins/manifests/harness/{package}.json":
-                    value["requires"]["plugins"][0] = f"cpp-agents/{package}"
-                return value
-            with self.subTest(package=package), mock.patch.object(SYNC, "load", side_effect=legacy):
-                with self.assertRaisesRegex(ValueError, "canonical tj-agents marketplace identities"):
-                    SYNC.build(ROOT)
-
-    def test_canonical_harnesses_match_owned_package_contracts(self):
-        payloads = json.loads((ROOT / ".agents/plugins/payloads.json").read_text(encoding="utf-8"))
-        config = json.loads((ROOT / ".agents/plugins/sources.json").read_text(encoding="utf-8"))
-        for package in payloads["publicPlugins"]:
-            with self.subTest(package=package):
-                source = ROOT / f".agents/plugins/manifests/harness/{package}.json"
-                harness = json.loads(source.read_text(encoding="utf-8"))
-                self.assertEqual(harness["schema_version"], 1)
-                self.assertEqual(harness["plugin"], f"tj-agents/{package}")
-                requires = harness["requires"]
-                self.assertEqual(requires["marketplaces"], [{"id": "tj-agents", "repository": "tj-agents/marketplace"}])
-                dependencies = payloads["dependencies"].get(package, [])
-                self.assertEqual(requires["plugins"], [f"tj-agents/{name}" for name in [package, *dependencies]])
-                self.assertEqual(requires["permissions"], {"claude_allow": [], "codex_prefix_rules": []})
-                expected_hooks = [{"path": "hooks/session_context.py", "hosts": ["claude", "codex"]}] if package in payloads["hooks"] else []
-                self.assertEqual(requires["hooks"], expected_hooks)
-                for hook in requires["hooks"]:
-                    self.assertTrue((ROOT / f"plugins/{package}" / hook["path"]).is_file())
-                    for host in hook["hosts"]:
-                        self.assertIn("session_context.py", (ROOT / f"plugins/{package}/hooks/{host}.json").read_text(encoding="utf-8"))
-                roots = harness["source_roots"]
-                self.assertEqual(len(roots), len(set(roots)))
-                for relative in roots:
-                    self.assertTrue((ROOT / relative).exists(), relative)
-                    self.assertNotIn("..", Path(relative).parts)
-                for scope in config["scopes"]:
-                    if scope["plugin"] == package:
-                        self.assertIn(scope["root"], roots)
-                for resource in config["resources"]:
-                    if package in resource["plugins"]:
-                        self.assertTrue(any(resource["source"] == item or resource["source"].startswith(item + "/") for item in roots))
-                if package != "cpp":
-                    self.assertIn(".agents/gen_skill_routes.py", roots)
-
-    def test_generator_ships_authored_harnesses_only_when_present(self):
-        output, _ = SYNC.build(ROOT)
-        payloads = json.loads((ROOT / ".agents/plugins/payloads.json").read_text(encoding="utf-8"))
-        for package in payloads["payloads"]:
-            with self.subTest(package=package):
-                relative = f"plugins/{package}/harness.json"
-                if package in payloads["publicPlugins"]:
-                    source = ROOT / f".agents/plugins/manifests/harness/{package}.json"
-                    self.assertEqual(output[relative], source.read_bytes())
-                    self.assertEqual((ROOT / relative).read_bytes(), source.read_bytes())
-                else:
-                    self.assertNotIn(relative, output)
-
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_packages_ship_declared_roots_and_effective_requirements(self) -> None:
+        for plugin in ("cpp", "gpp", "msvc", "win32"):
+            source = json.loads(
+                (ROOT / f".agents/plugins/manifests/harness/{plugin}.json").read_text()
+            )
+            package = ROOT / f"plugins/{plugin}"
+            shipped = json.loads((package / "harness.json").read_text())
+            self.assertEqual(f"tj-agents/{plugin}", shipped["plugin"])
+            self.assertEqual(source["source_roots"], shipped["source_roots"])
+            expected = {
+                f"tj-agents/{plugin}",
+                "tj-agents/base",
+                "tj-agents/engineering",
+            }
+            if plugin != "cpp":
+                expected.add("tj-agents/cpp")
+            self.assertEqual(expected, set(shipped["requires"]["plugins"]))
+            self.assertEqual(
+                {"claude_allow": [], "codex_prefix_rules": []},
+                shipped["requires"]["permissions"],
+            )
+            for relative in source["source_roots"]:
+                originals = {
+                    p.relative_to(ROOT / relative): p.read_bytes()
+                    for p in (ROOT / relative).rglob("*")
+                    if p.is_file()
+                }
+                for path, content in originals.items():
+                    self.assertEqual(content, (package / relative / path).read_bytes())
+            for hook in shipped["requires"]["hooks"]:
+                self.assertTrue((package / hook["path"]).is_file())

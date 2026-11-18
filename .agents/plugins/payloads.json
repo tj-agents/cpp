@@ -1,15 +1,7 @@
 {
-  "$comment": "Canonical C++ scopes, package dependencies, and hooks.",
-  "description": "Independent C++, G++, MSVC, and Win32 guidance for Claude Code and Codex.",
-  "publicPlugins": [
-    "cpp",
-    "gpp",
-    "msvc",
-    "win32"
-  ],
   "payloads": {
     "cpp": [
-      "base"
+      "cpp"
     ],
     "gpp": [
       "gpp"
@@ -32,7 +24,36 @@
       "cpp"
     ]
   },
-  "hooks": [
-    "cpp"
+  "resources": [
+    {
+      "plugin": "cpp",
+      "source": ".agents/hooks/session_context.py",
+      "destination": "hooks/session_context.py"
+    },
+    {
+      "plugin": "cpp",
+      "source": ".codex/hooks/cpp.json",
+      "destination": "hooks/codex.json"
+    },
+    {
+      "plugin": "cpp",
+      "source": ".claude/hooks/cpp.json",
+      "destination": "hooks/claude.json"
+    },
+    {
+      "plugin": "cpp",
+      "source": ".agents/cpp/learning",
+      "destination": ".agents/cpp/learning"
+    },
+    {
+      "plugin": "cpp",
+      "source": ".agents/cpp/assets",
+      "destination": ".agents/cpp/assets"
+    },
+    {
+      "plugin": "win32",
+      "source": ".agents/win32/learning",
+      "destination": ".agents/win32/learning"
+    }
   ]
 }

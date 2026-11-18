@@ -1,0 +1,21 @@
+include(FetchContent)
+FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.7.1
+    GIT_SHALLOW TRUE
+    SYSTEM)
+FetchContent_MakeAvailable(Catch2)
+
+add_executable(core_test
+    core/core_test.cpp)
+
+target_link_libraries(core_test
+    PRIVATE
+        __NAMESPACE__::core
+        __NAMESPACE___warnings
+        __NAMESPACE___sanitize
+        Catch2::Catch2WithMain)
+
+include(Catch)
+catch_discover_tests(core_test)

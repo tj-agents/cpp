@@ -5,7 +5,7 @@ The canonical repository is [`tj-agents/cpp`](https://github.com/tj-agents/cpp);
 
 | Plugin | Owns | Requires |
 |---|---|---|
-| `cpp@tj-agents` | Platform-neutral C++, CMake, testing, dependencies, learning, and knowledge | — |
+| `cpp@tj-agents` | Platform-neutral C++, CMake, testing, dependencies, learning, and learner progress | — |
 | `gpp@tj-agents` | G++, GCC, GDB, and Linux toolchain details | `cpp` |
 | `msvc@tj-agents` | MSVC/clang-cl toolchain details and the reusable console scaffold | `cpp` |
 | `win32@tj-agents` | User-mode Win32, Unicode, WIL, callbacks, and native resources | `cpp` |
@@ -23,12 +23,12 @@ domain-driven-design concern.
 
 Canonical definitions live at:
 
-- `.agents/base/<kind>/<name>/SKILL.md`
-- `.agents/gpp/<kind>/<name>/SKILL.md`
-- `.agents/msvc/<kind>/<name>/SKILL.md`
-- `.agents/win32/<kind>/<name>/SKILL.md`
+- `.agents/cpp/skills/<subject>/SKILL.md`
+- `.agents/gpp/skills/<subject>/SKILL.md`
+- `.agents/msvc/skills/<subject>/SKILL.md`
+- `.agents/win32/skills/<subject>/SKILL.md`
 
-`.agents/plugins/sources.json` maps those sources into generated `.codex/skills/`,
+`.agents/plugins/payloads.json` declares those sources and resources for generated `.codex/skills/`,
 `.claude/skills/`, and self-contained `plugins/*` packages. `.agents/skills/` does not exist;
 `.agents/` remains the sole canonical shared tree.
 
@@ -39,31 +39,34 @@ cpp SessionStart hook for both hosts. They request no permanent permissions.
 
 Scaffolds compose the same way as the plugins:
 
-| Utility | Produces |
+| Operation | Produces |
 |---|---|
 | `gpp:scaffold` | `cpp + gpp` library + console project with G++ presets (`dev` with sanitizers, `release`, `gdb`) |
 | `msvc:scaffold` | `cpp + msvc` library + console project with MSVC presets (`dev`, `release`, `asan`) and PowerShell helpers |
 | `win32:scaffold` | converts either result's `app` target into a Win32 GUI application (`cpp + toolchain + win32`) |
 
 The platform-neutral templates they share (formatter, analysis and editor configuration and the
-`libs/core`, `app` and `tests` sources) are owned by `.agents/base/utility/scripts/templates/` and
+`libs/core`, `app` and `tests` sources) are owned by `.agents/cpp/assets/scaffold/templates/` and
 copied into every package that uses them. Each generated project carries the route profile for its
-exact composition, rendered by the route generator at sync time.
+exact composition. `scripts/gen_skill_routes.py --scaffold-assets` prepares these resources
+and route profiles inside each scaffold skill before the Template generator packages them.
 
 Generate and verify outputs with:
 
 ```powershell
+uv run python -B scripts/gen_skill_routes.py --scaffold-assets
 pwsh .agents/sync-generated.ps1
+uv run python -B scripts/gen_skill_routes.py --scaffold-assets --check
 pwsh .agents/sync-generated.ps1 -Check
-python -B .agents/gen_skill_routes.py --self-test
+uv run python -B scripts/gen_skill_routes.py --self-test
 ```
 
 Generate a consuming repository profile explicitly:
 
 ```powershell
-python .agents/gen_skill_routes.py --toolchain msvc --into C:/source/project
-python .agents/gen_skill_routes.py --toolchain gpp --api win32 --into C:/source/project
-python .agents/gen_skill_routes.py --api win32 --into C:/source/project
+uv run python -B scripts/gen_skill_routes.py --toolchain msvc --into C:/source/project
+uv run python -B scripts/gen_skill_routes.py --toolchain gpp --api win32 --into C:/source/project
+uv run python -B scripts/gen_skill_routes.py --api win32 --into C:/source/project
 ```
 
 Profiles emit only cpp, gpp, msvc, and win32 identities and contain no compulsory process-plugin route. Process workflows may be installed separately from their shared engineering owner.

@@ -1,0 +1,112 @@
+name: Cpp Acceptance
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-packages:
+    name: Verify generated packages and native scaffolds
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
+        with:
+          version-file: .uv-version
+          enable-cache: true
+      - name: Install Python development tools
+        run: uv sync --locked
+      - name: Install provenance verifier
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes gnupg
+          gpg --version
+      - name: Check prepared scaffold resources
+        run: uv run python -B scripts/gen_skill_routes.py --scaffold-assets --check
+      - name: Check generated payloads
+        run: uv run python -B .agents/sync_generated.py --check
+      - name: Check Python formatting
+        run: uv run ruff format --check
+      - name: Check Python lint
+        run: uv run ruff check
+      - name: Check Python types
+        run: uv run mypy
+      - name: Test repository contracts and real native scaffolds
+        run: uv run pytest
+      - name: Check independent route profiles
+        run: uv run python -B scripts/gen_skill_routes.py --self-test
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .github/native-hosts/.node-version
+          cache: npm
+          cache-dependency-path: .github/native-hosts/package-lock.json
+      - name: Install locked marketplace harnesses
+        working-directory: .github/native-hosts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          npm ci
+          (Resolve-Path node_modules/.bin).Path >> $env:GITHUB_PATH
+      - name: Validate and install with Codex
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          codex plugin marketplace add .
+          foreach ($plugin in @('cpp', 'gpp', 'msvc', 'win32')) {
+            codex plugin add "$plugin@tj-agents"
+          }
+          codex plugin list --json
+      - name: Validate marketplace and plugins with Claude Code
+        run: uv run python .github/scripts/validate_claude.py --root .
+
+  workflow-validation:
+    name: Validate workflow syntax and security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
+        with:
+          version-file: .uv-version
+      - name: Validate workflow syntax
+        run: |
+          set -euo pipefail
+          go install "github.com/rhysd/actionlint/cmd/actionlint@$(cat .github/actionlint-version)"
+          "$(go env GOPATH)/bin/actionlint" .github/workflows/cpp-acceptance.yml
+      - name: Validate workflow security
+        run: uv run zizmor --no-online-audits .github/workflows/cpp-acceptance.yml
+
+  ci-complete:
+    name: Complete CI
+    if: always()
+    needs: [native-packages, workflow-validation]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require every verification layer
+        env:
+          RESULTS: ${{ join(needs.*.result, ',') }}
+        run: |
+          set -euo pipefail
+          test "$RESULTS" = 'success,success'

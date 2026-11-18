@@ -1,6 +1,4 @@
-# msvc capabilities
+# msvc package capabilities
 
-Generated from canonical `.agents/` definitions.
-
-- `scaffold` — utility — `.agents/msvc/utility/scaffold/SKILL.md`
-- `toolchain` — contract — `.agents/msvc/contract/toolchain/SKILL.md`
+- `scaffold` — operation — scaffold
+- `toolchain` — standard — core

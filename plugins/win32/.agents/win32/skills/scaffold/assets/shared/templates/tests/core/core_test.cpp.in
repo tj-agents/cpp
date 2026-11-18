@@ -1,0 +1,7 @@
+#include <catch2/catch_test_macros.hpp>
+
+#include "core/core.hpp"
+
+TEST_CASE("greeting mentions the project name", "[core]") {
+    REQUIRE(__NAMESPACE__::greeting() == "hello from __PROJECT__");
+}

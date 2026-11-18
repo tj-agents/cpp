@@ -1,5 +1,5 @@
-import importlib.util
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -8,26 +8,28 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-
+from types import ModuleType
+from typing import Any, ClassVar, cast
 
 ROOT = Path(__file__).resolve().parents[2]
 MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 PAYLOADS = ROOT / ".agents" / "plugins" / "payloads.json"
 SKILL_CONTRACT = ROOT / ".agents" / "plugins" / "skill-contract.json"
-SOURCES = ROOT / ".agents" / "plugins" / "sources.json"
-GENERATOR = ROOT / ".agents" / "gen_skill_routes.py"
+
+GENERATOR = ROOT / "scripts" / "gen_skill_routes.py"
 
 
-def read_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+def read_json(path: Path) -> dict[str, Any]:
+    return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
 
 def canonical_text_bytes(path: Path) -> bytes:
     return path.read_bytes().replace(b"\r\n", b"\n")
 
 
-def load_generator():
+def load_generator() -> ModuleType:
     spec = importlib.util.spec_from_file_location("gen_skill_routes", GENERATOR)
+    assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -75,27 +77,37 @@ def find_gpg() -> str:
         candidate = Path(git).resolve().parents[1] / "usr" / "bin" / "gpg.exe"
         if candidate.is_file():
             return str(candidate)
-    raise AssertionError("GPG is required to verify the pinned external commit signature")
+    raise AssertionError(
+        "GPG is required to verify the pinned external commit signature"
+    )
 
 
 class MarketplaceContractTests(unittest.TestCase):
+    marketplace: ClassVar[dict[str, Any]]
+    payloads: ClassVar[dict[str, Any]]
+    contract: ClassVar[dict[str, Any]]
+    generator: ClassVar[ModuleType]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.marketplace = read_json(MARKETPLACE)
         cls.payloads = read_json(PAYLOADS)
         cls.contract = read_json(SKILL_CONTRACT)
-        cls.sources = read_json(SOURCES)
         cls.generator = load_generator()
 
     def test_public_plugins_are_the_four_independent_scopes_in_order(self) -> None:
-        self.assertEqual(["cpp", "gpp", "msvc", "win32"], self.payloads["publicPlugins"])
+        self.assertEqual(
+            ["cpp", "gpp", "msvc", "win32"], list(self.payloads["payloads"])
+        )
         names = [plugin["name"] for plugin in self.marketplace["plugins"]]
-        self.assertEqual(self.payloads["publicPlugins"], names[:4])
+        self.assertEqual(list(self.payloads["payloads"]), names[:4])
 
     def test_every_marketplace_entry_has_a_matching_manifest_and_payload(self) -> None:
         for entry in self.marketplace["plugins"]:
             name = entry["name"]
-            manifest_path = ROOT / entry["source"]["path"] / ".codex-plugin" / "plugin.json"
+            manifest_path = (
+                ROOT / entry["source"]["path"] / ".codex-plugin" / "plugin.json"
+            )
             manifest = read_json(manifest_path)
             self.assertEqual(name, manifest["name"])
             self.assertIn(name, self.payloads["payloads"])
@@ -130,25 +142,38 @@ class MarketplaceContractTests(unittest.TestCase):
         self.assertNotIn("compatibilityAliases", self.payloads)
 
     def test_generated_routes_reference_real_skill_contracts(self) -> None:
-        scope_plugins = {scope["name"]: scope["plugin"] for scope in self.sources["scopes"]}
-        inventory = {}
-        for scope in self.sources["scopes"]:
-            for skill_file in (ROOT / scope["root"]).glob("*/*/SKILL.md"):
-                inventory[(scope_plugins[scope["name"]], skill_file.parent.name)] = skill_file
-        profiles = [(None, []), ("gpp", []), ("msvc", []), (None, ["win32"]), ("gpp", ["win32"]), ("msvc", ["win32"])]
+        inventory = {
+            (plugin, skill.parent.name): skill
+            for plugin in self.payloads["payloads"]
+            for skill in (ROOT / f".agents/{plugin}/skills").glob("*/SKILL.md")
+        }
+        profiles = [
+            (None, []),
+            ("gpp", []),
+            ("msvc", []),
+            (None, ["win32"]),
+            ("gpp", ["win32"]),
+            ("msvc", ["win32"]),
+        ]
         for toolchain, apis in profiles:
             for route in self.generator.routes(toolchain, apis)["routes"]:
                 for identifier in route.get("skills", []):
                     plugin, skill = identifier.split(":", 1)
                     self.assertIn((plugin, skill), inventory, identifier)
-                    self.assertIn(plugin, self.payloads["publicPlugins"])
-        all_routes = json.dumps([self.generator.routes(toolchain, apis) for toolchain, apis in profiles])
+                    self.assertIn(plugin, list(self.payloads["payloads"]))
+        all_routes = json.dumps(
+            [self.generator.routes(toolchain, apis) for toolchain, apis in profiles]
+        )
         self.assertNotIn("concertable:", all_routes)
 
-    def test_external_skill_contract_matches_pinned_agent_standards_source(self) -> None:
+    def test_external_skill_contract_matches_pinned_agent_standards_source(
+        self,
+    ) -> None:
         source_value = os.environ.get("AGENT_STANDARDS_SOURCE")
         if not source_value:
-            self.skipTest("set AGENT_STANDARDS_SOURCE for an optional live-checkout comparison")
+            self.skipTest(
+                "set AGENT_STANDARDS_SOURCE for an optional live-checkout comparison"
+            )
 
         source = Path(source_value).resolve()
         contract = self.contract["externalPlugins"]["concertable"]
@@ -175,7 +200,12 @@ class MarketplaceContractTests(unittest.TestCase):
             origin,
         )
         self.assertIsNotNone(repository_match, origin)
-        expected_slug = contract["repository"].removeprefix("https://github.com/").removesuffix(".git")
+        assert repository_match is not None
+        expected_slug = (
+            contract["repository"]
+            .removeprefix("https://github.com/")
+            .removesuffix(".git")
+        )
         self.assertEqual(expected_slug.casefold(), repository_match.group(1).casefold())
         remote_revision = subprocess.run(
             ["gh", "api", f"repos/{expected_slug}/commits/{revision}", "--jq", ".sha"],
@@ -230,14 +260,26 @@ class MarketplaceContractTests(unittest.TestCase):
         tree_ids = {name: git_tree_id(entries) for name, entries in trees.items()}
         self.assertEqual(provenance["rootTree"], tree_ids["root"])
         self.assertEqual(tree_ids["plugins"], entry_id(trees["root"], "plugins"))
-        self.assertEqual(tree_ids["concertable"], entry_id(trees["plugins"], "concertable"))
-        self.assertEqual(tree_ids["codex-plugin"], entry_id(trees["concertable"], ".codex-plugin"))
-        self.assertEqual(tree_ids["codex-skills"], entry_id(trees["concertable"], "codex-skills"))
+        self.assertEqual(
+            tree_ids["concertable"], entry_id(trees["plugins"], "concertable")
+        )
+        self.assertEqual(
+            tree_ids["codex-plugin"], entry_id(trees["concertable"], ".codex-plugin")
+        )
+        self.assertEqual(
+            tree_ids["codex-skills"], entry_id(trees["concertable"], "codex-skills")
+        )
 
         manifest_bytes = canonical_text_bytes(evidence_root / "plugin.json")
-        self.assertEqual(provenance["manifestBlob"], git_object_id("blob", manifest_bytes))
-        self.assertEqual(provenance["manifestBlob"], entry_id(trees["codex-plugin"], "plugin.json"))
-        self.assertEqual(contract["manifestSha256"], hashlib.sha256(manifest_bytes).hexdigest())
+        self.assertEqual(
+            provenance["manifestBlob"], git_object_id("blob", manifest_bytes)
+        )
+        self.assertEqual(
+            provenance["manifestBlob"], entry_id(trees["codex-plugin"], "plugin.json")
+        )
+        self.assertEqual(
+            contract["manifestSha256"], hashlib.sha256(manifest_bytes).hexdigest()
+        )
         manifest = json.loads(manifest_bytes)
         self.assertEqual("concertable", manifest["name"])
         self.assertEqual(contract["version"], manifest["version"])
@@ -247,9 +289,13 @@ class MarketplaceContractTests(unittest.TestCase):
         for skill, blob_id in provenance["skillBlobs"].items():
             self.assertEqual(tree_ids[skill], entry_id(trees["codex-skills"], skill))
             self.assertEqual(blob_id, entry_id(trees[skill], "SKILL.md"))
-            skill_bytes = canonical_text_bytes(evidence_root / "skills" / skill / "SKILL.md")
+            skill_bytes = canonical_text_bytes(
+                evidence_root / "skills" / skill / "SKILL.md"
+            )
             self.assertEqual(blob_id, git_object_id("blob", skill_bytes))
-            self.assertEqual(contract["skillSha256"][skill], hashlib.sha256(skill_bytes).hexdigest())
+            self.assertEqual(
+                contract["skillSha256"][skill], hashlib.sha256(skill_bytes).hexdigest()
+            )
             front_matter = skill_bytes.decode("utf-8").split("---", 2)[1]
             fields = {
                 key: value
@@ -264,7 +310,9 @@ class MarketplaceContractTests(unittest.TestCase):
         if not provenance["commitObjectEndsWithNewline"]:
             self.assertTrue(commit_bytes.endswith(b"\n"))
             commit_bytes = commit_bytes[:-1]
-        self.assertEqual(contract["sourceCommit"], git_object_id("commit", commit_bytes))
+        self.assertEqual(
+            contract["sourceCommit"], git_object_id("commit", commit_bytes)
+        )
         self.assertIn(f"tree {provenance['rootTree']}\n".encode("ascii"), commit_bytes)
 
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -278,7 +326,14 @@ class MarketplaceContractTests(unittest.TestCase):
             gpg = find_gpg()
             key_file = evidence_root / "github-web-flow.asc"
             keys = subprocess.run(
-                [gpg, "--with-colons", "--import-options", "show-only", "--import", str(key_file)],
+                [
+                    gpg,
+                    "--with-colons",
+                    "--import-options",
+                    "show-only",
+                    "--import",
+                    str(key_file),
+                ],
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
@@ -292,26 +347,38 @@ class MarketplaceContractTests(unittest.TestCase):
                 if line.startswith("fpr:")
             }
             self.assertIn(provenance["signingKeyFingerprint"], fingerprints)
-            subprocess.run([gpg, "--batch", "--import", str(key_file)], env=environment, check=True)
+            subprocess.run(
+                [gpg, "--batch", "--import", str(key_file)], env=environment, check=True
+            )
 
             repository = temporary / "repository"
             repository.mkdir()
-            subprocess.run(["git", "init", "--quiet"], cwd=repository, env=environment, check=True)
-            written = subprocess.run(
-                ["git", "hash-object", "-w", "-t", "commit", "--stdin"],
-                input=commit_bytes,
-                capture_output=True,
-                cwd=repository,
-                env=environment,
-                check=True,
-            ).stdout.decode("ascii").strip()
+            subprocess.run(
+                ["git", "init", "--quiet"], cwd=repository, env=environment, check=True
+            )
+            written = (
+                subprocess.run(
+                    ["git", "hash-object", "-w", "-t", "commit", "--stdin"],
+                    input=commit_bytes,
+                    capture_output=True,
+                    cwd=repository,
+                    env=environment,
+                    check=True,
+                )
+                .stdout.decode("ascii")
+                .strip()
+            )
             self.assertEqual(contract["sourceCommit"], written)
             verification = subprocess.run(
                 [
                     "git",
-                    "-c", "gpg.format=openpgp",
-                    "-c", f"gpg.program={Path(gpg).as_posix()}",
-                    "verify-commit", "--raw", contract["sourceCommit"],
+                    "-c",
+                    "gpg.format=openpgp",
+                    "-c",
+                    f"gpg.program={Path(gpg).as_posix()}",
+                    "verify-commit",
+                    "--raw",
+                    contract["sourceCommit"],
                 ],
                 capture_output=True,
                 text=True,
@@ -330,17 +397,35 @@ class MarketplaceContractTests(unittest.TestCase):
             self.assertEqual({provenance["signingKeyFingerprint"]}, valid_signers)
 
     def test_canonical_sources_contain_no_retired_plugin_identifiers(self) -> None:
-        retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
-        files = [ROOT / ".agents" / "gen_skill_routes.py"]
-        for scope in self.sources["scopes"]:
-            files.extend((ROOT / scope["root"]).rglob("*.md"))
-        offenders = [path.relative_to(ROOT).as_posix() for path in files if retired.search(path.read_text(encoding="utf-8"))]
+        retired = re.compile(
+            r"cpp-standards|gpp-standards|windows-standards|agent-process:"
+        )
+        files = [GENERATOR]
+        for plugin in self.payloads["payloads"]:
+            files.extend((ROOT / f".agents/{plugin}").rglob("*.md"))
+        offenders = [
+            path.relative_to(ROOT).as_posix()
+            for path in files
+            if retired.search(path.read_text(encoding="utf-8"))
+        ]
         self.assertEqual([], offenders)
 
     def test_canonical_hooks_contain_no_retired_identifiers(self) -> None:
-        retired = re.compile(r"cpp-standards|gpp-standards|windows-standards|agent-process:")
-        hooks = [ROOT / ".agents" / "hooks" / "session_context.py", ROOT / "plugins" / "cpp" / "hooks" / "session_context.py"]
-        self.assertEqual([], [path.relative_to(ROOT).as_posix() for path in hooks if retired.search(path.read_text(encoding="utf-8"))])
+        retired = re.compile(
+            r"cpp-standards|gpp-standards|windows-standards|agent-process:"
+        )
+        hooks = [
+            ROOT / ".agents" / "hooks" / "session_context.py",
+            ROOT / "plugins" / "cpp" / "hooks" / "session_context.py",
+        ]
+        self.assertEqual(
+            [],
+            [
+                path.relative_to(ROOT).as_posix()
+                for path in hooks
+                if retired.search(path.read_text(encoding="utf-8"))
+            ],
+        )
 
 
 if __name__ == "__main__":

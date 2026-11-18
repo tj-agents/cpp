@@ -1,13 +1,47 @@
 {
   "plugin": "msvc",
-  "scopes": [
-    "msvc"
-  ],
-  "prerequisites": [
+  "dependencies": [
+    "tj-agents/base",
+    "tj-agents/engineering",
     "cpp"
   ],
+  "profiles": {
+    "core": [
+      "toolchain"
+    ],
+    "scaffold": [
+      "scaffold"
+    ]
+  },
+  "compatibilitySkillAliases": {},
   "skills": [
-    "scaffold",
-    "toolchain"
+    {
+      "name": "scaffold",
+      "kind": "operation",
+      "profile": "scaffold",
+      "applicability": [
+        "new MSVC C++ projects or compatible existing project helpers"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "toolchain",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "Projects explicitly selecting msvc"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    }
   ]
 }

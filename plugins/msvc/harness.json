@@ -2,13 +2,7 @@
   "schema_version": 1,
   "plugin": "tj-agents/msvc",
   "source_roots": [
-    ".agents/msvc",
-    ".agents/base/utility/scripts",
-    ".agents/gen_skill_routes.py",
-    ".agents/plugins/sources.json",
-    ".agents/plugins/payloads.json",
-    ".agents/plugins/manifests/codex/msvc.json",
-    ".agents/plugins/manifests/claude/msvc.json"
+    ".agents/msvc/skills"
   ],
   "requires": {
     "marketplaces": [
@@ -19,6 +13,8 @@
     ],
     "plugins": [
       "tj-agents/msvc",
+      "tj-agents/base",
+      "tj-agents/engineering",
       "tj-agents/cpp"
     ],
     "hooks": [],

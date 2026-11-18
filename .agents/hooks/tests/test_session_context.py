@@ -4,59 +4,89 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any, cast
 from unittest.mock import patch
 
 HOOK = Path(__file__).resolve().parents[1] / "session_context.py"
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("session_context", HOOK)
+assert SPEC is not None and SPEC.loader is not None
 session_context = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(session_context)
 
 
 class SessionContextTests(unittest.TestCase):
-    def context(self, platform: str, files: list[str], profile: dict | None = None) -> list[str]:
+    def context(
+        self, platform: str, files: list[str], profile: dict[str, Any] | None = None
+    ) -> list[str]:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             if profile is not None:
                 routes = root / ".agents" / "skill-routes.json"
                 routes.parent.mkdir(parents=True)
-                declaration = {"routes": []}
+                declaration: dict[str, Any] = {"routes": []}
                 if profile is not None:
                     declaration["profile"] = profile
                 routes.write_text(json.dumps(declaration), encoding="utf-8")
-            with patch.object(session_context, "tracked_project", return_value=(root, files)):
-                return session_context.context_for(root / "nested", platform)
+            with patch.object(
+                session_context, "tracked_project", return_value=(root, files)
+            ):
+                return cast(
+                    list[str], session_context.context_for(root / "nested", platform)
+                )
 
     def test_context_uses_canonical_capability_names(self) -> None:
-        combined = "\n".join(self.context("win32", ["src/main.cpp"], {"toolchain": "msvc", "apis": ["win32"]}))
+        combined = "\n".join(
+            self.context(
+                "win32", ["src/main.cpp"], {"toolchain": "msvc", "apis": ["win32"]}
+            )
+        )
         identifiers = set(re.findall(r"\b(?:cpp|gpp|msvc|win32):[a-z-]+", combined))
-        self.assertEqual({
-            "cpp:style", "cpp:libraries", "cpp:domain-design", "cpp:learning", "cpp:knowledge",
-            "msvc:toolchain", "win32:overview", "win32:style", "win32:knowledge",
-        }, identifiers)
+        self.assertEqual(
+            {
+                "cpp:style",
+                "cpp:libraries",
+                "cpp:domain-design",
+                "cpp:learning",
+                "msvc:toolchain",
+                "win32:overview",
+                "win32:style",
+            },
+            identifiers,
+        )
+        self.assertIn(".agents/cpp/learning/knowledge.md", combined)
+        self.assertIn(".agents/win32/learning/knowledge.md", combined)
 
     def test_gpp_selection_does_not_follow_windows_host(self) -> None:
-        context = self.context("win32", ["src/main.cpp"], {"toolchain": "gpp", "apis": []})
+        context = self.context(
+            "win32", ["src/main.cpp"], {"toolchain": "gpp", "apis": []}
+        )
         combined = "\n".join(context)
         self.assertIn("gpp:toolchain", combined)
         self.assertNotIn("msvc:", combined)
         self.assertNotIn("win32:", combined)
 
     def test_msvc_alone_does_not_select_win32(self) -> None:
-        context = self.context("win32", ["src/main.cpp"], {"toolchain": "msvc", "apis": []})
+        context = self.context(
+            "win32", ["src/main.cpp"], {"toolchain": "msvc", "apis": []}
+        )
         combined = "\n".join(context)
         self.assertIn("msvc:toolchain", combined)
         self.assertNotIn("win32:style", combined)
 
     def test_win32_does_not_require_a_toolchain(self) -> None:
-        context = self.context("linux", ["src/main.cpp"], {"toolchain": None, "apis": ["win32"]})
+        context = self.context(
+            "linux", ["src/main.cpp"], {"toolchain": None, "apis": ["win32"]}
+        )
         combined = "\n".join(context)
         self.assertIn("win32:style", combined)
         self.assertNotIn("gpp:", combined)
         self.assertNotIn("msvc:", combined)
 
     def test_gpp_and_win32_compose(self) -> None:
-        context = self.context("win32", ["src/main.cpp"], {"toolchain": "gpp", "apis": ["win32"]})
+        context = self.context(
+            "win32", ["src/main.cpp"], {"toolchain": "gpp", "apis": ["win32"]}
+        )
         combined = "\n".join(context)
         self.assertIn("cpp@tj-agents", combined)
         self.assertIn("gpp:toolchain", combined)
@@ -75,20 +105,29 @@ class SessionContextTests(unittest.TestCase):
             source = root / "src/main.cpp"
             source.parent.mkdir()
             source.write_text("#include <windows.h>\n", encoding="utf-8")
-            with patch.object(session_context, "tracked_project", return_value=(root, ["src/main.cpp"])):
+            with patch.object(
+                session_context,
+                "tracked_project",
+                return_value=(root, ["src/main.cpp"]),
+            ):
                 context = session_context.context_for(root, "win32")
         combined = "\n".join(context)
         self.assertIn("Consider selecting win32 explicitly", combined)
         self.assertNotIn("Apply win32@tj-agents", combined)
         self.assertNotIn("msvc:toolchain", combined)
 
-
-
     def test_windows_detection_uses_git_grep_without_opening_sources(self) -> None:
         completed = session_context.subprocess.CompletedProcess([], 0)
-        with patch.object(session_context.subprocess, "run", return_value=completed) as run:
-            with patch.object(Path, "open", side_effect=AssertionError("source read")):
-                detected = session_context.is_native_windows(Path("repository"), [f"src/{index:06}.cpp" for index in range(100000)])
+        with (
+            patch.object(
+                session_context.subprocess, "run", return_value=completed
+            ) as run,
+            patch.object(Path, "open", side_effect=AssertionError("source read")),
+        ):
+            detected = session_context.is_native_windows(
+                Path("repository"),
+                [f"src/{index:06}.cpp" for index in range(100000)],
+            )
         self.assertTrue(detected)
         self.assertIn("grep", run.call_args.args[0])
 

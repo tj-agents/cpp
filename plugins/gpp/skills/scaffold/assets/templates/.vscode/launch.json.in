@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug __PROJECT__",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/gdb/bin/__PROJECT__",
+      "windows": { "program": "${workspaceFolder}/build/gdb/bin/__PROJECT__.exe" },
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb"
+    }
+  ]
+}

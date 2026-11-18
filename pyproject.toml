@@ -1,0 +1,65 @@
+[project]
+name = "cpp"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "ruff>=0.17.1",
+    "zizmor>=1.31.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+include = [
+    ".github/scripts/validate_claude.py",
+    "scripts/**/*.py",
+    ".agents/hooks/**/*.py",
+    ".agents/tests/test_canonical_names.py",
+    ".agents/tests/test_capability_harness.py",
+    ".agents/tests/test_cpp_mixin_guidance.py",
+    ".agents/tests/test_cpp_structure.py",
+    ".agents/tests/test_gpp_scaffold.py",
+    ".agents/tests/test_hook_contract.py",
+    ".agents/tests/test_marketplace_contract.py",
+    ".agents/tests/test_msvc_scaffold.py",
+    ".agents/tests/test_route_cli.py",
+    ".agents/tests/test_sync_generated_safety.py",
+    ".agents/tests/test_versionless_packages.py",
+    ".agents/tests/test_win32_scaffold.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "A", "BLE", "C4", "SIM", "PTH", "PIE", "RET", "RUF"]
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+files = [
+    ".github/scripts/validate_claude.py",
+    "scripts",
+    ".agents/hooks",
+    ".agents/tests/test_canonical_names.py",
+    ".agents/tests/test_capability_harness.py",
+    ".agents/tests/test_cpp_mixin_guidance.py",
+    ".agents/tests/test_cpp_structure.py",
+    ".agents/tests/test_gpp_scaffold.py",
+    ".agents/tests/test_hook_contract.py",
+    ".agents/tests/test_marketplace_contract.py",
+    ".agents/tests/test_msvc_scaffold.py",
+    ".agents/tests/test_route_cli.py",
+    ".agents/tests/test_sync_generated_safety.py",
+    ".agents/tests/test_versionless_packages.py",
+    ".agents/tests/test_win32_scaffold.py",
+]
+
+[tool.pytest]
+strict = true
+testpaths = [".agents/tests", ".agents/hooks/tests"]
+addopts = ["--import-mode=importlib", "-ra"]
+filterwarnings = ["error"]

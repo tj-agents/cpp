@@ -1,6 +1,4 @@
-# gpp capabilities
+# gpp package capabilities
 
-Generated from canonical `.agents/` definitions.
-
-- `scaffold` — utility — `.agents/gpp/utility/scaffold/SKILL.md`
-- `toolchain` — contract — `.agents/gpp/contract/toolchain/SKILL.md`
+- `scaffold` — operation — scaffold
+- `toolchain` — standard — core

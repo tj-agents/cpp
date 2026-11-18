@@ -13,5 +13,6 @@
     "gcc",
     "gdb",
     "linux"
-  ]
+  ],
+  "displayName": "gpp"
 }

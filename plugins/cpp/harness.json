@@ -2,14 +2,9 @@
   "schema_version": 1,
   "plugin": "tj-agents/cpp",
   "source_roots": [
-    ".agents/base",
-    ".agents/hooks/session_context.py",
-    ".agents/plugins/sources.json",
-    ".agents/plugins/payloads.json",
-    ".agents/plugins/manifests/codex/cpp.json",
-    ".agents/plugins/manifests/claude/cpp.json",
-    ".agents/plugins/manifests/codex/hooks.json",
-    ".agents/plugins/manifests/claude/hooks.json"
+    ".agents/cpp/skills",
+    ".agents/cpp/learning",
+    ".agents/cpp/assets"
   ],
   "requires": {
     "marketplaces": [
@@ -19,7 +14,9 @@
       }
     ],
     "plugins": [
-      "tj-agents/cpp"
+      "tj-agents/cpp",
+      "tj-agents/base",
+      "tj-agents/engineering"
     ],
     "hooks": [
       {

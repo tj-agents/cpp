@@ -1,0 +1,10 @@
+add_library(core
+    src/core.cpp)
+
+target_include_directories(core
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_link_libraries(core
+    PRIVATE __NAMESPACE___warnings __NAMESPACE___sanitize)
+
+add_library(__NAMESPACE__::core ALIAS core)

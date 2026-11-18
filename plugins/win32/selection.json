@@ -1,15 +1,64 @@
 {
   "plugin": "win32",
-  "scopes": [
-    "win32"
-  ],
-  "prerequisites": [
+  "dependencies": [
+    "tj-agents/base",
+    "tj-agents/engineering",
     "cpp"
   ],
+  "profiles": {
+    "core": [
+      "style"
+    ],
+    "knowledge": [
+      "overview"
+    ],
+    "scaffold": [
+      "scaffold"
+    ]
+  },
+  "compatibilitySkillAliases": {},
   "skills": [
-    "knowledge",
-    "overview",
-    "scaffold",
-    "style"
+    {
+      "name": "overview",
+      "kind": "reference",
+      "profile": "knowledge",
+      "applicability": [
+        "Projects explicitly selecting win32"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "scaffold",
+      "kind": "operation",
+      "profile": "scaffold",
+      "applicability": [
+        "unmodified G++ or MSVC console scaffold projects selecting Win32"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    },
+    {
+      "name": "style",
+      "kind": "standard",
+      "profile": "core",
+      "applicability": [
+        "Projects explicitly selecting win32"
+      ],
+      "requires": [
+        "cpp"
+      ],
+      "provenance": [
+        "house"
+      ]
+    }
   ]
 }

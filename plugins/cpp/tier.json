@@ -1,0 +1,37 @@
+{
+  "schema_version": 3,
+  "tier": "cpp",
+  "stack": "C++ repositories",
+  "applies": "stack-present",
+  "owner_repository": [
+    "tj-agents/cpp"
+  ],
+  "detect": {
+    "any": [
+      {
+        "glob": "**/*.cpp"
+      },
+      {
+        "glob": "**/*.cc"
+      },
+      {
+        "glob": "**/*.cxx"
+      },
+      {
+        "glob": "**/*.hpp"
+      },
+      {
+        "glob": "**/*.h"
+      },
+      {
+        "glob": "**/*.ixx"
+      },
+      {
+        "glob": "**/CMakeLists.txt"
+      },
+      {
+        "glob": "**/CMakePresets.json"
+      }
+    ]
+  }
+}

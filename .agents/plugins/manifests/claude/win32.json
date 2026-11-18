@@ -12,5 +12,6 @@
     "win32",
     "wil",
     "windows"
-  ]
+  ],
+  "displayName": "win32"
 }

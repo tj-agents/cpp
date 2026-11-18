@@ -12,5 +12,6 @@
     "msvc",
     "clang-cl",
     "cmake"
-  ]
+  ],
+  "displayName": "msvc"
 }

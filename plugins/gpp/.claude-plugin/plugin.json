@@ -13,5 +13,11 @@
     "gcc",
     "gdb",
     "linux"
+  ],
+  "displayName": "gpp",
+  "dependencies": [
+    "base@tj-agents",
+    "engineering@tj-agents",
+    "cpp"
   ]
 }

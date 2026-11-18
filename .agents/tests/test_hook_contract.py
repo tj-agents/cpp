@@ -1,126 +1,95 @@
-import copy
-import importlib.util
 import json
 import os
-from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import unittest
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location("sync_generated", ROOT / ".agents/sync_generated.py")
-SYNC = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(SYNC)
 
 
 class HookContractTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.output, cls.config = SYNC.build(ROOT)
-        cls.packages = [
-            *json.loads((ROOT / ".agents/plugins/payloads.json").read_text(encoding="utf-8"))["publicPlugins"],
-            *(name for name in cls.config["packages"] if name not in {"cpp", "gpp", "msvc", "win32"}),
-        ]
+    def test_hook_manifests_register_the_current_host_payloads(self) -> None:
+        for host in ("codex", "claude"):
+            manifest = json.loads(
+                (ROOT / f"plugins/cpp/.{host}-plugin/plugin.json").read_text()
+            )
+            self.assertEqual(f"./hooks/{host}.json", manifest["hooks"])
+            payload = json.loads((ROOT / f"plugins/cpp/hooks/{host}.json").read_text())
+            hook = payload["hooks"]["SessionStart"][0]["hooks"][0]
+            self.assertIn("session_context.py", hook["command"])
+            if host == "codex":
+                self.assertIn("python -I -B -c", hook["commandWindows"])
+                self.assertNotIn("$LASTEXITCODE", hook["commandWindows"])
+                self.assertTrue(
+                    (ROOT / "plugins/cpp/hooks/codex/snapshot.py").is_file()
+                )
 
-    def validate(self, output: dict[str, bytes]) -> None:
-        SYNC.validate_hook_outputs(output, self.config, self.packages)
-
-    def test_hook_packages_register_host_specific_payloads(self) -> None:
-        self.validate(self.output)
-        for package in self.config["hook_packages"]:
-            codex = json.loads(self.output[f"plugins/{package}/.codex-plugin/plugin.json"])
-            claude = json.loads(self.output[f"plugins/{package}/.claude-plugin/plugin.json"])
-            self.assertEqual("./hooks/codex.json", codex["hooks"])
-            self.assertEqual("./hooks/claude.json", claude["hooks"])
-
-    def test_shipped_hook_without_manifest_pointer_is_rejected(self) -> None:
-        output = copy.deepcopy(self.output)
-        path = "plugins/cpp/.codex-plugin/plugin.json"
-        manifest = json.loads(output[path])
-        manifest.pop("hooks")
-        output[path] = json.dumps(manifest).encode()
-        with self.assertRaisesRegex(ValueError, "hook pointer"):
-            self.validate(output)
-
-    def test_missing_hook_pointer_target_is_rejected(self) -> None:
-        output = copy.deepcopy(self.output)
-        del output["plugins/cpp/hooks/codex.json"]
-        with self.assertRaisesRegex(ValueError, "shipped hooks disagree|target is missing"):
-            self.validate(output)
-
-    def test_missing_hook_script_target_is_rejected(self) -> None:
-        output = copy.deepcopy(self.output)
-        del output["plugins/cpp/hooks/session_context.py"]
-        with self.assertRaisesRegex(ValueError, "script target is missing"):
-            self.validate(output)
-
-    def test_unknown_hook_type_is_rejected(self) -> None:
-        output = copy.deepcopy(self.output)
-        path = "plugins/cpp/hooks/codex.json"
-        payload = json.loads(output[path])
-        payload["hooks"]["SessionStart"][0]["hooks"][0]["type"] = "commnad"
-        output[path] = json.dumps(payload).encode()
-        with self.assertRaisesRegex(ValueError, "unsupported hook type"):
-            self.validate(output)
-
-    def test_codex_windows_python_root_resolution_is_enforced(self) -> None:
-        output = copy.deepcopy(self.output)
-        path = "plugins/cpp/hooks/codex.json"
-        payload = json.loads(output[path])
-        payload["hooks"]["SessionStart"][0]["hooks"][0]["commandWindows"] = (
-            'python -B "${PLUGIN_ROOT}/hooks/session_context.py"; exit $LASTEXITCODE'
-        )
-        output[path] = json.dumps(payload).encode()
-        with self.assertRaisesRegex(ValueError, "wrong plugin root"):
-            self.validate(output)
-
-    def test_codex_windows_exit_code_preservation_is_enforced(self) -> None:
-        output = copy.deepcopy(self.output)
-        path = "plugins/cpp/hooks/codex.json"
-        payload = json.loads(output[path])
-        command = payload["hooks"]["SessionStart"][0]["hooks"][0]["commandWindows"]
-        payload["hooks"]["SessionStart"][0]["hooks"][0]["commandWindows"] = command.removesuffix(
-            "; exit $LASTEXITCODE"
-        )
-        output[path] = json.dumps(payload).encode()
-        with self.assertRaisesRegex(ValueError, "does not preserve the hook exit code"):
-            self.validate(output)
-
-    @unittest.skipUnless(os.name == "nt", "Windows command expansion requires cmd.exe")
-    def test_every_codex_windows_hook_command_runs_from_a_path_with_spaces(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="cpp hook contract ") as temporary:
-            temporary = Path(temporary)
-            repository = temporary / "repository"
+    def run_hook(self, host: str, tampered: bool) -> subprocess.CompletedProcess[str]:
+        with tempfile.TemporaryDirectory(prefix="cpp native hook ") as temporary:
+            directory = Path(temporary)
+            package = directory / "installed plugins/cpp/local"
+            shutil.copytree(ROOT / "plugins/cpp", package)
+            repository = directory / "repository with spaces"
             repository.mkdir()
-            (repository / "main.cpp").write_text("int main() {}\n", encoding="utf-8")
-            for package in self.config["hook_packages"]:
-                package_root = temporary / "installed plugins" / package
-                prefix = f"plugins/{package}/"
-                for path, data in self.output.items():
-                    if path.startswith(prefix):
-                        destination = package_root / path.removeprefix(prefix)
-                        destination.parent.mkdir(parents=True, exist_ok=True)
-                        destination.write_bytes(data)
-                hooks = json.loads((package_root / "hooks/codex.json").read_text(encoding="utf-8"))["hooks"]
-                environment = os.environ.copy()
-                environment["PLUGIN_ROOT"] = str(package_root)
-                for groups in hooks.values():
-                    for group in groups:
-                        for hook in group["hooks"]:
-                            completed = subprocess.run(
-                                ["pwsh", "-NoProfile", "-Command", hook["commandWindows"]],
-                                input=json.dumps({"cwd": str(repository)}),
-                                capture_output=True,
-                                text=True,
-                                encoding="utf-8",
-                                errors="replace",
-                                env=environment,
-                                cwd=repository,
-                            )
-                            self.assertEqual(0, completed.returncode, completed.stderr)
-                            self.assertTrue(completed.stdout.strip(), package)
+            (repository / "main.cpp").write_text("int main() {}\n")
+            if tampered:
+                with (package / "hooks/session_context.py").open("a") as stream:
+                    stream.write("\nraise RuntimeError('tampered hook')\n")
+            hook = json.loads((package / f"hooks/{host}.json").read_text())["hooks"][
+                "SessionStart"
+            ][0]["hooks"][0]
+            environment = dict(
+                os.environ,
+                PLUGIN_ROOT=str(package),
+                CLAUDE_PLUGIN_ROOT=str(package),
+                PLUGIN_DATA=str(directory / "plugin data"),
+                TJ_AGENTS_STARTUP_SNAPSHOT_DIRECTORY=str(directory / "snapshots"),
+            )
+            field = (
+                "commandWindows" if host == "codex" and os.name == "nt" else "command"
+            )
+            command = (
+                hook[field]
+                .replace("${PLUGIN_ROOT}", str(package))
+                .replace("${CLAUDE_PLUGIN_ROOT}", str(package))
+            )
+            shell = (
+                f'cmd.exe /d /s /c "{command}"'
+                if os.name == "nt"
+                else ["sh", "-c", command]
+            )
+            return subprocess.run(
+                shell,
+                input=json.dumps({"cwd": str(repository)}),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                cwd=repository,
+                env=environment,
+                timeout=30,
+            )
 
+    def test_codex_command_executes_from_path_with_spaces(self) -> None:
+        result = self.run_hook("codex", False)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("This is a C++ repository", result.stdout)
+        self.assertNotIn("cpp:knowledge", result.stdout)
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_codex_snapshot_rejects_modified_package_before_execution(self) -> None:
+        result = self.run_hook("codex", True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("integrity", result.stderr.lower())
+        self.assertNotIn("tampered hook", result.stderr)
+
+    def test_claude_command_executes_from_path_with_spaces(self) -> None:
+        result = self.run_hook("claude", False)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("This is a C++ repository", result.stdout)
+
+    def test_claude_command_preserves_failure(self) -> None:
+        result = self.run_hook("claude", True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("tampered hook", result.stderr)

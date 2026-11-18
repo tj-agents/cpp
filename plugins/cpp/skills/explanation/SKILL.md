@@ -1,26 +1,16 @@
 ---
 name: explanation
 description: How C++ is quoted when explaining C++ code. Use when an explanation shows C++ source.
-kind: contract
-domain: cpp
+metadata:
+  tj-agents-kind: standard
+  tj-agents-domain: cpp
+  tj-agents-profile: core
+  tj-agents-applicability: C++ projects
+  tj-agents-requires: cpp
+  tj-agents-provenance: house
 ---
 
 # Explaining C++ code
 
-Owns how C++ is quoted in an explanation.
-
-Quote each file in its own top-level `cpp` block, never indented inside a list item, under
-a line naming the file and starting line number. Copy the code verbatim and replace includes,
-header guards, namespace wrappers, and other lines the point does not need with `...`.
-
-Example:
-
-`src/widget/widget.cpp:12`
-
-````cpp
-...
-void Widget::resize(Size size) {
-  bounds_ = size;
-  ...
-}
-````
+Read and follow the [canonical definition](../../.agents/cpp/skills/explanation/SKILL.md) in full.
+This discovery entry is generated; edit the referenced `.agents/` definition.

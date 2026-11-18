@@ -2,49 +2,42 @@
 
 Read README.md before changing repository structure.
 
-Authored capabilities live only under `.agents/base/<kind>/<name>/`,
-`.agents/gpp/<kind>/<name>/`, `.agents/msvc/<kind>/<name>/`, and
-`.agents/win32/<kind>/<name>/`. Each capability owns its complete `SKILL.md` body there.
-Do not restore a separate `standards/` source tree or author shared definitions in `.codex/`,
-`.claude/`, `.agents/skills/`, or `plugins/`.
+Authored skills live under `.agents/<namespace>/skills/<subject>/SKILL.md`, with
+`cpp`, `gpp`, `msvc` and `win32` as the four namespaces. Each skill owns its complete
+frontmatter and guidance. Kind is metadata describing its role; subject determines its path.
+Learner facts live under `.agents/<namespace>/learning/` and are packaged as data.
 
-`.agents/plugins/sources.json` owns the source/package map and generated-root declaration.
-`.codex/skills/`, `.claude/skills/`, `.agents/*/INDEX.md`, marketplace files, and `plugins/*`
-are generated. `.agents/skills/` must not exist: `.agents/` is the sole canonical shared tree.
-Authored host manifests live under
-`.agents/plugins/manifests/`. Run `pwsh .agents/sync-generated.ps1` after authored changes
-and require `pwsh .agents/sync-generated.ps1 -Check` before delivery.
+`.agents/plugins/payloads.json` declares package sources and resources. Host manifests live
+under `.agents/plugins/manifests/`. The Template generator owns `.codex/skills/`,
+`.claude/skills/`, `.agents/INDEX.md`, marketplace files and `plugins/*`.
+Author shared definitions in their namespace source, then regenerate these outputs.
 
-Scope ownership is strict: `base` is platform-neutral C++, `gpp` is the G++/GCC toolchain,
+Scope ownership is strict: `cpp` is platform-neutral C++, `gpp` is the G++/GCC toolchain,
 `msvc` is the MSVC/clang-cl toolchain and scaffold, and `win32` is the user-mode Windows API.
 Toolchain and API selection are independent. Never infer MSVC from the host OS or Win32 use,
 and never make Win32 require one compiler. WDK/kernel guidance remains outside these scopes.
 
-Capability ownership must match the subject named by the capability, not merely a nearby
-design concern or an example that happens to use it. Before adding guidance to an existing
-skill, compare the topic with that skill's name and description; when the topic is a distinct
-general pattern with its own trigger, give it its own capability. In particular, mixins,
-CRTP behavior providers, and policy-style composition belong to `cpp:mixins`, never
-`cpp:domain-design`. `CLAUDE.md` imports this file, so do not duplicate this rule there.
+Capability ownership must match the subject named by the capability. Compare a proposed topic
+with the skill's name and description; a distinct general pattern with its own trigger earns
+its own skill. Mixins, CRTP behavior providers and policy-style composition belong to
+`cpp:mixins`. `CLAUDE.md` imports this file.
 
-Every scope has a documented `utility/` and `utility/scripts/` home. Empty homes state that no
-utilities exist. Repository-owned runtime resources ship inside every plugin that uses them, as
-mapped explicitly by `.agents/plugins/sources.json`: shared scaffold templates are owned by
-`.agents/base/utility/scripts/`, toolchain templates by `gpp`/`msvc`, the Win32 GUI overlay by
-`win32`, and scaffold route profiles are rendered by the route generator, never hand-written.
+Shared scaffold templates are authored once under `.agents/cpp/assets/scaffold/templates/`.
+Toolchain templates and the Win32 overlay belong to their respective scaffold skills under
+`assets/templates/`. `scripts/gen_skill_routes.py --scaffold-assets` materializes shared
+resources and route profiles beside those skills before generic package generation.
+Scaffold scripts use their own packaged resources. Never hand-edit the materialized copies.
 
 Both host plugin manifests omit release versions. New sessions consume the current publisher main.
-Regenerate packages after changing authored source.
+Publish only the canonical cpp, gpp, msvc and win32 packages. Retire superseded names and callers
+in the same cutover. Use the shared catalog's identity policy for both host catalogs, harness
+declarations, SessionStart guidance and scaffold callers.
 
-Publish only the canonical cpp, gpp, msvc, and win32 packages. Do not add compatibility
-packages, aliases, or fallback selectors.
-Use the [shared catalog's identity policy](https://github.com/tj-agents/marketplace#readme)
-for both host catalogs, harness declarations, SessionStart guidance and scaffold callers.
-
-Required validation is the generator check, route self-test, hook tests, marketplace and
-attester tests, both host validators when available, and the
-G++, MSVC and Win32 scaffold acceptance tests (real builds where the toolchains exist).
-Keep historical signed provenance unchanged.
+Run `uv run python -B scripts/gen_skill_routes.py --scaffold-assets`, then
+`pwsh .agents/sync-generated.ps1` after authored changes. Before delivery require the scaffold
+asset check, generated freshness, route self-test, scoped Python build gate, all repository tests,
+both host validators and scaffold acceptance tests, including real builds where toolchains exist.
+Keep historical signed provenance unchanged; refresh trusted pins through their owning workflow.
 
 <!-- BEGIN personal:rules sha256:eee7a719bb90e67aaa81ac101a45836dd099bc745fee61216c99ec7d6075f12d -->
 # Personal rules

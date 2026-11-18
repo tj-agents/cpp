@@ -13,5 +13,10 @@
     "cmake",
     "testing",
     "learning"
+  ],
+  "displayName": "cpp",
+  "dependencies": [
+    "base@tj-agents",
+    "engineering@tj-agents"
   ]
 }
