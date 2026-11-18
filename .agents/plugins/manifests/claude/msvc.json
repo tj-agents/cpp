@@ -12,5 +12,8 @@
     "msvc",
     "clang-cl",
     "cmake"
+  ],
+  "dependencies": [
+    "cpp@tj-agents"
   ]
 }
