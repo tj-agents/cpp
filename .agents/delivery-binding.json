@@ -1,0 +1,32 @@
+{
+  "authorization_resolution": {
+    "standing": "auto",
+    "stopped_by": {
+      "class": "ci-workflow",
+      "path": ".github/workflows/attester-safety.yml"
+    }
+  },
+  "auto_merge": true,
+  "bound_at": "2026-11-10T17:25:23.708799+00:00",
+  "branch": "Fix/WorkflowStandardsSweep",
+  "changed_path_count": 7,
+  "completion_condition": "PR published; coordinator claude:5ed8d853-d8b1-4587-81f9-c4e3254d8c84 owns CI and Tommy approval via the canonical handoff report; no merge authorized.",
+  "head": "6031715ff1ac48c8d55a3635dcfdf9331a2a35b2",
+  "merge_authorization": {
+    "instruction": null,
+    "mode": "absent"
+  },
+  "pending_evidence": [],
+  "pr": 63,
+  "pr_url": "https://github.com/tj-agents/cpp/pull/63",
+  "repo": "tj-agents/cpp",
+  "review": {
+    "reviewed_sha": "6031715ff1ac48c8d55a3635dcfdf9331a2a35b2",
+    "work_order": "C:\\Users\\TommySeery\\source\\repos\\tj-agents\\cpp\\.git\\agent-workflow\\reviews\\23e5d4327ab4c8ef2a092008ecf6c0eb653687de1326aaf1c613ea930b573061\\work-order.md",
+    "work_order_order": [
+      "full"
+    ]
+  },
+  "schema_version": 1,
+  "worktree": "C:\\Users\\TommySeery\\source\\repos\\tj-agents\\cpp.worktrees\\Fix-WorkflowGate-20261110"
+}
