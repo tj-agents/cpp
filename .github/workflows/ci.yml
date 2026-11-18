@@ -4,16 +4,24 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   generated:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Install provenance verifier
         run: |
           sudo apt-get update
           sudo apt-get install --yes gnupg
           gpg --version
+      - name: Generate payloads from authored sources
+        shell: pwsh
+        run: .agents/sync-generated.ps1
       - name: Check generated payloads
         shell: pwsh
         run: .agents/sync-generated.ps1 -Check
@@ -37,3 +45,57 @@ jobs:
           codex plugin list --json
       - name: Validate marketplace and plugins with Claude Code
         run: python3 .github/scripts/validate_claude.py --root .
+
+  regenerate:
+    if: >-
+      github.event_name == 'push'
+      && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+      && !startsWith(github.event.head_commit.message, 'Regenerate packages for ')
+    needs: generated
+    runs-on: ubuntu-latest
+    environment: update-pins
+    concurrency:
+      group: regenerate-main
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: install provenance verifier
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gnupg
+      - name: regenerate and verify payloads
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          .agents/sync-generated.ps1
+          .agents/sync-generated.ps1 -Check
+      - name: mint the updater token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+        with:
+          client-id: ${{ vars.UPDATE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.UPDATE_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - name: publish generated files
+        uses: tj-agents/github-actions/.github/actions/publish-generated@1a8099ab95aaf609704f892087081c35d15b331a
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          source-sha: ${{ github.sha }}
+          branch: ${{ github.event.repository.default_branch }}
+          paths: |
+            .codex/skills
+            .claude/skills
+            plugins
+            .agents/plugins/marketplace.json
+            .claude-plugin/marketplace.json
+            .agents/base/INDEX.md
+            .agents/gpp/INDEX.md
+            .agents/msvc/INDEX.md
+            .agents/win32/INDEX.md
