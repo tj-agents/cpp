@@ -30,8 +30,8 @@ CRTP behavior providers, and policy-style composition belong to `cpp:mixins`, ne
 Every scope has a documented `utility/` and `utility/scripts/` home. Empty homes state that no
 utilities exist. Repository-owned runtime resources ship inside every plugin that uses them, as
 mapped explicitly by `.agents/plugins/sources.json`: shared scaffold templates are owned by
-`.agents/base/utility/scripts/`, toolchain templates by `gpp`/`msvc`, the Win32 GUI overlay by
-`win32`, and scaffold route profiles are rendered by the route generator, never hand-written.
+`.agents/base/utility/scripts/`, toolchain templates by `gpp`/`msvc`, and the Win32 GUI overlay
+by `win32`.
 
 Both host plugin manifests omit release versions. New sessions consume the current publisher main.
 Regenerate packages after changing authored source.
@@ -41,7 +41,7 @@ packages, aliases, or fallback selectors.
 Use the [shared catalog's identity policy](https://github.com/tj-agents/marketplace#readme)
 for both host catalogs, harness declarations, SessionStart guidance and scaffold callers.
 
-Required validation is the generator check, route self-test, hook tests, marketplace and
+Required validation is the generator check, hook tests, marketplace and
 attester tests, both host validators when available, and the
 G++, MSVC and Win32 scaffold acceptance tests (real builds where the toolchains exist).
 Keep historical signed provenance unchanged.

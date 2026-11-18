@@ -7,22 +7,15 @@ from pathlib import Path
 
 CPP_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".ixx"}
 CPP_FILES = {"CMakeLists.txt", "CMakePresets.json", ".clang-format", ".clang-tidy"}
-ROUTES_FILE = Path(".agents") / "skill-routes.json"
 WINDOWS_MARKERS = ("#include <windows.h>", "#include <wil/", "winmain(", "wwinmain(", "createwindowex", "defwindowproc")
 CPP_CONTEXT = "This is a C++ repository. Apply cpp@tj-agents. Load cpp:style and cpp:libraries before code changes, cpp:domain-design when designing records, invariants, operations, or component boundaries, and cpp:learning plus cpp:knowledge before teaching or implementing unfamiliar logic."
-GPP_CONTEXT = "The repository explicitly selects G++. Apply gpp@tj-agents and gpp:toolchain on top of cpp."
-MSVC_CONTEXT = "The repository explicitly selects MSVC/clang-cl. Apply msvc@tj-agents and msvc:toolchain on top of cpp. This does not select Win32 APIs."
-WIN32_CONTEXT = "The repository explicitly selects user-mode Win32 APIs. Apply win32@tj-agents, win32:overview, win32:style, and win32:knowledge. The compiler is selected separately."
-WIN32_SUGGESTION = "Win32 source markers were detected, but no API profile is declared. Consider selecting win32 explicitly; detection does not apply it or choose MSVC."
+WIN32_SUGGESTION = "Win32 source markers were detected. Consider selecting win32 explicitly; detection does not apply it or choose MSVC."
 
 
 def project_root(cwd: Path) -> Path:
     result = subprocess.run(["git", "-C", str(cwd), "rev-parse", "--show-toplevel"], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
     if result.returncode == 0 and result.stdout.strip():
         return Path(result.stdout.strip()).resolve()
-    for candidate in (cwd, *cwd.parents):
-        if (candidate / ROUTES_FILE).is_file():
-            return candidate
     return cwd
 
 
@@ -32,23 +25,6 @@ def tracked_project(cwd: Path) -> tuple[Path, list[str]]:
     if result.returncode == 0:
         return root, [line for line in result.stdout.splitlines() if line]
     return root, [item.name for item in root.iterdir() if item.is_file()]
-
-
-def declared_profile(root: Path) -> tuple[str | None, frozenset[str]] | None:
-    try:
-        declaration = json.loads((root / ROUTES_FILE).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
-    if not isinstance(declaration, dict):
-        return None
-    profile = declaration.get("profile")
-    if isinstance(profile, dict):
-        toolchain = profile.get("toolchain")
-        apis = profile.get("apis", [])
-        if toolchain in (None, "gpp", "msvc") and isinstance(apis, list) and set(apis) <= {"win32"}:
-            return toolchain, frozenset(apis)
-        return None
-    return None
 
 
 def is_cpp_project(files: list[str]) -> bool:
@@ -80,21 +56,11 @@ def is_native_windows(cwd: Path, files: list[str]) -> bool:
 def context_for(cwd: Path, platform: str = sys.platform) -> list[str]:
     del platform
     root, files = tracked_project(cwd)
-    profile = declared_profile(root)
-    if not is_cpp_project(files) and profile is None:
+    if not is_cpp_project(files):
         return []
     context = [CPP_CONTEXT]
-    if profile is None:
-        if is_native_windows(root, files):
-            context.append(WIN32_SUGGESTION)
-        return context
-    toolchain, apis = profile
-    if toolchain == "gpp":
-        context.append(GPP_CONTEXT)
-    elif toolchain == "msvc":
-        context.append(MSVC_CONTEXT)
-    if "win32" in apis:
-        context.append(WIN32_CONTEXT)
+    if is_native_windows(root, files):
+        context.append(WIN32_SUGGESTION)
     return context
 
 
