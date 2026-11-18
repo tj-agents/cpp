@@ -4,6 +4,7 @@
   "source_roots": [
     ".agents/win32",
     ".agents/base/utility/scripts",
+    ".agents/tiers/win32.json",
     ".agents/gen_skill_routes.py",
     ".agents/plugins/sources.json",
     ".agents/plugins/payloads.json",
