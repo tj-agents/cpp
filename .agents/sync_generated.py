@@ -14,6 +14,7 @@ import sys
 FRONTMATTER = re.compile(r"\A---\n(?P<header>.*?)\n---\n(?P<body>.*)\Z", re.DOTALL)
 NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 IDENTIFIER = re.compile(r"(?<![-/\w])([a-z][a-z0-9-]*:[a-z][a-z0-9-]*)(?![-\w])")
+DEPENDENCY_IDENTITY = re.compile(r"^[a-z][a-z0-9-]*@tj-agents$")
 COMPATIBILITY_DEADLINE = "2027-03-31"
 RETIRED_DOC_REFERENCE = re.compile(r"(?<![A-Za-z0-9_.-])(?:BUILD|DIRECTION|KNOWLEDGE|LEARNING|LIBRARIES|MSVC|OVERVIEW|SCAFFOLD|STYLE|TESTING|TOOLCHAIN|WIN32)\.md(?![A-Za-z0-9_/\\-]|\.(?!$|[\s)\]}>,\"`*]))")
 EXPECTED_SCOPE_ROOTS = (".agents/base", ".agents/gpp", ".agents/msvc", ".agents/win32")
@@ -234,6 +235,17 @@ def validate(root: Path, config: dict, payloads: dict, skills: dict[str, dict]) 
                     raise ValueError(f"{manifest_path}: hook path disagrees with source map")
             elif "hooks" in manifest:
                 raise ValueError(f"{manifest_path}: undeclared hook source")
+            if host == "codex":
+                if "dependencies" in manifest:
+                    raise ValueError(f"{manifest_path}: codex manifests must omit dependencies")
+            else:
+                manifest_dependencies = manifest.get("dependencies", [])
+                if not isinstance(manifest_dependencies, list) or not all(
+                    isinstance(value, str) and DEPENDENCY_IDENTITY.fullmatch(value) for value in manifest_dependencies
+                ):
+                    raise ValueError(f"{manifest_path}: dependencies must be <name>@tj-agents identities")
+                if len(manifest_dependencies) != len(set(manifest_dependencies)):
+                    raise ValueError(f"{manifest_path}: duplicate dependency")
     for package, dependencies in payloads.get("dependencies", {}).items():
         if package not in packages or set(dependencies) - set(packages):
             raise ValueError(f"{package}: invalid dependencies")
@@ -441,7 +453,9 @@ def build(root: Path) -> tuple[dict[str, bytes], dict]:
         if harness.is_file():
             declaration = load(harness)
             requires = declaration.get("requires", {})
-            expected = [f"tj-agents/{name}" for name in [package, *payloads["dependencies"].get(package, [])]]
+            claude_manifest = load(root / config["host_manifest_roots"]["claude"] / f"{package}.json")
+            manifest_dependencies = [dependency.split("@", 1)[0] for dependency in claude_manifest.get("dependencies", [])]
+            expected = [f"tj-agents/{name}" for name in [package, *manifest_dependencies]]
             if (declaration.get("plugin") != f"tj-agents/{package}"
                     or requires.get("marketplaces") != [{"id": "tj-agents", "repository": "tj-agents/marketplace"}]
                     or requires.get("plugins") != expected):

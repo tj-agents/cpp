@@ -19,7 +19,8 @@
       }
     ],
     "plugins": [
-      "tj-agents/cpp"
+      "tj-agents/cpp",
+      "tj-agents/engineering"
     ],
     "hooks": [
       {
