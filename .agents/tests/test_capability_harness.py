@@ -40,7 +40,8 @@ class CapabilityHarnessTests(unittest.TestCase):
                 self.assertEqual(harness["plugin"], f"tj-agents/{package}")
                 requires = harness["requires"]
                 self.assertEqual(requires["marketplaces"], [{"id": "tj-agents", "repository": "tj-agents/marketplace"}])
-                dependencies = payloads["dependencies"].get(package, [])
+                claude_manifest = json.loads((ROOT / f".agents/plugins/manifests/claude/{package}.json").read_text(encoding="utf-8"))
+                dependencies = [dependency.split("@", 1)[0] for dependency in claude_manifest.get("dependencies", [])]
                 self.assertEqual(requires["plugins"], [f"tj-agents/{name}" for name in [package, *dependencies]])
                 self.assertEqual(requires["permissions"], {"claude_allow": [], "codex_prefix_rules": []})
                 expected_hooks = [{"path": "hooks/session_context.py", "hosts": ["claude", "codex"]}] if package in payloads["hooks"] else []

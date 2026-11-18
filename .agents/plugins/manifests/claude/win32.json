@@ -12,5 +12,8 @@
     "win32",
     "wil",
     "windows"
+  ],
+  "dependencies": [
+    "cpp@tj-agents"
   ]
 }
