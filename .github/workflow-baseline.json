@@ -1,0 +1,32 @@
+[
+  {
+    "path": ".github/workflows/attester-safety.yml",
+    "rule": "naming",
+    "message": "job 'isolated-resolution' name 'isolated-resolution' must start with an uppercase letter",
+    "reason": "Preserves the existing GitHub check context consumed by branch protection and release qualification."
+  },
+  {
+    "path": ".github/workflows/ci.yml",
+    "rule": "naming",
+    "message": "job 'generated' name 'generated' must start with an uppercase letter",
+    "reason": "Preserves the existing GitHub check context consumed by branch protection and release qualification."
+  },
+  {
+    "path": ".github/workflows/provenance-gate.yml",
+    "rule": "naming",
+    "message": "job 'repository-binding' name 'repository-binding' must start with an uppercase letter",
+    "reason": "Preserves the existing GitHub check context consumed by branch protection and release qualification."
+  },
+  {
+    "path": ".github/workflows/update-provenance-pins.yml",
+    "rule": "naming",
+    "message": "inputs 'consumer_pr' has the wrong case",
+    "reason": "Preserves the workflow dispatch input used by existing provenance callers."
+  },
+  {
+    "path": ".github/workflows/update-provenance-pins.yml",
+    "rule": "naming",
+    "message": "job 'propose' name 'propose' must start with an uppercase letter",
+    "reason": "Preserves the existing GitHub check context consumed by branch protection and release qualification."
+  }
+]
