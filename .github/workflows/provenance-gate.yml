@@ -19,7 +19,7 @@ jobs:
       CANONICAL_REPOSITORY: tj-agents/cpp
       EXPECTED_ATTESTER_ID: "183629855"
       EXPECTED_ATTESTER_LOGIN: tomjseery
-      EXPECTED_PRODUCER_COMMIT: 93d8bd57fbfbd793acdebe542f7ae270a0c1d2a1
+      EXPECTED_PRODUCER_COMMIT: 1e26216e7432b74d6be5cdd2290504cee25272cf
       HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       PR_NUMBER: ${{ github.event.pull_request.number }}

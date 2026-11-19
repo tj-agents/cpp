@@ -90,7 +90,7 @@ scoped guidance rather than imposing them on ordinary MSVC projects.
 Repository: `C:/Users/tommy/source/repos/cpp/windows/cpp-agents`.
 
 Continue the existing work on `docs/generic-msvc-toolchain`; its published implementation
-baseline is [`a05e8a3c5cd5a56ae77e89d3c2a2d400a86be16a`](https://github.com/tomjseery/cpp-agents/commit/a05e8a3c5cd5a56ae77e89d3c2a2d400a86be16a).
+baseline is [`5d7b59698ac2d0c38179b72720d7da3d40773894`](https://github.com/tomjseery/cpp-agents/commit/5d7b59698ac2d0c38179b72720d7da3d40773894).
 That commit adds the functional scaffold and generic MSVC standard, but places them in the
 wrong section. Preserve useful implementation and tests while correcting ownership.
 It is pushed but not merged into main. No PR existed at handoff preparation; recheck live
