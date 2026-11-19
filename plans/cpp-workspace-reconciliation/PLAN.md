@@ -26,7 +26,7 @@ Requested before the wider reconciliation.
   `plans/cpp-design/CPP_DESIGN_STANDARDS_PLAN.md`; it was fast-forward pushed (no force) so
   the branch history lands intact.
 - [x] Exact-head CI, attester safety (Ubuntu/Windows) and repository-binding green on
-  `1fe4183`; merged as `c718b7654d469884b62aa0b5b20cdefa34f3d83a`.
+  `1fe4183`; merged as `0521e49a68f601630fc92395ff333c491e02ddfa`.
 - [x] Release preparation (`Release/v0.2.0`): PR #13 changed every compatibility package's
   content without bumping versions, and compatibility packages leaked canonical identifiers
   for scopes outside their own (for example `msvc:scaffold` in `gcc`). Completed each
@@ -38,7 +38,7 @@ Requested before the wider reconciliation.
   attester safety and repository-binding green on `225a2ad`; independent review found no
   defects (notes: `windows` minor bump is deliberate for new Win32 guidance; widen the leak
   test to scripts — done in Stage 2).
-- [x] User approved; #16 merged as `fa11c1d1c8cc2aff7e3206c3000456f1ba81e2d1`. Release
+- [x] User approved; #16 merged as `4ca6848e0574d08ab10f6f1bd64a7bfe95f3eda7`. Release
   [v0.2.0](https://github.com/tj-agents/cpp/releases/tag/v0.2.0) published from that commit.
 - [x] `sandbox-hwid` adopted the release (v0.3.0, which contains v0.2.0): Claude marketplace
   refreshed and `cpp`/`msvc`/`win32` at 0.3.0 (user scope; `gpp` 0.3.0 also installed for G++
@@ -117,7 +117,7 @@ Compatibility aliases therefore stay through 2027-03-31.
   observation (misleading message for a branch behind main) fixed in `95610ed`.
 - [x] #17 was opened against `main` instead of its parent branch, so it was not a real
   stacked PR; retargeted to `Release/v0.2.0`, then to `main` after #16 merged.
-- [x] #17 merged as `bdabb8dc85ad958d5fa9955f7521f23e003c90b8` after green exact-head CI; `main`
+- [x] #17 merged as `6738bbc85b0a2b28dde4116b9c363651c52803f0` after green exact-head CI; `main`
   CI and attester safety green on the merge commit. Release
   [v0.3.0](https://github.com/tj-agents/cpp/releases/tag/v0.3.0) published from it.
 

@@ -559,7 +559,7 @@ Primary references supporting the design:
 
 - 2026-09-27 behavior-ownership standard merged through
   [PR #28](https://github.com/tj-agents/cpp/pull/28) as
-  `081566bf5c51a7a7406ee36744569e37c852b56b`. The
+  `587322439fd90e82f89e5932a17e442436ce72c4`. The
   authored `cpp:domain-design` addition makes cohesive type ownership a general preference
   rather than a factory-only rule, while retaining free functions for independent or
   cross-type behavior. The change affects `cpp` and the `base`/`cpp-standards` compatibility
@@ -571,7 +571,7 @@ Primary references supporting the design:
   distribution is installed (`execvpe(/bin/bash)` fails). Codex's local CLI is unavailable;
   no claim is made for its host validator. The change itself does not alter scaffolds.
 - 2026-09-23 implementation delivered to the existing review candidates. Source PR #13
-  is at `1229f9d6c355bbf1d11cc2898188429731ffca90`; sandbox draft PR #1 is at
+  is at `ffcf14aa33c33e801d49c7f84cf7b5fb491c7170`; sandbox draft PR #1 is at
   `d37d333358d6bd0b3cdd67d2bc0db45ac52c7a4e`. Both remote heads were verified.
   Source CI, Ubuntu/Windows attester safety and repository-binding are green on that
   exact source head (runs 35868810729, 35868810733 and 35868808748). Both PR descriptions
@@ -601,7 +601,7 @@ Primary references supporting the design:
   existing PRs remain unchanged by this planning step.
 - 2026-09-23 response ownership delivered to [source PR #13](https://github.com/tj-agents/cpp/pull/13)
   and [sandbox draft PR #1](https://github.com/tomjseery/sandbox-hwid/pull/1). Published code
-  commits are `73c039cd86299a825ab9f68f56eb11af7234ec05` and
+  commits are `869c14c14f643afe5a5f59d05af544e070a6b8c6` and
   `977798dd4a45e39b250be0ec53ceb21b90e0a7bd`; remote heads were verified. This plan checkpoint
   follows the source code commit. Unrelated sandbox edits remain local. Neither PR is merged;
   the existing trusted-provenance prerequisite remains with the debt owner below.
@@ -621,7 +621,7 @@ Primary references supporting the design:
   was refreshed and byte-verified. The prior candidate SHAs below remain historical evidence.
 - 2026-09-23 requested correction delivered for review. Source PR
   https://github.com/tomjseery/cpp-agents/pull/13 is updated at
-  `45c448cdf3a9f653a9b9348502b0513e06b3f4fe`; the sandbox companion draft is
+  `6cf20b54998c806bcf47b12f6b77160be0326043`; the sandbox companion draft is
   https://github.com/tomjseery/sandbox-hwid/pull/1 at
   `52e8632fc002111145501859e9d52c4c00cad170`. Both remote branch SHAs were verified after
   pushing, and the existing source PR description was rewritten for the final change.
@@ -654,7 +654,7 @@ Primary references supporting the design:
   the provenance debt entry, since retired from the deleted `TECH_DEBT.md`.
   Preserve this gate when updating PR #13; do not weaken it or post an unverified success.
 - 2026-09-23 correction resumed by the current Codex session at Tommy's request. The source
-  checkout is clean at `f2f4ecd1082a2e7d7f71ac1e9abed062942ebb15`; PR #13 is open at that
+  checkout is clean at `dabd95d1d4d98cae36f6a4810f3866ec910fd70e`; PR #13 is open at that
   exact head: https://github.com/tomjseery/cpp-agents/pull/13. Its generated/attester tests
   passed, but the repository-binding provenance check failed; inspect and resolve or report
   the actual remaining gate when updating the candidate. No merge has occurred.
@@ -665,7 +665,7 @@ Primary references supporting the design:
   ABI checks, build header paths and current design/verification documentation.
 - 2026-09-22 handoff checkpoint: Source checkout remains
   `C:\Users\tommy\AppData\Local\Temp\cpp-agents-explicit-wire-types`, branch
-  `fix/explicit-wire-integer-types`, HEAD `e0304dfcba2db5263eb9822e2b06e6706f311165`.
+  `fix/explicit-wire-integer-types`, HEAD `49dbbeae2ef5c1f45a2dee0759cc88dece9c0342`.
   All design/migration edits described above remain uncommitted. A fresh GitHub query
   for every PR state on this head branch returned `[]`; no PR for this branch was found.
   This session has not published or merged these changes. The source retains the earlier
